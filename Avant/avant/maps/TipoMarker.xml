@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TipoMarker">
+	<select id="listarTipoMarker" resultClass="cl.zpricing.avant.model.TipoMarker">
+		SELECT tipo_marker_id as id
+		,descripcion, color, codigo
+		FROM Tipo_Marker	
+	</select>
+	
+	<insert id="agregarTipoMarker" parameterClass="cl.zpricing.avant.model.TipoMarker" >
+		INSERT INTO
+		Tipo_Marker
+		(descripcion, color, codigo)
+		VALUES (#descripcion#, #color#, #codigo#)			
+	</insert>
+	
+	<delete id="eliminarTipoMarker" parameterClass="int">
+		DELETE Tipo_Marker
+		WHERE tipo_marker_id = #value#
+	</delete>
+	
+	<select id="obtenerTipoMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.TipoMarker">
+		SELECT tipo_marker_id as id, descripcion, color, codigo
+		FROM Tipo_Marker
+		WHERE tipo_marker_id = #value#
+	</select>
+	
+	<update id="modificarTipoMarker" parameterClass="cl.zpricing.avant.model.TipoMarker">
+		UPDATE Tipo_Marker
+		SET descripcion =
+		#descripcion#, codigo = #codigo#, color = #color#
+		WHERE tipo_marker_id= #id#
+	</update>
+	
+</sqlMap>
+

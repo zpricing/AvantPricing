@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Usuario">
+
+<!--Aqui el campo rol es un objeto, por lo que agrego select="" referenciando-->
+<!--a un select de más abajo-->
+	<resultMap id="result" class="cl.zpricing.avant.model.Usuario">
+		<result property="id" column="usuario_id"/>
+		<result property="password" column="password"/>
+		<result property="usuario" column="usuario"/>
+		<result property="nombreCompleto" column="nombre"/>
+		<result property="email" column="email"/>
+		<result property="rol" column="rol_id" select="obtenerRol"/>
+	</resultMap>
+	
+<!-- entonces este select tiene el parametro entero de rol_id y clase resultante de Rol, -->
+<!-- hay que cuidar que el "as" sea como dice en la clase =)-->
+	<select id="obtenerRol" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Rol">
+		SELECT
+		rol_id as id,
+		Nombre as rol,
+		descripcion as descripcion
+		FROM Rol
+		WHERE rol_id = #value#
+	</select>
+	<select id="existeUsuario" resultMap="result">
+		SELECT usuario_id,
+		password, usuario, nombre, email
+		FROM Usuario
+		WHERE usuario=#value#
+	</select>
+
+	<select id="passwordValido" resultMap="result">
+		SELECT usuario_id,
+		password, usuario, nombre, email
+		FROM Usuario
+		WHERE usuario = #usuario# AND password = #password#
+	</select>
+
+	<select id="obtenerTodos" resultMap="result">
+		SELECT usuario_id, password, usuario, nombre, email, rol_id
+		FROM Usuario
+	</select>
+	
+	<select id="getUsuario" resultMap="result">
+		SELECT
+		usuario_id,
+		password,
+		usuario,
+		nombre,
+		email, 
+		rol_id
+		FROM Usuario
+		WHERE usuario_id = #value#
+	</select>
+	
+	<select id="getUsuarioByName" resultMap="result">
+		SELECT usuario_id, password, usuario, nombre, email, rol_id
+		FROM Usuario
+		WHERE usuario = #value#
+	</select>
+
+<!--	<insert id="insertUsuario" parameterClass="cl.zpricing.avant.model.Usuario">-->
+<!--		INSERT INTO-->
+<!--		USUARIO (password, usuario, nombre,email)-->
+<!--		VALUES (#password#,#usuario#,-->
+<!--		#nombreCompleto#,#email#)-->
+<!--	</insert>-->
+	
+	<insert id="insertarUsuario"  parameterClass="cl.zpricing.avant.model.Usuario">
+		INSERT INTO
+		USUARIO (password, usuario, nombre,email, rol_id)
+		VALUES (#password#,#usuario#,
+		#nombreCompleto#,#email#,#rol.id#)
+  	</insert>
+	
+	<delete id="deleteUsuario" parameterClass="int">
+		DELETE Usuario
+		WHERE usuario_id = #value#
+	</delete>
+	
+	<update id="updateUsuario" parameterClass="cl.zpricing.avant.model.Usuario">
+		UPDATE Usuario
+		SET password = #password#, usuario = #usuario#,
+		nombre = #nombreCompleto#, email = #email#, rol_id= #rol.id#
+		WHERE usuario_id=#id#
+  	</update>
+	
+</sqlMap>

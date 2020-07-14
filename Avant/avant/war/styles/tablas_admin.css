@@ -1,0 +1,187 @@
+@CHARSET "ISO-8859-1";
+#rounded-corner {
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	margin-left: 4%;
+	margin-bottom: 45px;
+	width: 90%;
+	text-align: left;
+	border-collapse: collapse;
+}
+#rounded-corner thead th.rounded-company
+{
+	background: black url('../images/table-images/left.png') left -1px no-repeat;
+}
+#rounded-corner thead th.rounded-q4
+{
+	background: black url('../images/table-images/right.png') right -1px no-repeat;
+}
+#rounded-corner th
+{
+	padding: 8px;
+	font-weight: normal;
+	font-size: 13px;
+	color: white;
+	background: black;
+}
+#rounded-corner td
+{
+	padding: 8px;
+	background: #EAEAEA;
+	border-top: 1px solid #fff;
+	color: #669;
+}
+#rounded-corner td a {
+	cursor: pointer;
+}
+#rounded-corner td input[type=text] {
+	background: #EAEAEA;
+	color: #669;
+	border: 1px solid #EAEAEA;
+}
+#rounded-corner  td img.img_cancelar {
+	display: none;
+}
+
+#rounded-corner tr.editando td input[type=text] {
+	background: #EAEAEA;
+	color: black;
+	border: 1px solid #fff;
+	background-color: white;
+	background: white;
+}
+#rounded-corner tr.editando td img.img_editar {
+	display: none;
+}
+#rounded-corner tr.editando td img.img_cancelar {
+	display: inline;
+}
+
+#rounded-corner tfoot td.rounded-foot-left
+{
+	background: #EAEAEA url('../images/table-images/botleft.png') left bottom no-repeat;
+}
+#rounded-corner tfoot td.rounded-foot-right
+{
+	background: #EAEAEA url('../images/table-images/botright.png') right bottom no-repeat;
+}
+#rounded-corner tbody tr.hover td
+{
+	background: #d0dafd;
+	background-color: LightGrey ;
+}
+#rounded-corner tbody tr.hover td input[type=text] {
+	background: #d0dafd;
+	background-color: LightGrey ;
+	border: 1px solid LightGrey;
+}
+
+#rounded-corner a:LINK, a:VISITED{
+text-decoration: none;
+color: red;
+
+}
+
+#rounded-corner #boton{
+	background-color: #666;
+	color: #fff;
+	height:22px;
+	font-size: 12px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+	}
+	
+#contenedor {
+	margin-left: 5%;
+	margin-top: 30px;
+	background-color: white;
+	width: 90%;
+	border: 2px solid #e54224;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  	font-size: 12px;
+  	overflow: auto;
+}
+#titulo {
+	display: block;
+	background-color: #e54224;
+	padding:2px;
+	color: white;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 26px;
+}
+.tooltip {
+	margin-top: 10px;
+	margin-left: 10px;
+	background-color: #EEEEEE;
+	width: auto;
+	border: 2px solid #000000;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  	font-size: 12px;
+}
+
+#tablaForm{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  	font-size: 12px;
+  	color: #669;
+}
+#tablaForm input{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  	font-size: 12px;
+}
+#tablaForm submit {
+	background-color: #666;
+	color: #fff;
+	height:22px;
+	font-size: 12px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+}
+	
+.boton{
+	background-color: #666;
+	color: #fff;
+	height:22px;
+	font-size: 12px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+	
+	}
+#tablaForm #botonImportante{
+	background-color: #666;
+	color: #fff;
+	height:26px;
+	font-size: 14px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+	}
+	
+#tablaForm #botonImportante:hover { 
+	background-color: maroon; 
+	}
+	
+#tablaForm #botonImportante2{
+	background-color: #666;
+	color: #fff;
+	height:26px;
+	font-size: 14px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+	}
+	
+#tablaForm #botonImportante2:hover { 
+	background-color: maroon; 
+	}
+
+#tablaForm #boton:hover { 
+	background-color: #006ab3; 
+	}
+#tablaForm select{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  	font-size: 12px;
+	
+}

@@ -1,0 +1,162 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Customer data buying extraction from Cineticket.
+    </description>
+    
+    <connection id="avant" driver="spring" url="dataSource">
+        autocommit = true
+    </connection>
+    <connection id="cineticket" driver="spring" url="dataSourceCineticket"> 
+        statement.fetchSize = -2147483648
+    </connection>
+    
+    <script connection-id="avant">
+    	IF OBJECT_ID('temp_cineticket_customer', 'U') IS NOT NULL DROP TABLE temp_cineticket_customer 
+    	CREATE TABLE temp_cineticket_customer (rut varchar(50), email varchar(255), comuna varchar(255), nombre varchar(255), apellido_paterno varchar(255), apellido_materno varchar(255), nombre_pelicula varchar(255), funcion datetime, cantidad int, total numeric(12,4), nombre_ticket varchar(255), cinema_code varchar(255), dia int, hora int, fecha_compra datetime);
+    </script>
+    
+    <query connection-id="avant">
+    	SELECT codigo as last_transaction_datetime
+    	FROM Parametro
+    	WHERE sistema = 'data_extraction' AND sub_sistema = 'cineticket_last_transaction'
+    
+	    <query connection-id="cineticket">
+	    	SELECT distinct c.rut, c.mail, c.comuna, c.nombre, c.apellido, c.apellido_materno, doc.nombre_pelicula, doc.fechahora_funcion, doc.cantidad, doc.total, doc.tipo_ticket, CASE WHEN oc.cinema_code like '0%' THEN oc.cinema_code ELSE cmp.codigo_externo END as cinema_code, DAYOFWEEK(doc.fechahora_funcion) as dia, HOUR(doc.fechahora_funcion) as hora, oc.created_at
+	    	FROM orden_compra oc 
+	    	JOIN detalle_orden_compra doc ON oc.id_orden_compra = doc.id_orden_compra 
+	    	JOIN cliente c ON oc.id_cliente = c.id_cliente 
+	    	LEFT JOIN complejo cmp ON oc.cinema_code = cmp.id 
+	    	WHERE oc.estado = 'Pagado'
+	    	AND (?last_transaction_datetime IS NULL OR oc.created_at > ?last_transaction_datetime)
+	
+			<script connection-id="avant">
+	    		INSERT INTO temp_cineticket_customer (rut, email, comuna, nombre, apellido_paterno, apellido_materno, nombre_pelicula, funcion, cantidad, total, nombre_ticket, cinema_code, dia, hora, fecha_compra)
+	    		VALUES (?rut, ?mail, ?comuna, ?nombre, ?apellido, ?apellido_materno, ?nombre_pelicula, ?fechahora_funcion, ?cantidad, ?total, ?tipo_ticket, ?cinema_code, ?dia, ?hora, ?created_at)
+	    		
+	    		INSERT INTO ClienteTransaccion (rut, email, comuna, nombre, apellido_paterno, apellido_materno, nombre_pelicula, funcion, cantidad_entradas, total_pagado, nombre_ticket, codigo_cine, dia, hora, fecha_compra)
+	    		VALUES (?rut, ?mail, ?comuna, ?nombre, ?apellido, ?apellido_materno, ?nombre_pelicula, ?fechahora_funcion, ?cantidad, ?total, ?tipo_ticket, ?cinema_code, ?dia, ?hora, ?created_at)
+	    	</script>
+	    </query>
+    </query>
+    
+    <script connection-id="avant">
+    	INSERT Zona_Geografica_Comuna (nombre, zona_geografica_id)
+		SELECT distinct comuna, 1
+		FROM temp_cineticket_customer temp
+		WHERE temp.comuna IS NOT NULL AND NOT EXISTS (SELECT * FROM Zona_Geografica_Comuna c WHERE c.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT)
+    </script>
+    
+    <script connection-id="avant">
+    	UPDATE Cliente
+    	SET comuna_id = cliente_comuna.comuna_id
+    	FROM (
+	    	SELECT temp.rut, temp.email, c.comuna_id, MAX(temp.funcion) as ultima_compra
+	    	FROM temp_cineticket_customer temp
+	    	JOIN Zona_Geografica_Comuna c ON (temp.comuna IS NULL AND c.nombre = 'N/A') OR c.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+	    	GROUP BY temp.rut, temp.email, c.comuna_id
+    	) cliente_comuna
+    	WHERE Cliente.rut = cliente_comuna.rut
+    	AND Cliente.email = cliente_comuna.email
+    </script>
+    
+    <script connection-id="avant">
+    	INSERT Cliente (nombre, rut, email, comuna_id)
+		SELECT distinct temp.nombre, temp.rut, temp.email , com.comuna_id
+		FROM temp_cineticket_customer temp
+		JOIN Zona_Geografica_Comuna com ON (temp.comuna IS NULL AND com.nombre = 'N/A') OR com.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM Cliente c WHERE c.rut COLLATE DATABASE_DEFAULT = temp.rut COLLATE DATABASE_DEFAULT AND c.email COLLATE DATABASE_DEFAULT = temp.email COLLATE DATABASE_DEFAULT)
+    </script>
+    
+    <script id="update_attendance_from_customers" connection-id="avant">
+		UPDATE ClienteComportamientoAsistencia
+		SET asistencia = asistencia + temp.compras
+		FROM (SELECT rut, email, dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT rut, email, dia, CASE WHEN hora >= 19 THEN 2 WHEN hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_cineticket_customer) as X
+			GROUP BY rut, email, dia, bloque_horario
+			) as temp
+			JOIN Cliente ON temp.rut COLLATE DATABASE_DEFAULT = Cliente.rut COLLATE DATABASE_DEFAULT AND temp.email COLLATE DATABASE_DEFAULT = Cliente.email COLLATE DATABASE_DEFAULT
+		WHERE ClienteComportamientoAsistencia.cliente_id = Cliente.cliente_id
+		AND ClienteComportamientoAsistencia.dia_semana = temp.dia
+		AND ClienteComportamientoAsistencia.bloque_horario = temp.bloque_horario
+	</script>
+    
+    <script id="insert_new_attendance_from_customers" connection-id="avant">
+    	INSERT ClienteComportamientoAsistencia (cliente_id, dia_semana, bloque_horario, asistencia)
+		SELECT c.cliente_id, temp.dia, temp.bloque_horario, temp.compras
+		FROM (
+			SELECT rut, email, dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT rut, email, dia, CASE WHEN hora >= 19 THEN 2 WHEN hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_cineticket_customer) as X
+			GROUP BY rut, email, dia, bloque_horario
+			) as temp
+		JOIN Cliente c ON temp.rut COLLATE DATABASE_DEFAULT = c.rut COLLATE DATABASE_DEFAULT AND temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClienteComportamientoAsistencia cca 
+							WHERE cca.cliente_id = c.cliente_id
+							AND cca.dia_semana = temp.dia
+							AND cca.bloque_horario = temp.bloque_horario)
+	</script>
+	
+	<script connection-id="avant">
+		UPDATE ClientePreferenciasCine
+		SET
+			ClientePreferenciasCine.asistencia = ClientePreferenciasCine.asistencia + temp.asistencia
+		FROM (
+			SELECT c.cliente_id, cmp.complejo_id, COUNT(*) as asistencia
+			FROM temp_cineticket_customer temp
+			JOIN Cliente c ON temp.rut COLLATE DATABASE_DEFAULT = c.rut COLLATE DATABASE_DEFAULT AND temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+			JOIN Complejo cmp ON cmp.complejo_id_externo COLLATE DATABASE_DEFAULT = temp.cinema_code COLLATE DATABASE_DEFAULT
+			GROUP BY c.cliente_id, cmp.complejo_id
+		) as temp
+		WHERE 
+			ClientePreferenciasCine.complejo_id = temp.complejo_id
+		AND
+			ClientePreferenciasCine.cliente_id = temp.cliente_id
+		AND
+			ClientePreferenciasCine.asistencia  != temp.asistencia
+	</script>
+	
+	<script connection-id="avant">
+		INSERT ClientePreferenciasCine (cliente_id, complejo_id, asistencia)
+    	SELECT temp.cliente_id, temp.complejo_id, temp.asistencia
+    	FROM (
+    		SELECT c.cliente_id, cmp.complejo_id, COUNT(*) as asistencia
+			FROM temp_cineticket_customer temp
+			JOIN Cliente c ON temp.rut COLLATE DATABASE_DEFAULT = c.rut COLLATE DATABASE_DEFAULT AND temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+			JOIN Complejo cmp ON cmp.complejo_id_externo COLLATE DATABASE_DEFAULT = temp.cinema_code COLLATE DATABASE_DEFAULT
+			GROUP BY c.cliente_id, cmp.complejo_id
+    	) as temp
+		WHERE NOT EXISTS (SELECT * FROM ClientePreferenciasCine cpc 
+							WHERE cpc.cliente_id = temp.cliente_id
+							AND cpc.complejo_id = temp.complejo_id)
+	</script>
+	
+	<script connection-id="avant">
+		INSERT ClientePeliculasVistas (cliente_id, pelicula_nombre, pelicula_id)
+		SELECT c.cliente_id, temp.nombre_pelicula, p.pelicula_id
+		FROM temp_cineticket_customer temp
+		JOIN Cliente c ON temp.rut COLLATE DATABASE_DEFAULT = c.rut COLLATE DATABASE_DEFAULT AND temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		LEFT JOIN Pelicula p ON p.nombre COLLATE DATABASE_DEFAULT = temp.nombre_pelicula COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClientePeliculasVistas cpa 
+							WHERE cpa.cliente_id = c.cliente_id
+							AND cpa.pelicula_nombre COLLATE DATABASE_DEFAULT = temp.nombre_pelicula COLLATE DATABASE_DEFAULT)
+	</script>
+	
+	<script connection-id="avant">
+    	UPDATE Parametro
+		SET codigo = X.last_transaction
+		FROM (SELECT MAX(fecha_compra) as last_transaction
+			  FROM temp_cineticket_customer) as X
+		WHERE Parametro.sistema = 'data_extraction'
+		AND Parametro.sub_sistema = 'cineticket_last_transaction'
+		AND X.last_transaction IS NOT NULL
+    </script>
+    
+    <script connection-id="avant">
+    	DROP TABLE temp_cineticket_customer
+    </script>
+	
+</etl>

@@ -1,0 +1,86 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Carga de data de Upselling.
+    </description>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="zpcinemas-ors" driver="mysql"/> 
+    
+    <script id="create_upselling_database_temp" connection-id="zpcinemas-ors">
+    	DELETE FROM upselling_sessions;
+    	
+    	DROP TABLE IF EXISTS upselling_funcionarea_temp;
+    	CREATE TABLE upselling_funcionarea_temp (
+			cinema_id varchar(10), 
+			session_id int(11), 
+			session_date datetime, 
+			movie_name varchar(255), 
+			ticket_type_id varchar(50), 
+			price decimal(18,4), 
+			bfee decimal(18,4), 
+			full_price decimal(18,4), 
+			full_bfee decimal(18,4),
+			available INT DEFAULT 0,
+			occupied INT DEFAULT 0,
+			total INT DEFAULT 0);
+    </script>
+    
+    <query id="select_upselling_sessions" connection-id="zpcinemas">
+    	SELECT F.funcion_id_externo as session_id, FUS.funcion_id_externo as session_upselling_id, C.complejo_id_externo, US.upselling_orden
+    	FROM Upselling_Sessions US
+    	JOIN Funcion F ON F.funcion_id = US.funcion_id
+    	JOIN Funcion FUS ON FUS.funcion_id = US.funcion_upselling_id 
+    	JOIN Complejo C ON F.complejo_id = C.complejo_id
+		
+		<script id="insert_upselling_sessions" connection-id="zpcinemas-ors">
+       		INSERT INTO upselling_sessions (cinema_id, session_id, session_upselling_id, upselling_order) 
+    		VALUES (?complejo_id_externo, ?session_id, ?session_upselling_id, ?upselling_orden)
+		</script>
+    </query>
+    
+    <query id="select_upselling_funcionArea" connection-id="zpcinemas">
+    	SELECT DISTINCT F.funcion_id as upselling_funcion_id, C.complejo_id_externo, F.funcion_id_externo as upselling_funcion_id_externo, 
+			F.fecha as funcion_fecha, P.nombre as pelicula_nombre, TC.ticket_id_externo, 
+			PCT.precio, PCT.bfee, PCTA.precio as precio_full, PCTA.bfee as bfee_full, COALESCE(AGM.capacidad, 0) as available, 0 as occupied
+		FROM
+			(SELECT T.ticket_id 
+				FROM Area A
+				JOIN Ticket T ON A.id = T.area_id AND A.descripcion = 'Upselling'
+			) TUS,
+			(SELECT T.ticket_id 
+				FROM Area A
+				JOIN Ticket T ON A.id = T.area_id AND A.descripcion = 'Adulto'
+			) TA,
+			Upselling_FuncionArea UFA
+		JOIN Funcion F ON F.funcion_id = UFA.funcion_id 
+		JOIN Complejo C ON c.complejo_id = F.complejo_id
+		JOIN Pelicula P ON F.pelicula_id = P.pelicula_id
+		JOIN Pel_Formato PF ON P.pel_formato_id = PF.id
+		JOIN PriceCardTicket PCT ON F.price_card_id = PCT.pricecard_id
+		JOIN PriceCardTicket PCTA ON F.price_card_id = PCTA.pricecard_id
+		JOIN Ticket_Complejo TC ON F.complejo_id = TC.complejo_id
+		JOIN Sala S ON F.sala_id = S.sala_id
+		JOIN Area_Grupo_Mascara AGM ON AGM.grupo_id = S.grupo_id AND AGM.mascara_id = F.mascara_id
+		JOIN Area A ON AGM.area_id = A.id AND A.descripcion = 'Upselling'
+		WHERE PCT.ticket_id = TUS.ticket_id
+		AND PCTA.ticket_id = TA.ticket_id
+		AND TC.ticket_id = TUS.ticket_id
+	
+		<script id="insert_upselling_funcionArea" connection-id="zpcinemas-ors">
+       		INSERT upselling_funcionarea_temp (cinema_id, session_id, session_date, movie_name, ticket_type_id, price, bfee, full_price, full_bfee, available, occupied, total)
+    		VALUES (?complejo_id_externo, ?upselling_funcion_id_externo, ?funcion_fecha, ?pelicula_nombre, ?ticket_id_externo, ?precio, ?bfee, ?precio_full, ?bfee_full, ?available, ?occupied, ?available)
+		</script>
+    </query>
+    
+    <script id="insert_upselling_funcionArea" connection-id="zpcinemas-ors">
+    	INSERT upselling_funcionarea (cinema_id, session_id, session_date, movie_name, ticket_type_id, price, bfee, full_price, full_bfee, available, occupied, total)
+   		SELECT cinema_id, session_id, session_date, movie_name, ticket_type_id, price, bfee, full_price, full_bfee, available, occupied, total
+   		FROM upselling_funcionarea_temp uft
+   		WHERE NOT EXISTS (SELECT * FROM upselling_funcionarea uf WHERE uf.cinema_id = uft.cinema_id AND uf.session_id = uft.session_id)
+	</script>
+	
+	<script id="drop_movies_temp" connection-id="zpcinemas-ors">
+		DROP TABLE upselling_funcionarea_temp;
+	</script>
+</etl>

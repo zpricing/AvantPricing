@@ -1,0 +1,81 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de funciones.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/>
+    
+    <script connection-id="zpcinemas">
+    	IF OBJECT_ID('funcion_temp', 'U') IS NOT NULL DROP TABLE funcion_temp
+    	CREATE TABLE funcion_temp (session_code int, screen_code int, film_code varchar(10), session_date datetime, session_business_date datetime, price_card_code varchar(10), Session_bytSeatAllocType int, cinema_code varchar(10));
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT CodFuncion, CodLPrecios, CodSala, FecFuncion, CodLPrecios, CodComplejo, CodPelicula, Numerada, Cancelada, CONVERT(DATETIME, CONVERT(VARCHAR(10), FecFuncion, 120) + ' ' + HoraComFuncion, 120) as FechaHora
+		FROM Funcion
+		WHERE (('false' = ?full_data_extraction AND FecFuncion >= DATEADD(day, -4, GETDATE())) OR ('true' = ?full_data_extraction AND  FecFuncion >= DATEADD(year, -2, GETDATE()) ))
+		AND Cancelada = 0
+
+       	<script connection-id="zpcinemas">
+       		INSERT 
+       		INTO funcion_temp (session_code, screen_code, film_code, session_date, session_business_date, price_card_code, Session_bytSeatAllocType, cinema_code) 
+       		VALUES (?CodFuncion, ?CodSala, ?CodPelicula, ?FechaHora, ?FecFuncion, ?CodLPrecios, ?Numerada, ?CodComplejo)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO Funcion (sala_id, pelicula_id, complejo_id, fecha, funcion_id_externo, fecha_contabilidad, price_card_id)
+    	SELECT s.sala_id, p.pelicula_id, c.complejo_id, session_date, ft.session_code, session_business_date, pc.id
+		FROM funcion_temp ft
+		JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = ft.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Pelicula_Complejo p ON p.pelicula_complejo_id_externo COLLATE DATABASE_DEFAULT = ft.film_code COLLATE DATABASE_DEFAULT AND p.complejo_id = c.complejo_id
+		JOIN Sala s ON s.complejo_id = c.complejo_id AND s.sala_id_externo = ft.screen_code
+		JOIN PriceCard pc ON pc.price_card_code COLLATE DATABASE_DEFAULT = ft.price_card_code COLLATE DATABASE_DEFAULT AND pc.complejo_id = c.complejo_id
+		WHERE NOT EXISTS (SELECT * FROM Funcion f WHERE f.funcion_id_externo = ft.session_code AND f.complejo_id = c.complejo_id)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	UPDATE Funcion
+    	SET
+    		sala_id = Sala.sala_id,
+    		pelicula_id = Pelicula_Complejo.pelicula_id,
+    		fecha = funcion_temp.session_date,
+    		price_card_id = PriceCard.id
+    	FROM
+			funcion_temp
+		JOIN Complejo ON Complejo.complejo_id_externo COLLATE DATABASE_DEFAULT = funcion_temp.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Pelicula_Complejo ON Pelicula_Complejo.pelicula_complejo_id_externo COLLATE DATABASE_DEFAULT = funcion_temp.film_code COLLATE DATABASE_DEFAULT AND Pelicula_Complejo.complejo_id = Complejo.complejo_id
+		JOIN Sala ON Sala.complejo_id = Complejo.complejo_id AND Sala.sala_id_externo = funcion_temp.screen_code
+		JOIN PriceCard ON PriceCard.price_card_code COLLATE DATABASE_DEFAULT = funcion_temp.price_card_code COLLATE DATABASE_DEFAULT AND PriceCard.complejo_id = Complejo.complejo_id
+		WHERE (Funcion.funcion_id_externo = funcion_temp.session_code AND Funcion.complejo_id = Complejo.complejo_id)
+		AND (Funcion.sala_id != Sala.sala_id OR Funcion.pelicula_id != Pelicula_Complejo.pelicula_id OR Funcion.fecha != funcion_temp.session_date OR Funcion.price_card_id != PriceCard.id)
+		
+    </script>
+    
+    <query connection-id="zpcinemas">
+    	SELECT MIN(session_date) as min_session_date FROM funcion_temp
+    	
+    	<query connection-id="zpcinemas">
+    		SELECT f.funcion_id
+			FROM Funcion f
+			JOIN Complejo c ON f.complejo_id = c.complejo_id
+			WHERE c.complejo_id_externo = ?cinema_code
+			AND f.fecha >= ?min_session_date
+			AND NOT EXISTS (SELECT * FROM funcion_temp WHERE cinema_code COLLATE DATABASE_DEFAULT = c.complejo_id_externo COLLATE DATABASE_DEFAULT AND session_code = f.funcion_id_externo)
+			
+			<script connection-id="zpcinemas">
+				UPDATE Funcion set eliminada = 1 WHERE funcion_id = ?funcion_id
+			</script>
+    	</query>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	DROP table funcion_temp
+    </script>
+</etl>

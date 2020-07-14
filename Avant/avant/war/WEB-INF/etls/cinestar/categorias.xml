@@ -1,0 +1,36 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de categorias.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script connection-id="zpcinemas">
+    	IF OBJECT_ID('categorias_stagging', 'U') IS NOT NULL DROP TABLE categorias_stagging 
+    	CREATE TABLE categorias_stagging (code varchar(255), name varchar(255));
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT Codigo as code, Descripcion as name
+        FROM Genero
+        
+       	<script connection-id="zpcinemas">
+       		INSERT INTO categorias_stagging (code, name) VALUES (?code, ?name)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT Categoria (descripcion, categoria_id_externo)
+		SELECT name, code
+		FROM categorias_stagging cs
+		WHERE NOT EXISTS (SELECT * FROM Categoria c WHERE c.categoria_id_externo COLLATE DATABASE_DEFAULT = cs.code COLLATE DATABASE_DEFAULT)
+		
+		DROP table categorias_stagging
+    </script>
+</etl>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Pelicula">
+
+	<resultMap class="cl.zpricing.avant.model.Parametro" id="MapParametro">
+		<result property="sistema" column="sistema" />
+		<result property="subSistema" column="sub_sistema" />
+		<result property="codigo" column="codigo" />
+	</resultMap>
+
+	<select id="obtenerParametro" resultMap="MapParametro">
+		SELECT sistema, sub_sistema, codigo
+		FROM Parametro
+		WHERE sistema = #sistema#
+		AND sub_sistema = #subSistema#
+	</select>
+	
+	<select id="obtenerParametrosSistema" parameterClass="java.lang.String" resultMap="MapParametro">
+		SELECT sistema, sub_sistema, codigo
+		FROM Parametro
+		WHERE sistema = #sistema#
+	</select>
+	
+	<select id="obtenerSistemas" resultClass="java.lang.String">
+		SELECT DISTINCT sistema
+		FROM Parametro
+	</select>
+	
+	<update id="actualizarParametro" parameterClass="cl.zpricing.avant.model.Parametro">
+		UPDATE Parametro
+		SET codigo = #codigo#
+		WHERE sistema = #sistema# AND sub_sistema = #subSistema#
+	</update>
+	
+	<insert id="nuevoParametro" parameterClass="cl.zpricing.avant.model.Parametro">
+		INSERT INTO
+		Parametro (sistema, sub_sistema, codigo)
+		VALUES (#sistema#, #subSistema#, #codigo#)
+	</insert>
+	
+</sqlMap>

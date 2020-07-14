@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Log">
+
+	<resultMap class="cl.zpricing.avant.model.log.Log" id="LogMap">
+		<result property="id" column="log_id" />
+		<result property="timestamp" column="timestamp" />
+		<result property="tipoLog" column="tipo_log" select="obtenerTipoLog" />
+		<result property="descripcion" column="detalle" />
+	</resultMap>
+	
+	<select id="obtenerLogsTipoLog" parameterClass="cl.zpricing.avant.model.log.TipoLog"
+		resultMap="LogMap">
+		SELECT log_id, timestamp, tipo_log, detalle
+		FROM log
+		WHERE tipo_log = #id#
+	</select>
+	
+	<insert id="insertarLog" parameterClass="cl.zpricing.avant.model.log.Log">
+		INSERT INTO log
+		(tipo_log, detalle)
+		VALUES (#tipoLog.id# , #descripcion#)
+	</insert>
+
+</sqlMap>

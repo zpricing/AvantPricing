@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TimeSpan">
+
+	<resultMap class="cl.zpricing.avant.model.loadmanager.TimeSpan" id="TimeSpanMap">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion" />
+		<result property="dias" column="dias" />
+		<result property="horaInicio" column="hora_inicio"/>
+		<result property="horaFin" column="hora_fin"/>
+	</resultMap>
+
+	<select id="obtenerTimeSpan" parameterClass="java.lang.Integer" resultMap="TimeSpanMap">
+		SELECT id, descripcion, dias, hora_inicio, hora_fin
+		FROM TimeSpan
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerTodosTimeSpan" resultMap="TimeSpanMap">
+		SELECT id, descripcion, dias, hora_inicio, hora_fin
+		FROM TimeSpan
+	</select>
+	
+	<select id="obtenerTimeSpanPorComplejoFuncion" parameterClass="java.util.Map" resultMap="TimeSpanMap">
+		SELECT id, descripcion, dias, hora_inicio, hora_fin
+  		FROM TimeSpan
+  		WHERE complejo_id = #complejo_id#
+  		AND dias like #dia#
+  		AND hora_inicio &lt;= #hora_inicio#
+  		AND hora_fin > #hora_fin#
+	</select>
+	
+	<select id="obtenerTodosParaComplejo" parameterClass="java.lang.Integer" resultMap="TimeSpanMap">
+		SELECT id, descripcion, dias, hora_inicio, hora_fin
+		FROM TimeSpan
+		WHERE complejo_id = #value#
+		AND dias is not null
+	</select>
+	
+	<select id="obtenerTimeSpan3d" parameterClass="java.lang.Integer" resultMap="TimeSpanMap">
+		SELECT id, descripcion, dias, hora_inicio, hora_fin
+		FROM TimeSpan
+		WHERE descripcion like '3D'
+		AND complejo_id = #value#
+	</select>
+
+</sqlMap>

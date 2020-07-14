@@ -1,0 +1,42 @@
+# Development Ant Variables
+#ant.home=
+#appserver.home=/Library/Tomcat/Home
+
+# CI Ant Variables
+ant.home=C:/ant
+appserver.home=C:/Program Files/Apache Software Foundation/Tomcat 6.0
+appserver.lib=${appserver.home}/lib
+
+deploy.path=${appserver.home}/webapps
+
+devel.avant.app.name=Avant
+devel.avant.ors.app.name=AvantServices
+
+demo.tomcat.remote.url=http://190.151.20.26:31415/manager
+demo.tomcat.remote.username=admin
+demo.tomcat.remote.password=book
+demo.app.name=AvantDemo
+
+lab.tomcat.remote.url=http://190.151.20.26:31415/manager
+lab.tomcat.remote.username=admin
+lab.tomcat.remote.password=book
+lab.avant.app.name=AvantLab
+
+testing.tomcat.local.url=http://localhost:8080/manager
+testing.tomcat.local.username=zpricing
+testing.tomcat.local.password=AG255
+testing.avant.app.name=AvantTest
+testing.avant.ors.app.name=AvantServices
+
+hoyts.tomcat.remote.url=http://190.151.20.26:31415/manager
+hoyts.tomcat.remote.username=admin
+hoyts.tomcat.remote.password=book
+hoyts.avant.app.name=AvantHoyts
+hoyts.avant.ors.app.name=ZPCinemasWS
+
+cinepolis.tomcat.remote.url=http://10.2.90.26/manager
+cinepolis.tomcat.remote.username=zpricing
+cinepolis.tomcat.remote.password=AG255
+cinepolis.avant.app.name=Avant
+cinepolis.avant.ors.app.name=ZPCinemasWS
+

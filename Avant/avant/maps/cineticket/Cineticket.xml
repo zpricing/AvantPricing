@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cineticket">
+	<select id="extraccionTransaccionesCineticket" resultClass="java.util.HashMap">
+		<![CDATA[ 
+			SELECT *
+			FROM 
+				(SELECT distinct c.rut, c.mail, c.comuna, c.nombre, c.apellido, c.apellido_materno, doc.nombre_pelicula, doc.fechahora_funcion, doc.cantidad, doc.total, doc.tipo_ticket, CASE WHEN oc.cinema_code like '0%' THEN oc.cinema_code ELSE cmp.codigo_externo END as cinema_code, DAYOFWEEK(doc.fechahora_funcion) as dia, HOUR(doc.fechahora_funcion) as hora, oc.created_at, @curRow := @curRow + 1 as row_number
+		    	FROM orden_compra oc 
+		    	JOIN detalle_orden_compra doc ON oc.id_orden_compra = doc.id_orden_compra 
+		    	JOIN cliente c ON oc.id_cliente = c.id_cliente
+		    	JOIN (SELECT @curRow := 0) r
+		    	LEFT JOIN complejo cmp ON oc.cinema_code = cmp.id 
+		    	WHERE oc.estado = #estado#
+		    	AND oc.created_at > #fecha_desde#
+		    	AND doc.fechahora_funcion != '0000-00-00 00:00:00') as T
+	    	WHERE T.row_number BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	    ]]>
+	</select>
+	
+	<select id="extraccionClientesCineticket" resultClass="java.util.HashMap">
+		<![CDATA[ 
+			SELECT *
+			FROM 
+				(SELECT c.id_cliente, c.nombre, c.apellido, c.apellido_materno, c.rut, c.mail, c.comuna, CASE WHEN c.fecha_nacimiento = '0000-00-00' THEN null ELSE c.fecha_nacimiento END as fecha_nacimiento, c.created_at, c.updated_at, @curRow := @curRow + 1 as row_number
+				FROM cliente c
+				JOIN (SELECT @curRow := 0) r
+				WHERE c.updated_at > #fecha_desde#
+				) as T 
+		    WHERE T.row_number BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	    ]]>
+	</select>
+</sqlMap>

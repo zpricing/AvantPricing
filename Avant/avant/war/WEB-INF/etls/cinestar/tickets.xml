@@ -1,0 +1,48 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de tickets.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script connection-id="zpcinemas">
+   		IF OBJECT_ID('ticket_temp', 'U') IS NOT NULL DROP TABLE ticket_temp 
+    	CREATE TABLE ticket_temp (code varchar(50), description varchar(255), cinema_code varchar(50));
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT e.CodCatEntrada, e.NomCatEntrada, c.CodComplejo
+		FROM CatEntrada as e, Complejo c
+		
+       	<script connection-id="zpcinemas">
+       		INSERT INTO ticket_temp (code, description, cinema_code) 
+       		VALUES (?CodCatEntrada, ?NomCatEntrada, ?CodComplejo)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO Ticket (descripcion, ticket_id_externo)
+    	SELECT tt.description, tt.code
+		FROM ticket_temp tt
+		WHERE NOT EXISTS (SELECT * FROM Ticket t WHERE t.ticket_id_externo COLLATE DATABASE_DEFAULT = tt.code COLLATE DATABASE_DEFAULT)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO Ticket_Complejo (descripcion, ticket_id_externo, complejo_id, ticket_id)
+    	SELECT tt.description, tt.code, c.complejo_id, t.ticket_id
+		FROM ticket_temp tt
+		JOIN Ticket t ON t.ticket_id_externo COLLATE DATABASE_DEFAULT = tt.code COLLATE DATABASE_DEFAULT
+		JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = tt.cinema_code COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM Ticket_Complejo tc WHERE tc.ticket_id_externo COLLATE DATABASE_DEFAULT = tt.code COLLATE DATABASE_DEFAULT AND tc.complejo_id = c.complejo_id)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	DROP TABLE ticket_temp
+    </script>
+</etl>

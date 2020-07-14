@@ -1,0 +1,2124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd">
+         
+<changeSet author="Jaime Hernandez" id="1.0.0">
+	<tagDatabase tag="1.0.0"/>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="update_log_procesos">
+	<update tableName="Log_Procesos">
+	    <column name="estado" value="Finished"/>
+	    <column name="estado_subetapa" value="Finished"/>
+	    <where>estado='Finalizado'</where>
+	</update>
+	<update tableName="Log_Procesos">
+	    <column name="estado" value="Running"/>
+	    <where>estado='En Ejecucion'</where>
+	</update>
+	<rollback>
+		<update tableName="Log_Procesos">
+	    	<column name="estado" value="Finalizado"/>
+	    	<column name="estado_subetapa" value="Finalizado"/>
+	    <where>estado='Finished'</where>
+		</update>
+		<update tableName="Log_Procesos">
+		    <column name="estado" value="En Ejecucion"/>
+		    <where>estado='Running'</where>
+		</update>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="FKUpselling">
+	<dropForeignKeyConstraint constraintName="FK_Upselling_Funcion" baseTableName="Upselling_Sessions"/>
+	<dropForeignKeyConstraint constraintName="FK_Upselling_Funcion1" baseTableName="Upselling_Sessions"/>
+	<dropForeignKeyConstraint constraintName="FK_Upselling_FuncionArea" baseTableName="Upselling_FuncionArea"/>
+
+	<addForeignKeyConstraint constraintName="FK_Upselling_Funcion" baseTableName="Upselling_Sessions" 
+		baseColumnNames="funcion_id" referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"/>
+	<addForeignKeyConstraint constraintName="FK_Upselling_FuncionArea" baseTableName="Upselling_FuncionArea" 
+		baseColumnNames="funcion_id" referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"/>
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Upselling_Funcion" baseTableName="Upselling_Sessions"/>
+		<dropForeignKeyConstraint constraintName="FK_Upselling_FuncionArea" baseTableName="Upselling_FuncionArea"/>
+
+		<addForeignKeyConstraint constraintName="FK_Upselling_Funcion" baseTableName="Upselling_Sessions" 
+			baseColumnNames="funcion_id" referencedTableName="Funcion" referencedColumnNames="funcion_id"/>
+		<addForeignKeyConstraint constraintName="FK_Upselling_Funcion1" baseTableName="Upselling_Sessions" 
+			baseColumnNames="funcion_upselling_id" referencedTableName="Funcion" referencedColumnNames="funcion_id"/>
+		<addForeignKeyConstraint constraintName="FK_Upselling_FuncionArea" baseTableName="Upselling_FuncionArea" 
+			baseColumnNames="funcion_id" referencedTableName="Funcion" referencedColumnNames="funcion_id"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="secondSelling">
+	<createTable tableName="Second_Selling_Peliculas">
+	    <column name="funcion_id" type="int">
+	    	<constraints nullable="false"/>
+	    </column>
+	    <column name="pelicula_second_selling_id" type="int">
+	    	<constraints nullable="false"/>
+	    </column>
+	    <column name="puntaje" type="numeric(18,4)">
+	    	<constraints nullable="false"/>
+	    </column>
+	</createTable>
+	
+	<createTable tableName="Second_Selling_Sessions">
+	    <column name="funcion_id" type="int">
+	    	<constraints nullable="false"/>
+	    </column>
+	    <column name="second_selling_funcion_id" type="int">
+	   		<constraints nullable="false"/>
+	    </column>
+	    <column name="area_id" type="int">
+	    	<constraints nullable="false"/>
+	    </column>
+	    <column name="second_selling_orden" type="int">
+	    	<constraints nullable="false"/>
+	    </column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Funcion"
+	    baseTableName="Second_Selling_Peliculas" baseColumnNames="funcion_id"
+	    referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Area"
+	    baseTableName="Second_Selling_Sessions" baseColumnNames="area_id"
+	    referencedTableName="Area" referencedColumnNames="id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Funcion"
+	    baseTableName="Second_Selling_Sessions" baseColumnNames="funcion_id"
+	    referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"
+	/>
+	
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Funcion" baseTableName="Second_Selling_Sessions"/>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Area" baseTableName="Second_Selling_Sessions"/>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Funcion" baseTableName="Second_Selling_Peliculas"/>
+		
+		<dropTable tableName="Second_Selling_Peliculas"/>
+		<dropTable tableName="Second_Selling_Sessions"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="fixUpsellingAreaGrupoMascara">
+	<sql>
+		DELETE FROM Area_Grupo_Mascara
+		WHERE area_id = (SELECT id FROM Area WHERE tipo = 'US') AND id NOT IN
+		(SELECT AGM.id FROM Mascara M
+		JOIN Grupo G ON G.complejo_id = M.complejo_id
+		JOIN Area_Grupo_Mascara AGM ON AGM.mascara_id = M.id AND AGM.grupo_id = G.id AND AGM.area_id = (SELECT id FROM Area WHERE tipo = 'US'))
+	</sql>
+	<rollback>
+		<sql>
+			DELETE FROM Area_Grupo_Mascara
+			WHERE area_id = (SELECT id FROM Area WHERE tipo = 'US')
+		</sql>
+		<sql>
+			INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+			SELECT A.id, G.id, M.id, 10, -1 FROM Area A,Grupo G, Mascara M 
+			WHERE A.tipo = 'US'
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="upsellingTimeConfig">
+	<insert tableName="Parametro">
+	    <column name="sistema" value="Upselling"/>
+	    <column name="sub_sistema" value="pre_time_mins"/>
+	    <column name="codigo" value="30"/>
+	</insert>
+	<insert tableName="Parametro">
+	    <column name="sistema" value="Upselling"/>
+	    <column name="sub_sistema" value="post_time_mins"/>
+	    <column name="codigo" value="30"/>
+	</insert>
+	<rollback>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'Upselling'
+			AND sub_sistema = "pre_time_mins"
+		</sql>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'Upselling'
+			AND sub_sistema = "post_time_mins"
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="lastMinuteSelling">
+	<sql>
+		INSERT INTO Mascara (descripcion, activo, complejo_id, orden)
+		SELECT 'LM', 1, complejo_id, 9999
+		FROM Complejo 
+		WHERE activo = 1
+	</sql>
+	<sql>
+		INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+		SELECT A.id, G.id, M.id, 14, 2 FROM Mascara M
+		JOIN Grupo G ON G.complejo_id = M.complejo_id AND M.descripcion = 'LM', 
+		Area A 
+		WHERE A.tipo = 'RM' AND dias_antes_expira = 2
+	</sql>
+	<sql>
+		INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+		SELECT A.id, G.id, M.id, 12, 1 FROM Mascara M
+		JOIN Grupo G ON G.complejo_id = M.complejo_id AND M.descripcion = 'LM', 
+		Area A 
+		WHERE A.tipo = 'RM' AND dias_antes_expira = 1
+	</sql>
+	<sql>
+		INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+		SELECT A.id, G.id, M.id, 10, -1 FROM Mascara M
+		JOIN Grupo G ON G.complejo_id = M.complejo_id AND M.descripcion = 'LM', 
+		Area A 
+		WHERE A.tipo = 'RM' AND dias_antes_expira = 0
+	</sql>
+	<insert tableName="Parametro">
+	    <column name="sistema" value="LastMinuteSelling"/>
+	    <column name="sub_sistema" value="activado"/>
+	    <column name="codigo" value="0"/>
+	</insert>
+	<insert tableName="Parametro">
+	    <column name="sistema" value="LastMinuteSelling"/>
+	    <column name="sub_sistema" value="max_funciones_diarias"/>
+	    <column name="codigo" value="3"/>
+	</insert>
+	<insert tableName="Parametro">
+	    <column name="sistema" value="LastMinuteSelling"/>
+	    <column name="sub_sistema" value="max_porcentaje_ocupacion_proyectado"/>
+	    <column name="codigo" value="40"/>
+	</insert>
+	<insert tableName="Parametro">
+	    <column name="sistema" value="LastMinuteSelling"/>
+	    <column name="sub_sistema" value="min_dias_cartelera"/>
+	    <column name="codigo" value="14"/>
+	</insert>
+	<rollback>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'LastMinuteSelling'
+			AND sub_sistema = "activado"
+		</sql>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'LastMinuteSelling'
+			AND sub_sistema = "max_funciones_diarias"
+		</sql>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'LastMinuteSelling'
+			AND sub_sistema = "max_porcentaje_ocupacion_proyectado"
+		</sql>
+		<sql>
+			DELETE FROM Parametro
+			WHERE sistema = 'LastMinuteSelling'
+			AND sub_sistema = "min_dias_cartelera"
+		</sql>
+		<sql>
+			DELETE FROM Area_Grupo_Mascara
+			WHERE mascara_id IN (SELECT id FROM Mascara WHERE descripcion = 'LM')
+		</sql>
+		<sql>
+			DELETE FROM Mascara
+			WHERE descripcion = 'LM'
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="reportes">
+	<createTable tableName="Reporte_Anual">
+		<column name="anno" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_online" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="crec_asistencia_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_online" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_total" type="float">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Reporte_Diario">
+		<column name="anno" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="dia_semana" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="semana" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="fecha" type="datetime">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_online" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="crec_asistencia_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_online" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_total" type="float">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Reporte_Mensual">
+		<column name="anno" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="mes" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_online" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="crec_asistencia_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_online" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_total" type="float">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Reporte_Semanal">
+		<column name="anno" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="semana" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="mes" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_HT" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_RM" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="ingreso_total" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia_online" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="crec_asistencia_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="porc_asistencia_online" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_HT" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_RM" type="float">
+			<constraints nullable="false"/>
+		</column>
+		<column name="prom_total" type="float">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<rollback>
+		<dropTable tableName="Reporte_Diario"/>
+		<dropTable tableName="Reporte_Semanal"/>
+		<dropTable tableName="Reporte_Mensual"/>
+		<dropTable tableName="Reporte_Anual"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="mongoDB">
+	<renameTable oldTableName="Restriccion_Regla" newTableName="Restriccion_Regla_20130313"/>
+	<createTable tableName="Restriccion_Regla">
+		<column name="restriccion_precio_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="restriccion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="precio_minimo" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejos" type="text" />
+		<column name="dia" type="int" />
+		<column name="hora_desde" type="time" />
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion"
+	    baseTableName="Restriccion_Regla" baseColumnNames="restriccion_id"
+	    referencedTableName="Restriccion" referencedColumnNames="restriccion_id" onDelete="CASCADE"
+	/>
+	
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion" baseTableName="Restriccion_Regla"/>
+		<dropTable tableName="Restriccion_Regla"/>
+		<renameTable oldTableName="Restriccion_Regla_20130313" newTableName="Restriccion_Regla"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="fixRestriccionRegla">
+	<dropForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion" baseTableName="Restriccion_Regla"/>
+	<dropTable tableName="Restriccion_Regla"/>
+	<createTable tableName="Restriccion_Regla">
+		<column name="restriccion_precio_id" type="int" autoIncrement="true">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="restriccion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="precio_minimo" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejos" type="text" />
+		<column name="dia" type="int" />
+		<column name="hora_desde" type="MSSQL_TIME" />
+	</createTable>
+	<addForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion"
+	    baseTableName="Restriccion_Regla" baseColumnNames="restriccion_id"
+	    referencedTableName="Restriccion" referencedColumnNames="restriccion_id" onDelete="CASCADE"
+	/>
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion" baseTableName="Restriccion_Regla"/>
+		<dropTable tableName="Restriccion_Regla"/>
+		<createTable tableName="Restriccion_Regla">
+			<column name="restriccion_precio_id" type="int">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="restriccion_id" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="precio_minimo" type="numeric(18,4)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="complejos" type="text" />
+			<column name="dia" type="int" />
+			<column name="hora_desde" type="time" />
+		</createTable>
+		<addForeignKeyConstraint constraintName="FK_Restriccion_Regla_Restriccion"
+		    baseTableName="Restriccion_Regla" baseColumnNames="restriccion_id"
+		    referencedTableName="Restriccion" referencedColumnNames="restriccion_id" onDelete="CASCADE"
+		/>
+	</rollback>
+	<modifySql dbms="mssql">
+		<replace replace="MSSQL_TIME" with="time" />
+	</modifySql>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="CargaCuposIndexes">
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_Funcion_7
+		ON [dbo].[Funcion] ([cupos_cargados],[fecha])
+		INCLUDE ([funcion_id],[pelicula_id],[complejo_id],[funcion_id_externo],[fecha_contabilidad],[mascara_id],[price_card_id])
+	</sql>
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_Pelicula_Complejo_1
+		ON [dbo].[Pelicula_Complejo] ([pelicula_id],[complejo_id])
+		INCLUDE ([pelicula_complejo_id_externo])
+	</sql>
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_PriceCardTicket_1
+		ON [dbo].[PriceCardTicket] ([pricecard_id])
+		INCLUDE ([ticket_id],[precio],[bfee])
+	</sql>
+	<rollback>
+		<dropIndex indexName="IX_Funcion_7" tableName="Funcion"/>
+		<dropIndex indexName="IX_Pelicula_Complejo_1" tableName="Pelicula_Complejo"/>
+		<dropIndex indexName="IX_PriceCardTicket_1" tableName="PriceCardTicket"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="Second_Selling_Sessions_Staging">
+	<createTable tableName="Second_Selling_Sessions_Staging">
+		<column name="funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="second_selling_funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="area_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="second_selling_orden" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Staging_Area"
+		baseTableName="Second_Selling_Sessions_Staging" baseColumnNames="area_id"
+		referencedTableName="Area" referencedColumnNames="id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Staging_Funcion"
+		baseTableName="Second_Selling_Sessions_Staging" baseColumnNames="funcion_id"
+		referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"
+	/>
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Staging_Funcion" baseTableName="Second_Selling_Sessions_Staging"/>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Sessions_Staging_Area" baseTableName="Second_Selling_Sessions_Staging"/>
+		
+		<dropTable tableName="Second_Selling_Sessions_Staging"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="Reports_Final">
+	<modifyDataType tableName="Reporte_Diario" columnName="asistencia_total" newDataType="bigint"/>
+	<modifyDataType tableName="Reporte_Diario" columnName="ingreso_total" newDataType="bigint"/>
+	<modifyDataType tableName="Reporte_Semanal" columnName="asistencia_total" newDataType="bigint"/>
+	<modifyDataType tableName="Reporte_Semanal" columnName="ingreso_total" newDataType="bigint"/>
+	<modifyDataType tableName="Reporte_Mensual" columnName="asistencia_total" newDataType="bigint"/>
+	<modifyDataType tableName="Reporte_Mensual" columnName="ingreso_total" newDataType="bigint"/>
+	<addColumn tableName="Semana_Cine">
+		<column name="mes" type="int"/>
+	</addColumn>
+	<sql>
+		UPDATE Semana_Cine SET mes = DATEPART(MM, fecha_desde)
+	</sql>
+	<sql>
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('Reports', 'activado', 0 )
+	</sql>
+	<rollback>
+		<dropColumn tableName="Semana_Cine" columnName="mes"/>
+		<modifyDataType tableName="Reporte_Diario" columnName="asistencia_total" newDataType="int"/>
+		<modifyDataType tableName="Reporte_Diario" columnName="ingreso_total" newDataType="int"/>
+		<modifyDataType tableName="Reporte_Semanal" columnName="asistencia_total" newDataType="int"/>
+		<modifyDataType tableName="Reporte_Semanal" columnName="ingreso_total" newDataType="int"/>
+		<modifyDataType tableName="Reporte_Mensual" columnName="asistencia_total" newDataType="int"/>
+		<modifyDataType tableName="Reporte_Mensual" columnName="ingreso_total" newDataType="int"/>
+		<sql>
+			DELETE Parametro WHERE sistema = 'Reports'
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="Columna_Graphic_Url">
+	<addColumn tableName="Pelicula">
+		<column name="graphic_url" type="varchar(255)"/>
+	</addColumn>
+	<rollback>
+		<dropColumn tableName="Pelicula" columnName="graphic_url"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="SecondSellingBlock">
+	<createTable tableName="Second_Selling_Categorias">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id_1" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id_2" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="enabled" type="tinyint">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Second_Selling_Ratings">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="rating_id_1" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="rating_id_2" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="similitud" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Second_Selling_Formatos">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="formato_id_1" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="formato_id_2" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="similitud" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="Second_Selling_Idiomas">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="idioma_id_1" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="idioma_id_2" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="similitud" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<sql>
+		INSERT INTO Second_Selling_Categorias (categoria_id_1, categoria_id_2, enabled)
+		SELECT C1.categoria_id, C2.categoria_id, 1 
+		FROM Categoria C1, Categoria C2
+	</sql>
+	<sql>	
+		INSERT INTO Second_Selling_Ratings (rating_id_1, rating_id_2, similitud)
+		SELECT R1.id, R2.id, 1 
+		FROM Pel_Rating R1, Pel_Rating R2
+	</sql>
+	<sql>	
+		INSERT INTO Second_Selling_Formatos (formato_id_1, formato_id_2, similitud)
+		SELECT F1.id, F2.id, 1
+		FROM Pel_Formato F1, Pel_Formato F2
+	</sql>
+	<sql>	
+		INSERT INTO Second_Selling_Idiomas (idioma_id_1, idioma_id_2, similitud)
+		SELECT I1.id, I2.id, 1
+		FROM Pel_Idioma I1, Pel_Idioma I2
+	</sql>
+	<rollback>
+		<dropTable tableName="Second_Selling_Categorias"/>
+		<dropTable tableName="Second_Selling_Ratings"/>
+		<dropTable tableName="Second_Selling_Formatos"/>
+		<dropTable tableName="Second_Selling_Idiomas"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="fixSecondSellingFecha">
+	<dropForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Funcion" baseTableName="Second_Selling_Peliculas"/>
+	<dropTable tableName="Second_Selling_Peliculas"/>
+	<createTable tableName="Second_Selling_Peliculas">
+		<column name="pelicula_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_second_selling_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Complejo"
+		baseTableName="Second_Selling_Peliculas" baseColumnNames="complejo_id"
+		referencedTableName="Complejo" referencedColumnNames="complejo_id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Pelicula"
+		baseTableName="Second_Selling_Peliculas" baseColumnNames="pelicula_id"
+		referencedTableName="Pelicula" referencedColumnNames="pelicula_id" onDelete="CASCADE"
+	/>
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Complejo" baseTableName="Second_Selling_Peliculas"/>
+		<dropForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Pelicula" baseTableName="Second_Selling_Peliculas"/>
+		<dropTable tableName="Second_Selling_Peliculas"/>
+		<createTable tableName="Second_Selling_Peliculas">
+			<column name="funcion_id" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="pelicula_second_selling_id" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="puntaje" type="numeric(18,4)">
+				<constraints nullable="false"/>
+			</column>
+		</createTable>
+		<addForeignKeyConstraint constraintName="FK_Second_Selling_Peliculas_Funcion"
+			baseTableName="Second_Selling_Peliculas" baseColumnNames="funcion_id"
+			referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"
+		/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="lastMinuteChange">
+	<createTable tableName="LM_Selling_Sessions">
+		<column name="funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="grupo_pelicula_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="fecha_contabilidad" type="date">
+			<constraints nullable="false"/>
+		</column>
+		<column name="bloque" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="orden" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<addForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Complejo"
+		baseTableName="LM_Selling_Sessions" baseColumnNames="complejo_id"
+		referencedTableName="Complejo" referencedColumnNames="complejo_id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Funcion"
+		baseTableName="LM_Selling_Sessions" baseColumnNames="funcion_id"
+		referencedTableName="Funcion" referencedColumnNames="funcion_id" onDelete="CASCADE"
+	/>
+	<addForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Grupo_Pelicula"
+		baseTableName="LM_Selling_Sessions" baseColumnNames="grupo_pelicula_id"
+		referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="CASCADE"
+	/>
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Complejo" baseTableName="LM_Selling_Sessions"/>
+		<dropForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Funcion" baseTableName="LM_Selling_Sessions"/>
+		<dropForeignKeyConstraint constraintName="FK_LM_Selling_Sessions_Grupo_Pelicula" baseTableName="LM_Selling_Sessions"/>
+		<dropTable tableName="LM_Selling_Sessions"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="LMRemovePremium">
+	<addColumn tableName="Pel_Formato">
+		<column name="last_minute_enabled" type="int"/>
+	</addColumn>
+	<rollback>
+		<dropColumn tableName="Pel_Formato" columnName="last_minute_enabled"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="deletedSessions">
+	<addColumn tableName="Funcion">
+		<column name="eliminada" type="bit" defaultValue="0">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	<rollback>
+		<dropColumn tableName="Funcion" columnName="eliminada"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="similitudMatriz">
+	<dropTable tableName="Second_Selling_Categorias"/>
+	<createTable tableName="Second_Selling_Categorias">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id_1" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id_2" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="similitud" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<rollback>
+		<dropTable tableName="Second_Selling_Categorias"/>
+		<createTable tableName="Second_Selling_Categorias">
+			<column name="id" type="int" autoIncrement="true">
+				<constraints nullable="false"/>
+			</column>
+			<column name="categoria_id_1" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="categoria_id_2" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="enabled" type="tinyint">
+				<constraints nullable="false"/>
+			</column>
+		</createTable>
+		<sql>
+			INSERT INTO Second_Selling_Categorias (categoria_id_1, categoria_id_2, enabled)
+			SELECT C1.categoria_id, C2.categoria_id, 1 
+			FROM Categoria C1, Categoria C2
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Jaime Hernandez" id="semanaExhibicionFuncion">
+	<addColumn tableName="Funcion">
+		<column name="semana" type="int">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	<addColumn tableName="Funcion">
+		<column name="exhibicion" type="int">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	<rollback>
+		<dropColumn tableName="Funcion" columnName="semana"/>
+		<dropColumn tableName="Funcion" columnName="exhibicion"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="ComprasClientes">
+	<createTable tableName="ClienteComportamientoAsistencia">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="dia_semana" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="bloque_horario" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="ClientePeliculasVistas">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_nombre" type="text">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_id" type="int">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	<rollback>
+		<dropTable tableName="ClienteComportamientoAsistencia"/>
+		<dropTable tableName="ClientePeliculasVistas"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="SugerenciasSecondSellingClientes">
+	<createTable tableName="Second_Selling_Sessions_Customer">
+		<column name="funcion_id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="second_selling_funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="area_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="second_selling_orden" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="ClientePreferenciasCine">
+		<column name="cliente_id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<addColumn tableName="Second_Selling_Peliculas">
+		<column name="orden" type="int">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	<rollback>
+		<dropTable tableName="Second_Selling_Sessions_Customer"/>
+		<dropTable tableName="ClientePreferenciasCine"/>
+		<dropColumn tableName="Second_Selling_Peliculas" columnName="orden"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="SecondSellingPersonalizadoIndices">
+	<createTable tableName="ClientePreferenciaFuncionStaging">
+		<column name="funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="fecha" type="datetime">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="area_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="dias_antes_expira" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="asistencia" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<createTable tableName="ClienteSecondSellingPeliculaStaging">
+		<column name="pelicula_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_second_selling_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	<sql>
+		CREATE NONCLUSTERED INDEX ClientePreferenciaFuncionStaging_cliente_id
+		ON [dbo].[ClientePreferenciaFuncionStaging] ([cliente_id])
+	</sql>
+	<sql>
+		CREATE NONCLUSTERED INDEX ClienteSecondSellingPeliculaStaging_cliente_id
+		ON [dbo].[ClienteSecondSellingPeliculaStaging] ([cliente_id])
+		INCLUDE ([pelicula_id],[pelicula_second_selling_id],[complejo_id])
+	</sql>
+	<sql>
+		CREATE NONCLUSTERED INDEX Second_Selling_Sessions_Customer_Staging_funcion_cliente
+		ON [dbo].[Second_Selling_Sessions_Customer] ([funcion_id],[cliente_id])
+		INCLUDE ([second_selling_funcion_id],[area_id],[second_selling_orden])
+	</sql>
+	<rollback>
+		<dropIndex indexName="ClientePreferenciaFuncionStaging_cliente_id" tableName="ClientePreferenciaFuncionStaging"/>
+		<dropIndex indexName="ClienteSecondSellingPeliculaStaging_cliente_id" tableName="ClienteSecondSellingPeliculaStaging"/>
+		<dropIndex indexName="Second_Selling_Sessions_Customer_Staging_funcion_cliente" tableName="Second_Selling_Sessions_Customer"/>
+		<dropTable tableName="ClientePreferenciaFuncionStaging"/>
+		<dropTable tableName="ClienteSecondSellingPeliculaStaging"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="correccionEliminarAutoincrementDeTablasSecondSelling">
+	<dropIndex indexName="Second_Selling_Sessions_Customer_Staging_funcion_cliente" tableName="Second_Selling_Sessions_Customer"/>
+	
+	<dropColumn tableName="Second_Selling_Sessions_Customer" columnName="funcion_id"/>
+	<dropColumn tableName="ClientePreferenciasCine" columnName="cliente_id"/>
+	
+	<addColumn tableName="Second_Selling_Sessions_Customer">
+		<column name="funcion_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	<addColumn tableName="ClientePreferenciasCine">
+		<column name="cliente_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	
+	<sql>
+		CREATE NONCLUSTERED INDEX Second_Selling_Sessions_Customer_Staging_funcion_cliente
+		ON [dbo].[Second_Selling_Sessions_Customer] ([funcion_id],[cliente_id])
+		INCLUDE ([second_selling_funcion_id],[area_id],[second_selling_orden])
+	</sql>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="correccionTablaClientePreferenciasCine">
+	<dropColumn tableName="ClientePreferenciasCine" columnName="cliente_id"/>
+	<addColumn tableName="ClientePreferenciasCine">
+		<column name="cliente_id" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="ajusteCuposLastMinuteSelling">	
+	<sql>
+		UPDATE Area_Grupo_Mascara SET capacidad = 20 WHERE id IN
+		(SELECT agm.id
+		FROM Area_Grupo_Mascara agm
+		JOIN Mascara m ON m.id = agm.mascara_id AND m.descripcion = 'LM'
+		WHERE agm.area_id = 36)
+		
+		UPDATE Area_Grupo_Mascara SET capacidad = 0 WHERE id IN
+		(SELECT agm.id
+		FROM Area_Grupo_Mascara agm
+		JOIN Mascara m ON m.id = agm.mascara_id AND m.descripcion = 'LM'
+		WHERE agm.area_id != 36)
+	</sql>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="externalMovieDataSource">
+	<addColumn tableName="Grupo_Pelicula">
+		<column name="nombre_original" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="external_source_data_loaded" type="boolean" defaultValueBoolean="false"/>
+	</addColumn>
+	<addColumn tableName="Categoria">
+		<column name="external_source_code" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	<createTable tableName="GrupoPeliculaCategoria">
+		<column name="grupo_pelicula_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_GrupoPelicula"
+	    baseTableName="GrupoPeliculaCategoria" baseColumnNames="grupo_pelicula_id"
+	    referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="CASCADE"/>
+	    
+	<addForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_Categoria"
+	    baseTableName="GrupoPeliculaCategoria" baseColumnNames="grupo_pelicula_id"
+	    referencedTableName="Categoria" referencedColumnNames="categoria_id" onDelete="CASCADE"/>
+	    
+	<rollback>
+		<dropColumn tableName="Grupo_Pelicula" columnName="nombre_original"/>
+		<dropColumn tableName="Grupo_Pelicula" columnName="external_source_data_loaded"/>
+		<dropColumn tableName="Categoria" columnName="external_source_code"/>
+		
+		<dropForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_GrupoPelicula" baseTableName="GrupoPeliculaCategoria"/>
+		<dropForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_Categoria" baseTableName="GrupoPeliculaCategoria"/>
+		
+		<dropTable tableName="GrupoPeliculaCategoria"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="fixFK_GrupoPeliculaCategoria_Categoria">
+	<dropForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_Categoria" baseTableName="GrupoPeliculaCategoria"/>
+	
+	<addForeignKeyConstraint constraintName="FK_GrupoPeliculaCategoria_Categoria"
+	    baseTableName="GrupoPeliculaCategoria" baseColumnNames="categoria_id"
+	    referencedTableName="Categoria" referencedColumnNames="categoria_id" onDelete="CASCADE"/>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="agregarIdSourceExternoPeliculaCategoria">
+	<addColumn tableName="Grupo_Pelicula">
+		<column name="external_source_id" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	<sql>
+		UPDATE Grupo_Pelicula set external_source_data_loaded = 0
+	</sql>
+	<rollback>
+		<dropColumn tableName="Grupo_Pelicula" columnName="external_source_id"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="tablaSecondSellingGrupoPeliculas">
+	<createTable tableName="Second_Selling_Grupo_Peliculas">
+		<column name="grupo_pelicula_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="grupo_pelicula_second_selling_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="factor_similitud" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="orden" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula" baseTableName="Second_Selling_Grupo_Peliculas" 
+		baseColumnNames="grupo_pelicula_id" referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="NO ACTION"/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula_Second_Selling" baseTableName="Second_Selling_Grupo_Peliculas" 
+		baseColumnNames="grupo_pelicula_second_selling_id" referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="NO ACTION"/>
+	<addForeignKeyConstraint constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula_Complejo" baseTableName="Second_Selling_Grupo_Peliculas" 
+		baseColumnNames="complejo_id" referencedTableName="Complejo" referencedColumnNames="complejo_id" onDelete="CASCADE"/>
+	
+	<rollback>
+		<dropForeignKeyConstraint baseTableName="Second_Selling_Grupo_Peliculas" constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula"/>
+		<dropForeignKeyConstraint baseTableName="Second_Selling_Grupo_Peliculas" constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula_Second_Selling"/>
+		<dropForeignKeyConstraint baseTableName="Second_Selling_Grupo_Peliculas" constraintName="FK_Second_Selling_Grupo_Peliculas_Grupo_Pelicula_Complejo"/>
+		<dropTable tableName="Second_Selling_Grupo_Peliculas"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="tablaZonasGeograficas">
+	<createTable tableName="Zona_Geografica">
+		<column name="zona_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addColumn tableName="Complejo">
+		<column name="zona_geografica_id" type="int" defaultValue="1">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	
+	<sql>
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (1, 'N/A')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (2, 'Antofagasta')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (3, 'Santiago Oriente')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (4, 'Santiago Poniente')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (5, 'Santiago Sur')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (6, 'Santiago Norte')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (7, 'Santiago Centro')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (8, 'San Bernardo')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (9, 'Calama')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (10, 'Valparaiso')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (11, 'Arica')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (12, 'Talca')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (13, 'Chillan')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (14, 'Los Angeles')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (15, 'Temuco')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (16, 'Puerto Montt')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (17, 'Melipilla')
+		
+		UPDATE Complejo SET zona_geografica_id = 5 WHERE complejo_id = 2
+		UPDATE Complejo SET zona_geografica_id = 7 WHERE complejo_id = 3
+		UPDATE Complejo SET zona_geografica_id = 10 WHERE complejo_id = 4
+		UPDATE Complejo SET zona_geografica_id = 3 WHERE complejo_id = 5
+		UPDATE Complejo SET zona_geografica_id = 7 WHERE complejo_id = 6
+		UPDATE Complejo SET zona_geografica_id = 3 WHERE complejo_id = 7
+		UPDATE Complejo SET zona_geografica_id = 4 WHERE complejo_id = 8
+		UPDATE Complejo SET zona_geografica_id = 7 WHERE complejo_id = 10
+		UPDATE Complejo SET zona_geografica_id = 3 WHERE complejo_id = 11
+		UPDATE Complejo SET zona_geografica_id = 17 WHERE complejo_id = 12
+		UPDATE Complejo SET zona_geografica_id = 3 WHERE complejo_id = 13
+		UPDATE Complejo SET zona_geografica_id = 8 WHERE complejo_id = 14
+		UPDATE Complejo SET zona_geografica_id = 8 WHERE complejo_id = 15
+		UPDATE Complejo SET zona_geografica_id = 12 WHERE complejo_id = 16
+		UPDATE Complejo SET zona_geografica_id = 13 WHERE complejo_id = 17
+		UPDATE Complejo SET zona_geografica_id = 2 WHERE complejo_id = 18
+		UPDATE Complejo SET zona_geografica_id = 2 WHERE complejo_id = 19
+		UPDATE Complejo SET zona_geografica_id = 9 WHERE complejo_id = 20
+		UPDATE Complejo SET zona_geografica_id = 11 WHERE complejo_id = 21
+		UPDATE Complejo SET zona_geografica_id = 16 WHERE complejo_id = 23
+		UPDATE Complejo SET zona_geografica_id = 14 WHERE complejo_id = 24
+		UPDATE Complejo SET zona_geografica_id = 15 WHERE complejo_id = 25
+		UPDATE Complejo SET zona_geografica_id = 6 WHERE complejo_id = 26
+	</sql>
+	
+	<addForeignKeyConstraint constraintName="FK_Complejo_Zona_Geografica" baseTableName="Complejo" 
+		baseColumnNames="zona_geografica_id" referencedTableName="Zona_Geografica" referencedColumnNames="zona_id" onDelete="NO ACTION"/>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="tablasClientesBI">
+	<createTable tableName="Zona_Geografica_Comuna">
+		<column name="comuna_id" type="int" autoIncrement="true">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="zona_geografica_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="Cliente">
+		<column name="cliente_id" type="int" autoIncrement="true">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="rut" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="comuna_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="ClienteTransaccion">
+		<column name="rut" type="varchar(50)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_paterno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_materno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="comuna" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre_pelicula" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="funcion" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cantidad_entradas" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="total_pagado" type="numeric(12,4)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre_ticket" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="codigo_cine" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="dia" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="hora" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_compra" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	
+	<sql>
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('data_extraction', 'cineticket_last_transaction', '2001-01-01')
+	</sql>
+	
+	<dropTable tableName="ClienteComportamientoAsistencia"/>
+	<dropTable tableName="ClientePreferenciasCine"/>
+	<dropTable tableName="ClientePeliculasVistas"/>
+	
+	<createTable tableName="ClienteComportamientoAsistencia">
+		<column name="cliente_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="dia_semana" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="bloque_horario" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="asistencia" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="ClientePreferenciasCine">
+		<column name="cliente_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="complejo_id" type="int">
+			<constraints primaryKey="true" nullable="false"/>
+		</column>
+		<column name="asistencia" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="ClientePeliculasVistas">
+		<column name="id" type="int" autoIncrement="true">
+			<constraints nullable="false"/>
+		</column>
+		<column name="cliente_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_nombre" type="text">
+			<constraints nullable="false"/>
+		</column>
+		<column name="pelicula_id" type="int">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Zona_Geografica_Comuna" baseTableName="Zona_Geografica_Comuna" 
+		baseColumnNames="zona_geografica_id" referencedTableName="Zona_Geografica" referencedColumnNames="zona_id" onDelete="NO ACTION"/>
+	<addForeignKeyConstraint constraintName="FK_Cliente_Comuna" baseTableName="Cliente" 
+		baseColumnNames="comuna_id" referencedTableName="Zona_Geografica_Comuna" referencedColumnNames="comuna_id" onDelete="NO ACTION"/>
+	<addForeignKeyConstraint constraintName="FK_ClienteComportamientoAsistencia_Cliente" baseTableName="ClienteComportamientoAsistencia" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="CASCADE"/>
+	<addForeignKeyConstraint constraintName="FK_ClientePreferenciasCine_Cliente" baseTableName="ClientePreferenciasCine" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="CASCADE"/>
+	<addForeignKeyConstraint constraintName="FK_ClientePreferenciasCine_Complejo" baseTableName="ClientePreferenciasCine" 
+		baseColumnNames="complejo_id" referencedTableName="Complejo" referencedColumnNames="complejo_id" onDelete="CASCADE"/>
+		
+	<rollback>
+		<dropForeignKeyConstraint baseTableName="Zona_Geografica_Comuna" constraintName="FK_Zona_Geografica_Comuna"/>
+		<dropForeignKeyConstraint baseTableName="Cliente" constraintName="FK_Cliente_Comuna"/>
+		<dropForeignKeyConstraint baseTableName="ClienteComportamientoAsistencia" constraintName="FK_ClienteComportamientoAsistencia_Cliente"/>
+		<dropTable tableName="Cliente"/>
+		<dropTable tableName="Zona_Geografica_Comuna"/>
+		<sql>
+			DELETE FROM ClienteComportamientoAsistencia
+			DELETE FROM Parametro WHERE sistema = 'data_extraction' AND sub_sistema = 'cineticket_last_transaction'
+		</sql>
+		<dropColumn tableName="ClienteComportamientoAsistencia" columnName="cliente_id"/>
+		<addColumn tableName="ClienteComportamientoAsistencia">
+			<column name="cliente_id" type="varchar(255)">
+				<constraints nullable="false"/>
+			</column>
+		</addColumn>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="tablasTemporalExtraccionDataDeCineticket">
+	<createTable tableName="temp_cineticket_customer">
+		<column name="rut" type="varchar(50)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="comuna" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_paterno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_materno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre_pelicula" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="funcion" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cantidad" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="total" type="numeric(12,4)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre_ticket" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cinema_code" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="dia" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="hora" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_compra" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	<rollback>
+		<dropTable tableName="temp_cineticket_customer"/>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="agregarEstadoFuncion">
+	<addColumn tableName="Funcion">
+		<column name="estado" type="varchar(50)" defaultValue="O">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	
+	<rollback>
+		<dropColumn tableName="Funcion" columnName="estado"/>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="IndicesTablasBI">
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_temp_cineticket_customer_comuna
+		ON [dbo].[temp_cineticket_customer] ([comuna])
+	</sql>
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_cliente_id
+		ON [dbo].[ClientePeliculasVistas] ([cliente_id])
+	</sql>
+
+	<rollback>
+		<dropIndex indexName="IX_temp_cineticket_customer_comuna" tableName="temp_cineticket_customer"/>
+		<dropIndex indexName="IX_ClientePeliculasVistas_cliente_id" tableName="ClientePeliculasVistas"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="obtencionClientesPorZonaGeografica">
+	<sql>
+		DELETE FROM ClientePreferenciasCine
+	</sql>
+	<addColumn tableName="ClientePreferenciasCine">
+		<column name="factor_preferencia" type="numeric(18,4)">
+			<constraints nullable="false"/>
+		</column>
+	</addColumn>
+	
+	<createTable tableName="ClienteZonaGeografica">
+		<column name="cliente_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="zona_geografica_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_ClientePorZonaGeografica_cliente" baseTableName="ClienteZonaGeografica" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="NO ACTION"/>
+	<addForeignKeyConstraint constraintName="FK_ClientePorZonaGeografica_zona" baseTableName="ClienteZonaGeografica" 
+		baseColumnNames="zona_geografica_id" referencedTableName="Zona_Geografica" referencedColumnNames="zona_id" onDelete="NO ACTION"/>
+	
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_ClienteTransaccion
+		ON dbo.ClienteTransaccion (codigo_cine)
+		INCLUDE (rut, email, fecha_compra)
+		
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('business_intelligence', 'factor_ajuste_preferencia_cines', '0.5')
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (18, 'Santiago Nor-Oriente')
+		
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 18 WHERE nombre = 'las condes'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'Santiago'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'Providencia'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 4 WHERE nombre = 'maipu'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'Ñuñoa'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'LA REINA'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 18 WHERE nombre = 'Vitacura'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'Puente Alto'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'Peñalolen'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 1 WHERE nombre = 'Otra'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'La Florida'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 10 WHERE nombre = 'Valparaiso'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 4 WHERE nombre = 'PUDAHUEL'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'Estacion Central'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 18 WHERE nombre = 'lo barnechea'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 6 WHERE nombre = 'Quilicura'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 2 WHERE nombre = 'Antofagasta'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'Recoleta'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 6 WHERE nombre = 'huechuraba'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'Macul'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'Quinta Normal'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'San Miguel'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 6 WHERE nombre = 'Renca'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 4 WHERE nombre = 'Lo Prado'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'independencia'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 1 WHERE nombre = 'Seleccione Comuna'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 4 WHERE nombre = 'cerro navia'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 6 WHERE nombre = 'Conchali'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'La Cisterna'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 10 WHERE nombre = 'vina del mar'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'El Bosque'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 4 WHERE nombre = 'Cerrillos'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'Pedro Aguirre Cerda'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 12 WHERE nombre = 'Talca'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 16 WHERE nombre = 'Puerto Montt'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'La Pintana'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'San Joaquin'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'la granja'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 9 WHERE nombre = 'Calama'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'Lo Espejo'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 13 WHERE nombre = 'Chillan'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'pirque'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 5 WHERE nombre = 'San Ramon'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 14 WHERE nombre = 'Los Angeles'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = '?u?oa'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 10 WHERE nombre = 'Quilpue'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 7 WHERE nombre = 'SANTIAGO centro'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 15 WHERE nombre = 'temuco'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 17 WHERE nombre = 'melipilla'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = '??u??oa'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'PE?aLOLEN'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 11 WHERE nombre = 'Arica'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 11 WHERE nombre = 'Concon'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 8 WHERE nombre = 'SAN BERNARDO'
+		UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 3 WHERE nombre = 'pe??ALOLEN'
+	</sql>
+	
+	<rollback>
+		<dropColumn tableName="ClientePreferenciasCine" columnName="factor_ajuste_preferencia_cines"/>
+		<dropIndex indexName="IX_ClienteTransaccion" tableName="ClienteTransaccion"/>
+		<sql>
+			DELETE FROM Parametro WHERE sistema = 'bi' AND sub_sistema = 'factor_ajuste_preferencia_cines'
+			UPDATE Zona_Geografica_Comuna SET zona_geografica_id = 1
+			DELETE FROM Zona_Geografica where zona_id = 18
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="optimizacionVistaProcesos">	
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_LogProcesosEstadoError
+		ON dbo.Log_Procesos (estado,error_boolean)
+		INCLUDE (nombre_proceso,inicio)
+	</sql>
+	<rollback>
+		<dropIndex indexName="IX_LogProcesosEstadoError" tableName="Log_Procesos"/>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="extraccionDataClientesCineticket">
+	<renameTable newTableName="temp_cineticket_transaction" oldTableName="temp_cineticket_customer"/>
+	
+	<createTable tableName="temp_cineticket_customer">
+		<column name="rut" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="false"/>
+		</column>
+		<column name="comuna" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nombre" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_paterno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_materno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_nacimiento" type="date">
+			<constraints nullable="true"/>
+		</column>
+		<column name="created_at" type="date">
+			<constraints nullable="true"/>
+		</column>
+		<column name="updated_at" type="date">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	
+	<addColumn tableName="Cliente">
+		<column name="apellido_paterno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido_materno" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_nacimiento" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="created_at" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="updated_at" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+	</addColumn>
+	
+	<sql>
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('data_extraction', 'cineticket_last_client', '2010-01-01')
+	</sql>
+	<rollback>
+		<renameTable newTableName="temp_cineticket_customer" oldTableName="temp_cineticket_transaction"/>
+		<dropTable tableName="temp_cineticket_customer"/>
+		<dropColumn tableName="Cliente" columnName="apellido_paterno"/>
+		<dropColumn tableName="Cliente" columnName="apellido_materno"/>
+		<dropColumn tableName="Cliente" columnName="fecha_nacimiento"/>
+		<dropColumn tableName="Cliente" columnName="created_at"/>
+		<dropColumn tableName="Cliente" columnName="updated_at"/>
+		<sql>
+			DELETE FROM Paramatro WHERE sistema = 'data_extraction' AND sub_sistema = 'cineticket_last_client'
+		</sql>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="businessIntelligenceClusters">
+	<createTable tableName="BI_Cluster">
+		<column name="cluster_id" type="int" autoIncrement="true">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="zona_geografica_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="categoria_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="BI_Cluster_Pelicula">
+		<column name="cluster_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="pelicula_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="BI_Cluster_Cliente">
+		<column name="cluster_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="cliente_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+	</createTable>
+	
+	<createTable tableName="ClientePreferenciasCategoria">
+		<column name="cliente_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="categoria_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="orden" type="int">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_Cluster_ZonaGeografica" baseTableName="BI_Cluster" 
+		baseColumnNames="zona_geografica_id" referencedTableName="Zona_Geografica" referencedColumnNames="zona_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_Cluster_Categoria" baseTableName="BI_Cluster" 
+		baseColumnNames="categoria_id" referencedTableName="Categoria" referencedColumnNames="categoria_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" 
+		baseColumnNames="cluster_id" referencedTableName="BI_Cluster" referencedColumnNames="cluster_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClusterPelicula_Pelicula" baseTableName="BI_Cluster_Pelicula" 
+		baseColumnNames="pelicula_id" referencedTableName="Pelicula" referencedColumnNames="pelicula_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClusterCliente_Cluster" baseTableName="BI_Cluster_Cliente" 
+		baseColumnNames="cluster_id" referencedTableName="BI_Cluster" referencedColumnNames="cluster_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClusterCliente_Cliente" baseTableName="BI_Cluster_Cliente" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="NO ACTION"/>
+		
+	<addColumn tableName="Categoria">
+		<column name="attendance_weight" type="numeric(18,4)" defaultValue="0.0">
+			<constraints nullable="false" />
+		</column>
+	</addColumn>	
+	
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_peliculaId_clienteId
+		ON dbo.ClientePeliculasVistas (pelicula_id)
+		INCLUDE (cliente_id)
+		
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('business_intelligence', 'factor_ajuste_preferencia_categoria', '0.6')
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('business_intelligence', 'factor_minimo_preferencia_categoria', '0.1')
+	</sql>
+	<rollback>
+		<dropIndex indexName="IX_ClientePeliculasVistas_peliculaId_clienteId" tableName="ClientePeliculasVistas"/>
+		
+		<dropForeignKeyConstraint constraintName="FK_Cluster_ZonaGeografica" baseTableName="BI_Cluster" />
+		<dropForeignKeyConstraint constraintName="FK_Cluster_Categoria" baseTableName="BI_Cluster" />
+		<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" />
+		<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_Pelicula" baseTableName="BI_Cluster_Pelicula" />
+		<dropForeignKeyConstraint constraintName="FK_ClusterCliente_Cluster" baseTableName="BI_Cluster_Cliente" />
+		<dropForeignKeyConstraint constraintName="FK_ClusterCliente_Cliente" baseTableName="BI_Cluster_Cliente" />
+		
+		<dropTable tableName="BI_Cluster"/>
+		<dropTable tableName="BI_Cluster_Pelicula"/>
+		<dropTable tableName="BI_Cluster_Cliente"/>
+		
+		<dropIndex tableName="ClientePeliculasVistas" indexName="IX_ClientePeliculasVistas_peliculaId_clienteId"/>
+		
+		<sql>
+			DELETE FROM Parametro WHERE sistema = 'business_intelligence' AND sub_sistema = 'factor_ajuste_preferencia_categoria'
+			DELETE FROM Parametro WHERE sistema = 'business_intelligence' AND sub_sistema = 'factor_minimo_preferencia_categoria'
+		</sql>
+		
+		<dropColumn tableName="Categoria" columnName="attendance_weight"/>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="ajustesBusinessIntelligenceClusters">
+	<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" />
+	<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_Pelicula" baseTableName="BI_Cluster_Pelicula" />
+	
+	<dropTable tableName="BI_Cluster_Pelicula"/>
+	
+	<createTable tableName="BI_Cluster_Pelicula">
+		<column name="cluster_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="grupo_pelicula_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="estreno" type="int" defaultValue="0">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" 
+		baseColumnNames="cluster_id" referencedTableName="BI_Cluster" referencedColumnNames="cluster_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClusterPelicula_GrupoPelicula" baseTableName="BI_Cluster_Pelicula" 
+		baseColumnNames="grupo_pelicula_id" referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="NO ACTION"/>
+		
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_Pelicula_GrupoPeliculaId
+		ON dbo.Pelicula (grupo_pelicula_id)
+		
+		CREATE NONCLUSTERED INDEX IX_Pelicula_PelRankingId
+		ON dbo.Pelicula (pel_ranking_id)
+		INCLUDE (grupo_pelicula_id)
+	</sql>
+	
+	<rollback>
+		<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" />
+		<dropForeignKeyConstraint constraintName="FK_ClusterPelicula_GrupoPelicula" baseTableName="BI_Cluster_Pelicula" />
+		
+		<dropTable tableName="BI_Cluster_Pelicula"/>
+		
+		<createTable tableName="BI_Cluster_Pelicula">
+			<column name="cluster_id" type="int">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+			<column name="pelicula_id" type="int">
+				<constraints nullable="false" primaryKey="true"/>
+			</column>
+		</createTable>
+		
+		<addForeignKeyConstraint constraintName="FK_ClusterPelicula_Cluster" baseTableName="BI_Cluster_Pelicula" 
+			baseColumnNames="cluster_id" referencedTableName="BI_Cluster" referencedColumnNames="cluster_id" onDelete="NO ACTION"/>
+		
+		<addForeignKeyConstraint constraintName="FK_ClusterPelicula_Pelicula" baseTableName="BI_Cluster_Pelicula" 
+			baseColumnNames="pelicula_id" referencedTableName="Pelicula" referencedColumnNames="pelicula_id" onDelete="NO ACTION"/>
+		
+		<dropIndex indexName="IX_Pelicula_GrupoPeliculaId" tableName="Pelicula"/>
+		<dropIndex indexName="IX_Pelicula_PelRankingId" tableName="Pelicula"/>
+	</rollback>
+	
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="correccionTabla_ClientePeliculasVistas">
+	<dropIndex indexName="IX_ClientePeliculasVistas_cliente_id" tableName="ClientePeliculasVistas"/>
+	<dropIndex indexName="IX_ClientePeliculasVistas_peliculaId_clienteId" tableName="ClientePeliculasVistas"/>
+	
+	<dropTable tableName="ClientePeliculasVistas"/>
+	
+	<createTable tableName="ClientePeliculasVistas">
+		<column name="cliente_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="pelicula_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="pelicula_nombre" type="text">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addForeignKeyConstraint constraintName="FK_ClientePeliculasVistas_Cliente" baseTableName="ClientePeliculasVistas" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_ClientePeliculasVistas_Pelicula" baseTableName="ClientePeliculasVistas" 
+		baseColumnNames="pelicula_id" referencedTableName="Pelicula" referencedColumnNames="pelicula_id" onDelete="NO ACTION"/>
+	
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_cliente_id
+		ON dbo.ClientePeliculasVistas (cliente_id)
+		
+		CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_peliculaId_clienteId
+		ON dbo.ClientePeliculasVistas (pelicula_id)
+		INCLUDE (cliente_id)
+	</sql>
+	
+	<rollback>
+		<dropIndex indexName="IX_ClientePeliculasVistas_cliente_id" tableName="ClientePeliculasVistas"/>
+		<dropIndex indexName="IX_ClientePeliculasVistas_peliculaId_clienteId" tableName="ClientePeliculasVistas"/>
+		
+		<dropTable tableName="ClientePeliculasVistas"/>
+		
+		<createTable tableName="ClientePeliculasVistas">
+			<column name="id" type="int" autoIncrement="true">
+				<constraints nullable="false"/>
+			</column>
+			<column name="cliente_id" type="int">
+				<constraints nullable="false"/>
+			</column>
+			<column name="pelicula_nombre" type="text">
+				<constraints nullable="false"/>
+			</column>
+			<column name="pelicula_id" type="int">
+				<constraints nullable="true"/>
+			</column>
+		</createTable>
+		
+		<sql>
+			CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_cliente_id
+			ON dbo.ClientePeliculasVistas (cliente_id)
+			
+			CREATE NONCLUSTERED INDEX IX_ClientePeliculasVistas_peliculaId_clienteId
+			ON dbo.ClientePeliculasVistas (pelicula_id)
+			INCLUDE (cliente_id)
+		</sql>
+	</rollback>
+</changeSet>
+
+<changeSet author="Nicolas Dujovne" id="upsellingPrioritySchema">
+	<createTable tableName="Upselling_Formatos">
+		<column name="formato_id" type="int">
+			<constraints primaryKey="true"/>
+		</column>
+		<column name="formato_upselling_id" type="int">
+			<constraints primaryKey="true"/>
+		</column>
+	</createTable>
+	
+	<sql>
+		INSERT INTO Upselling_Formatos (formato_id, formato_upselling_id) VALUES (1,2), (1,3), (2,4) 
+	</sql>
+	
+	<addPrimaryKey tableName="Pel_Formato" columnNames="id"/>
+	
+	<addForeignKeyConstraint constraintName="FK_UpsellingFormatos_formato" baseTableName="Upselling_Formatos" 
+		baseColumnNames="formato_id" referencedTableName="Pel_Formato" referencedColumnNames="id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_UpsellingFormatos_formato_upselling" baseTableName="Upselling_Formatos" 
+		baseColumnNames="formato_upselling_id" referencedTableName="Pel_Formato" referencedColumnNames="id" onDelete="NO ACTION"/>
+	
+	<rollback>
+		<dropForeignKeyConstraint baseTableName="Upselling_Formatos" constraintName="FK_UpsellingPrioridadFormatos_formato"/>
+		<dropForeignKeyConstraint baseTableName="Upselling_Formatos" constraintName="FK_UpsellingPrioridadFormatos_formato_upselling"/>
+		
+		<dropPrimaryKey tableName="Pel_Formato"/>
+		
+		<dropTable tableName="Upselling_Formatos"/>
+	</rollback>
+	
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="grupoPeliculaPorZonaGeografica">
+	<createTable tableName="GrupoPeliculaZonaGeografica">
+		<column name="grupo_pelicula_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="zona_geografica_id" type="int">
+			<constraints nullable="false" primaryKey="true"/>
+		</column>
+		<column name="estreno" type="int" defaultValue="0">
+			<constraints nullable="false"/>
+		</column>
+	</createTable>
+	
+	<addColumn tableName="Bi_Cluster_Pelicula">
+		<column name="orden" type="int" defaultValue="0">
+			<constraints nullable="false" />
+		</column>
+	</addColumn>
+	
+	<sql>
+		ALTER TABLE Cliente
+		ALTER COLUMN comuna_id int NULL
+	</sql>
+	
+	<addForeignKeyConstraint constraintName="FK_GrupoPeliculaZonaGeografica_GrupoPelicula" baseTableName="GrupoPeliculaZonaGeografica" 
+		baseColumnNames="grupo_pelicula_id" referencedTableName="Grupo_Pelicula" referencedColumnNames="id" onDelete="NO ACTION"/>
+		
+	<addForeignKeyConstraint constraintName="FK_GrupoPeliculaZonaGeografica_ZonaGeografica" baseTableName="GrupoPeliculaZonaGeografica" 
+		baseColumnNames="zona_geografica_id" referencedTableName="Zona_Geografica" referencedColumnNames="zona_id" onDelete="NO ACTION"/>
+		
+	<rollback>
+		<dropForeignKeyConstraint baseTableName="GrupoPeliculaZonaGeografica" constraintName="FK_GrupoPeliculaZonaGeografica_GrupoPelicula"/>
+		<dropForeignKeyConstraint baseTableName="GrupoPeliculaZonaGeografica" constraintName="FK_GrupoPeliculaZonaGeografica_ZonaGeografica"/>
+		
+		<delete tableName="GrupoPeliculaZonaGeografica"/>
+		
+		<addColumn tableName="Bi_Cluster_Pelicula">
+			<column name="estreno" type="int" defaultValue="0">
+				<constraints nullable="false"/>
+			</column>
+		</addColumn>
+		
+		<sql>
+			ALTER TABLE Cliente
+			ALTER COLUMN comuna_id int NOT NULL
+		</sql>
+		
+		<dropColumn tableName="Bi_Cluster_Pelicula" columnName="order"/>
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="clusterRefactoring">
+	<addColumn tableName="Bi_Cluster">
+		<column name="segment_id" type="varchar(255)">
+			<constraints nullable="true" />
+		</column>
+		<column name="name" type="varchar(255)">
+			<constraints nullable="true" />
+		</column>
+		<column name="description" type="varchar(255)">
+			<constraints nullable="true" />
+		</column>
+	</addColumn>
+	
+	<dropForeignKeyConstraint baseTableName="BI_Cluster" constraintName="FK_Cluster_Categoria"/>
+	<dropNotNullConstraint tableName="Bi_Cluster" columnName="categoria_id" columnDataType="int"/>
+	
+	<rollback>
+		<dropColumn tableName="Bi_Cluster" columnName="segment_id"/>
+		<dropColumn tableName="Bi_Cluster" columnName="description"/>
+		
+		<addNotNullConstraint tableName="Bi_Cluster" columnName="categoria_id"/>
+		<addForeignKeyConstraint constraintName="FK_Cluster_Categoria" baseTableName="BI_Cluster" 
+			baseColumnNames="categoria_id" referencedTableName="Categoria" referencedColumnNames="categoria_id" onDelete="NO ACTION"/>
+		
+	</rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="extractDataFromLoyalty">
+    <createTable tableName="temp_loyalty_customer">
+        <column name="rut" type="varchar(50)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+        <column name="nombre" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="apellido" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="celular" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="direccion" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="comuna" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="sexo" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cinema_code" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_nacimiento" type="date">
+			<constraints nullable="true"/>
+		</column>
+		<column name="ocupacion" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="nivel_educacional" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="n_miembros_hogar" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="created_at" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="updated_at" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	
+    <createTable tableName="temp_loyalty_transaction">
+		<column name="rut" type="varchar(50)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="email" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cinema_code" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="funcion" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="funcion_dia" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="funcion_hora" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+		<column name="pelicula_nombre" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="pelicula_codigo" type="varchar(255)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="cantidad" type="int">
+			<constraints nullable="true"/>
+		</column>
+		<column name="total" type="numeric(12,4)">
+			<constraints nullable="true"/>
+		</column>
+		<column name="fecha_compra" type="datetime">
+			<constraints nullable="true"/>
+		</column>
+	</createTable>
+	
+    <createTable tableName="ClienteOrigen">
+        <column name="cliente_id" type="int">
+			<constraints nullable="false"/>
+		</column>
+		<column name="origen" type="varchar(100)">
+            <constraints nullable="true"/>
+        </column>
+    </createTable>
+	
+    <addColumn tableName="Cliente">
+        <column name="ocupacion" type="varchar(255)">
+            <constraints nullable="true"/>
+        </column>
+        <column name="nivel_educacional" type="varchar(255)">
+            <constraints nullable="true"/>
+        </column>
+        <column name="n_miembros_hogar" type="int">
+            <constraints nullable="true"/>
+        </column>
+    </addColumn>
+    
+    <addForeignKeyConstraint constraintName="FK_ClienteOrigen_Cliente" baseTableName="ClienteOrigen" 
+		baseColumnNames="cliente_id" referencedTableName="Cliente" referencedColumnNames="cliente_id" onDelete="NO ACTION"/>
+    
+	<sql>
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('data_extraction', 'loyalty_last_client', '2012-01-01')
+		INSERT INTO Parametro (sistema, sub_sistema, codigo) VALUES ('data_extraction', 'loyalty_last_transaction', '2012-01-01')
+		
+		INSERT ClienteOrigen (cliente_id, origen)
+		SELECT cliente_id, 'cineticket'
+		FROM Cliente
+		
+		CREATE NONCLUSTERED INDEX IX_temp_loyalty_transaction_cinema_code
+		ON dbo.temp_loyalty_transaction (cinema_code)
+		INCLUDE (rut,email,funcion,funcion_dia,funcion_hora,pelicula_nombre,pelicula_codigo,cantidad,total,fecha_compra)
+	</sql>
+	
+    <rollback>
+        <sql>
+            DELETE FROM Parametro WHERE sistema = 'data_extraction' AND sub_sistema = 'loyalty_last_client'
+        </sql>
+        <dropTable tableName="temp_loyalty_customer"/>
+        
+        <dropColumn tableName="Cliente" columnName="origen"/>
+        <dropColumn tableName="Cliente" columnName="ocupacion"/>
+        <dropColumn tableName="Cliente" columnName="nivel_educacional"/>
+        <dropColumn tableName="Cliente" columnName="n_miembros_hogar"/>
+        
+        <dropForeignKeyConstraint baseTableName="ClienteOrigen" constraintName="FK_ClienteOrigen_Cliente"/>
+        <dropTable tableName="ClienteOrigen"/>
+        <dropIndex indexName="IX_temp_loyalty_transaction_cinema_code" tableName="temp_loyalty_transaction"/>
+        <dropTable tableName="temp_loyalty_transaction"/>
+    </rollback>
+</changeSet>
+<changeSet author="Nicolas Dujovne" id="fixTablaTempLoyaltyTransaction">
+    <dropIndex indexName="IX_temp_loyalty_transaction_cinema_code" tableName="temp_loyalty_transaction"/>
+	<dropColumn tableName="temp_loyalty_transaction" columnName="funcion_dia"/>
+	<dropColumn tableName="temp_loyalty_transaction" columnName="funcion_hora"/>
+	
+	<addColumn tableName="temp_loyalty_transaction">
+	    <column name="funcion_dia" type="int">
+            <constraints nullable="true"/>
+        </column>
+        <column name="funcion_hora" type="int">
+            <constraints nullable="true"/>
+        </column>
+	</addColumn>
+	
+	<sql>
+		CREATE NONCLUSTERED INDEX IX_temp_loyalty_transaction_cinema_code
+		ON dbo.temp_loyalty_transaction (cinema_code)
+		INCLUDE (rut,email,funcion,funcion_dia,funcion_hora,pelicula_nombre,pelicula_codigo,cantidad,total,fecha_compra)
+	</sql>
+	
+	<rollback>
+	    
+	    <dropColumn tableName="temp_loyalty_transaction" columnName="funcion_dia"/>
+		<dropColumn tableName="temp_loyalty_transaction" columnName="funcion_hora"/>
+	    
+		<addColumn tableName="temp_loyalty_transaction">
+	    <column name="funcion_dia" type="datetime">
+            <constraints nullable="true"/>
+        </column>
+        <column name="funcion_hora" type="datetime">
+            <constraints nullable="true"/>
+        </column>
+	</addColumn>
+	</rollback>
+</changeSet>
+</databaseChangeLog>

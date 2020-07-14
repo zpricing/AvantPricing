@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Plantilla">
+
+	<resultMap id="PlantillaMap" class="cl.zpricing.avant.model.loadmanager.Plantilla">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="diasFuncion" column="dias_a_funcion"/>
+		<result property="padre" column="padre" jdbcType="BIT"/>
+		<result property="idExterno" column="id_externo"/>
+		<result property="areas" column="id"
+			select="obtenerAreasPlantilla"/>
+		<result property="clases" column="id"
+			select="obtenerClasesPlantilla"/>
+	</resultMap>
+	
+	<resultMap id="AreaClaseMap" class="java.util.HashMap" >
+		<result property="key" column="area_id"
+			select="obtenerArea" javaType="java.lang.Object"/>
+		<result property="value" column="clase_id"
+			select="obtenerClase" javaType="java.lang.Object"/>
+	</resultMap>
+	
+	<select id="obtenerAreasPlantilla" resultClass="cl.zpricing.avant.model.Area">
+		SELECT Area.id AS id, Area.descripcion AS descripcion, Area.id_externo AS id_externo
+		FROM Area, Plantilla_Clase, Clase
+		WHERE Plantilla_Clase.plantilla_id = #value# AND Plantilla_Clase.area_id=Area.id
+				AND Plantilla_Clase.clase_id = Clase.clase_id
+		ORDER BY Clase.precio ASC
+	</select>
+	
+	<select id="obtenerClasesPlantilla" resultClass="cl.zpricing.avant.model.Clase">
+		SELECT Clase.clase_id as id, descripcion, precio
+		FROM Clase, Plantilla_Clase
+		WHERE
+		plantilla_id = #value# AND Clase.clase_id = Plantilla_Clase.clase_id 
+		ORDER BY Clase.precio ASC
+	</select>
+
+	<select id="obtenerAreaClase" resultMap="AreaClaseMap" parameterClass="java.lang.Integer">
+		SELECT area_id, clase_id
+		FROM Plantilla_Clase
+		WHERE plantilla_id = #value#
+	</select>
+
+	<select id="obtenerPlantillas" resultMap="PlantillaMap">
+		SELECT id, descripcion, dias_a_funcion, ISNULL(padre, 'False') AS padre, id_externo
+		FROM Plantilla
+	</select>
+
+	<select id="obtenerPlantillasGrupoPlantillas" resultMap="PlantillaMap" parameterClass="java.lang.Integer" >
+		SELECT id, descripcion, dias_a_funcion, ISNULL(padre, 'False') AS padre, id_externo
+		FROM Plantilla
+		WHERE grupoplantillas_id = #value#
+		ORDER BY dias_a_funcion ASC
+	</select>
+	
+	<update id="actualizarPlantilla" parameterClass="cl.zpricing.avant.model.loadmanager.Plantilla">
+		UPDATE Plantilla
+		SET descripcion = #descripcion#, dias_a_funcion = #diasFuncion#, padre = #padre#
+		WHERE id = #id#
+	</update>
+	
+	<delete id="borrarTodosPlantillaClaseArea" parameterClass="cl.zpricing.avant.model.loadmanager.Plantilla">
+		DELETE FROM Plantilla_Clase
+		WHERE plantilla_id = #id#
+	</delete>
+	
+	<delete id="borrarPlantillaClaseArea" parameterClass="java.util.HashMap">
+		DELETE FROM Plantilla_Clase
+		WHERE plantilla_id = #plantilla_id# AND clase_id = #clase_id#
+	</delete>
+	
+	<insert id="ingresarPlantillaClaseArea" parameterClass="java.util.HashMap">
+		INSERT INTO Plantilla_Clase
+		(plantilla_id, clase_id, area_id)
+		VALUES
+		(#plantilla_id#, #clase_id#, #area_id#)
+	</insert>
+
+</sqlMap>

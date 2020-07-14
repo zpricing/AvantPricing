@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TipoLog">
+	
+	<resultMap class="cl.zpricing.avant.model.log.TipoLog" id="TipoLogMap">
+		<result property="id" column="tipo_log_id"/>
+		<result property="descripcion" column="descripcion" />
+	</resultMap>
+	
+	<select id="obtenerTodosTipoLog" resultMap="TipoLogMap">
+		SELECT tipo_log_id, descripcion
+		FROM Tipo_log
+	</select>
+	
+	<select id="obtenerTipoLog" parameterClass="java.lang.Integer" resultMap="TipoLogMap">
+		SELECT tipo_log_id, descripcion
+		FROM Tipo_log
+		WHERE tipo_log_id = #value#
+	</select>
+	
+	<update id="actualizarTipoLog" parameterClass="cl.zpricing.avant.model.log.TipoLog">
+		UPDATE Tipo_log
+		SET descripcion = #descripcion#
+		WHERE tipo_log_id = #id#
+	</update>
+	
+	<delete id="eliminiarTipoLog" parameterClass="java.lang.Integer">
+		DELETE Tipo_log
+		WHERE tipo_log_id = #value#
+	</delete>
+	
+</sqlMap>

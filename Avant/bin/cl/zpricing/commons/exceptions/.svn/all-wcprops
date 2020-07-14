@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/zp/!svn/ver/220/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions
+END
+DaoException.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions/DaoException.java
+END
+BusinessLogicException.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions/BusinessLogicException.java
+END
+FormatoFechaException.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/zp/!svn/ver/220/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions/FormatoFechaException.java
+END
+DaoGenericoException.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions/DaoGenericoException.java
+END
+PrediccionException.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/exceptions/PrediccionException.java
+END

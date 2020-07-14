@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BusinessIntelligenceClients">	
+	<resultMap class="cl.zpricing.avant.etl.model.ClusterClient" id="mapClientWithTags">
+		<result property="name" column="nombre" />
+		<result property="email" column="email" />
+		<result property="tags" column="cliente_id"  select="getTags" />
+		<result property="segments" column="cliente_id"  select="getClientClusters" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.Tag" id="mapTag">
+		<result property="type" column="type" />
+		<result property="value" column="value" />
+		<result property="origin" column="origin" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.ClientSegment" id="mapClientSegments">
+		<result property="id" column="segment_id" typeHandler="cl.zpricing.avant.servicios.ibatis.handlers.ObjectIdTypeHandler"/>
+	</resultMap>
+	
+	<select id="getClientsWithTags" resultMap="mapClientWithTags">
+		SELECT X.*
+		FROM
+			(SELECT c.cliente_id, c.nombre, c.email, ROW_NUMBER() OVER (ORDER BY c.cliente_id) as num
+			FROM Cliente c
+			) as X 
+		WHERE X.num BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	</select>
+	
+	<select id="getTags" resultMap="mapTag">
+		SELECT 'Zona Geografica' as type, zg.nombre COLLATE DATABASE_DEFAULT as value, 'dynamic' as origin 
+		FROM Cliente c
+		LEFT JOIN Zona_Geografica_Comuna zgc ON zgc.comuna_id = c.comuna_id
+		LEFT JOIN Zona_Geografica zg ON zg.zona_id = zgc.zona_geografica_id
+		WHERE c.cliente_id = #value#
+		UNION
+		SELECT 'Cine' as type, value COLLATE DATABASE_DEFAULT, 'dynamic' as origin
+		FROM	
+			(SELECT c.nombre as value, cpc.factor_preferencia, ROW_NUMBER() OVER (PARTITION BY cpc.cliente_id ORDER BY cpc.factor_preferencia desc) as orden_preferencia
+			FROM ClientePreferenciasCine cpc
+			JOIN Complejo c ON c.complejo_id = cpc.complejo_id
+			WHERE cpc.cliente_id = #value#
+			) as X
+		WHERE orden_preferencia = 1 OR (orden_preferencia > 1 AND factor_preferencia > 0.5)
+		UNION
+		SELECT 'Peliculas Vistas' as type, gp.nombre COLLATE DATABASE_DEFAULT as value, 'dynamic' as origin
+		FROM ClientePeliculasVistas cpv
+		JOIN Pelicula p ON p.pelicula_id = cpv.pelicula_id
+		JOIN Grupo_Pelicula gp ON p.grupo_pelicula_id = gp.id
+		WHERE cpv.cliente_id = #value#
+		UNION
+		SELECT 'Categoria' as type, c.descripcion COLLATE DATABASE_DEFAULT as value , 'dynamic' as origin
+		FROM ClientePreferenciasCategoria cpc
+		JOIN Categoria c ON cpc.categoria_id = c.categoria_id
+		WHERE cpc.cliente_id = #value#
+	</select>
+	
+	<select id="getClientClusters" parameterClass="java.lang.Integer" resultMap="mapClientSegments">
+		SELECT bi_c.segment_id as segment_id
+		FROM BI_Cluster_Cliente bi_client
+		JOIN BI_Cluster bi_c on bi_c.cluster_id = bi_client.cluster_id
+		WHERE bi_client.cliente_id = #value#
+	</select>
+
+</sqlMap>

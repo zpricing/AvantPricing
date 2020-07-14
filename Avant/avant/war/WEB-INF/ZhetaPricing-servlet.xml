@@ -1,0 +1,1175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+	http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- Configures the annotation-driven Spring MVC Controller programming model.
+	  Note that, with Spring 3.0, this tag works in Servlet MVC only!  
+	  See Spring Reference 15.12 Configuring Spring MVC
+	  @ http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/mvc.html#mvc-annotation-driven
+ 	<mvc:annotation-driven /> 
+	-->
+	<!-- Scans the classpath for annotated components that will be auto-registered as Spring beans.
+   		 For example @Controller and @Service. Make sure to set the correct base-package
+ 	<context:component-scan base-package="cl.zpricing.avant.web" />
+	-->
+	<!--
+		the application context definition for the ZhetaPricing
+		DispatcherServlet
+	-->
+	
+	<mvc:annotation-driven /> 
+	
+	<context:component-scan base-package="cl.zpricing.avant.web.administrators" />
+	
+	<bean id="propertyConfigurer" class="cl.zpricing.avant.util.PropertiesUtil">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:system.properties</value>
+				<value>classpath:mongo.properties</value>
+				<value>classpath:../version</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+		<property name="order" value="2"/>
+	</bean>
+	
+	<bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		<property name="order" value="1"/>
+		<property name="mappings">
+			<props>
+				<prop key="/admin_funciones.htm">admin_funciones</prop>
+				<prop key="/admin_peliculas.htm">admin_peliculas</prop>
+				<prop key="/admin_peliculas2.0.htm">admin_peliculas2.0</prop>
+				<prop key="/menu.htm">menu</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="beanNameViewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="1"/>
+	</bean>
+
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+	<!-- Idioma -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename" value="messages_${language}" />
+	</bean>
+
+
+	<!-- Pruebas -->
+
+	<bean name="/prueba.htm" class="cl.zpricing.avant.web.PruebaController">
+		<property name="sessionForm" value="true" />
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="commandName" value="prueba" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PruebaForm" />
+		<property name="formView" value="prueba" />
+		<property name="successView" value="prueba.htm" />
+	</bean>
+	
+	<bean name="/pruebaoliver.htm" class="cl.zpricing.avant.web.test.PruebaOliverController" />
+
+
+	<bean name="/pruebajulio.htm" class="cl.zpricing.avant.web.test.PruebaJulioController" />
+
+	<bean name="/pruebaMario.htm" class="cl.zpricing.avant.web.test.PruebaMarioController">
+		<property name="aggregateDao" ref="aggregateDao"></property>
+		<property name="markerManager" ref="markerManager" />
+		<property name="prediccionManager" ref="prediccionManager" />
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="tipoLogDao" ref="tipoLogDao" />
+		<property name="logDao" ref="logDao"></property>
+	</bean>
+	
+	<bean name="/pruebaPabloController.htm" class="cl.zpricing.avant.web.test.PruebaPabloController" >
+		<property name="funcionDao" ref="funcionDao"/>
+	</bean>
+	
+	<!--<bean name="/dashboard.htm" class="cl.zpricing.avant.web.MenuController2">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="menuElementDao" ref="menuElementDao" />
+	</bean -->
+	
+	<bean name="/dashboard.htm" class="cl.zpricing.avant.web.DashboardController">
+	</bean>
+	
+	<bean name="/administracionProcesos.htm" class="cl.zpricing.avant.web.AdministracionProcesosController" >
+		<property name="logProcesosManager" ref="logProcesosManager"/>
+		<property name="factoryProcesos" ref="factoryProcesos"/>
+	</bean>
+
+	<!-- Diseño -->
+	
+	<bean name="/sidebar.htm" class="cl.zpricing.avant.web.SideBarController">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="menuElementDao" ref="menuElementDao" />
+	</bean>
+	
+	<bean name="/menu2.htm" class="cl.zpricing.avant.web.MenuController2">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="menuElementDao" ref="menuElementDao" />
+	</bean>
+
+	<bean name="/footer.htm" class="cl.zpricing.avant.web.FooterController" />
+
+	<bean name="/credits.htm" class="cl.zpricing.avant.web.CreditsController" />
+
+	<bean id="menu" class="cl.zpricing.avant.web.MenuController2">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="menuElementDao" ref="menuElementDao" />
+	</bean>
+
+	<bean name="/managemenu.htm" class="cl.zpricing.avant.web.ManageMenuElementsController">
+		<property name="menuElementDao" ref="menuElementDao" />
+		<property name="rolDao" ref="rolDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managemenu" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ManageMenuElementsForm" />
+		<property name="formView" value="managemenu" />
+		<property name="successView" value="managemenu.htm" />
+	</bean>
+
+	<bean name="/deletemenu.htm" class="cl.zpricing.avant.web.DeleteMenuElementController">
+		<property name="menuElementDao" ref="menuElementDao"></property>
+		<property name="successView" value="managemenu.htm" />
+	</bean>
+
+
+	<!-- Generadores -->
+	<bean name="/generadorPDF.htm" class="cl.zpricing.avant.web.reports.GeneradorPDFController" />
+
+	<bean id="GenerarPDF" class="cl.zpricing.avant.web.reports.generadorPDF" />
+
+	<bean name="/generadorExcel.htm"
+		class="cl.zpricing.avant.web.reports.GeneradorExcelController" />
+
+	<bean id="GenerarExcel" class="cl.zpricing.avant.web.reports.generadorExcel" />
+
+
+	<!-- Salas -->
+
+
+	<bean name="/admin_aeroom.htm" class="cl.zpricing.avant.web.RoomAeController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="salaDao" ref="salaDao" />
+		<property name="grupoDao" ref="grupoDao" />
+		<property name="tipoSalaDao" ref="tipoSalaDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="aeroom" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.RoomAeForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.RoomAeValidator" />
+		</property>
+		<property name="formView" value="aeroom" />
+		<property name="successView" value="admin_aeroom.htm" />
+	</bean>
+
+	<bean name="/admin_deleteroom.htm" class="cl.zpricing.avant.web.DeleteRoomController">
+		<property name="salaDao" ref="salaDao"></property>
+		<property name="successView" value="admin_aeroom.htm" />
+	</bean>
+
+
+
+	<!-- Parametro -->
+
+	<bean name="/parametro.htm"
+		class="cl.zpricing.avant.web.administrators.ParametroController">
+		<property name="serviciosRM" ref="serviciosRM"></property>
+	</bean>
+
+	<bean name="/parametroNuevo.htm"
+		class="cl.zpricing.avant.web.administrators.ParametroNuevoController">
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="parametroNuevo" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ParametroForm" />
+		<property name="formView" value="parametroNuevo" />
+		<property name="successView" value="parametro.htm" />
+	</bean>
+
+	<bean name="/parametroEditar.htm"
+		class="cl.zpricing.avant.web.administrators.ParametroEditarController">
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="parametroEditar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ParametroForm" />
+		<property name="formView" value="parametroEditar" />
+		<property name="successView" value="parametro.htm" />
+	</bean>
+
+
+	<!-- Servicios -->
+
+
+	<!-- Mascaras -->
+	<bean name="/admin_mascara.htm" class="cl.zpricing.avant.web.administrators.MascaraController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="mascaraDao" ref="mascaraDao" />
+		<property name="areaDao" ref="areaDao" />		
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="mascaras" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.MascarasForm" />
+		<property name="formView" value="mascara" />
+		<property name="successView" value="admin_mascara.htm" />
+	</bean>
+	
+	<bean name="/admin_mascara_nueva.htm" class="cl.zpricing.avant.web.administrators.MascaraAgregarController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="mascaraDao" ref="mascaraDao" />
+		<property name="areaDao" ref="areaDao" />		
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="mascara" />
+		<property name="commandClass" value="cl.zpricing.avant.model.Mascara" />
+		<property name="formView" value="mascara_nueva" />
+		<property name="successView" value="admin_mascara_nueva.htm" />
+	</bean>
+	
+	<bean name="/admin_mascara_detalle.htm" class="cl.zpricing.avant.web.administrators.MascaraDetalleCuposController">
+		<property name="areaDao" ref="areaDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="grupoDao" ref="grupoDao"/>
+		<property name="mascaraDao" ref="mascaraDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="grupos" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.GruposForm" />
+		<property name="formView" value="mascara_detalle" />
+		<property name="successView" value="admin_mascara.htm" />
+	</bean>
+	
+	<!-- Plantillas -->
+
+	<bean name="/grupoplantillas.htm"
+		class="cl.zpricing.avant.web.administrators.GrupoPlantillasController">
+		<property name="plantillaDao" ref="plantillaDao" />
+	</bean>
+
+	<bean name="/admin_plantillas.htm"
+		class="cl.zpricing.avant.web.administrators.PlantillasController">
+		<property name="plantillaDao" ref="plantillaDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="plantillas" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PlantillasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.PlantillasValidator" />
+		</property>
+		<property name="formView" value="plantillas" />
+		<property name="successView" value="admin_plantillas.htm" />
+	</bean>
+
+	<bean name="/admin_plantillasAddPrecio.htm"
+		class="cl.zpricing.avant.web.administrators.PlantillasAddPrecioController">
+		<property name="plantillaDao" ref="plantillaDao"></property>
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="plantillasAddPrecio" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.PlantillasAddPrecioForm" />
+		<property name="formView" value="plantillasAddPrecio" />
+		<property name="successView" value="admin_plantillas.htm" />
+	</bean>
+
+	<bean name="/admin_plantillasDeletePrecio.htm"
+		class="cl.zpricing.avant.web.administrators.PlantillasDeletePrecioController">
+		<property name="plantillaDao" ref="plantillaDao"></property>
+	</bean>
+
+	<!-- Carga -->
+
+
+	<bean name="/cargaerp.htm" class="cl.zpricing.avant.web.optimization.CargaErpController">
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="prediccionDao" ref="prediccionDao"></property>
+	</bean>
+
+	<bean name="/confCarga.htm" class="cl.zpricing.avant.web.administrators.ConfigurarCarga">
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="confCarga" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ConfigurarCargaForm" />
+		<property name="formView" value="confCarga" />
+		<property name="successView" value="confCarga.htm" />
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="trabajoDao" ref="trabajoDao" />
+	</bean>
+
+	<!-- Usuarios -->
+
+	<bean name="/login.htm" class="cl.zpricing.avant.web.LoginController">
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="login" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.LoginForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.LoginValidator" />
+		</property>
+		<property name="formView" value="login" />
+		<property name="successView" value="menu2.htm" />
+	</bean>
+
+	<bean name="/perfil.htm" class="cl.zpricing.avant.web.PerfilController">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="perfil" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.NewUserForm" />
+		<property name="formView" value="perfil" />
+		<property name="successView" value="perfil.htm" />
+	</bean>
+
+	<bean name="/showusers.htm" class="cl.zpricing.avant.web.ShowUsersController">
+		<property name="usuarioDao" ref="usuarioDao"></property>
+	</bean>
+
+	<bean name="/admin_newuser.htm"
+		class="cl.zpricing.avant.web.administrators.NewUserController">
+		<property name="rolDao" ref="rolDao"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="newuser" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.NewUserForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.NewUserValidator" />
+		</property>
+		<property name="formView" value="newuser" />
+		<property name="successView" value="showusers.htm" />
+	</bean>
+
+	<bean name="/modifyuser.htm"
+		class="cl.zpricing.avant.web.administrators.ModifyUserController">
+		<property name="rolDao" ref="rolDao"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="modifyuser" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ModifyUserForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.ModifyUserValidator" />
+		</property>
+		<property name="formView" value="modifyuser" />
+		<property name="successView" value="showusers.htm" />
+	</bean>
+
+	<bean name="/deleteuser.htm" class="cl.zpricing.avant.web.DeleteUserController">
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="successView" value="showusers.htm" />
+	</bean>
+
+
+	<!-- Empresas -->
+	<bean name="/modifyempresas.htm" class="cl.zpricing.avant.web.ModifyEmpresasController">
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="modifyempresas" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ManageEmpresasForm" />
+		<property name="formView" value="modifyempresas" />
+		<property name="successView" value="managempresas.htm" />
+	</bean>
+
+	<bean name="/managempresas.htm" class="cl.zpricing.avant.web.ManageEmpresasController">
+		<property name="empresaDao" ref="empresaDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managempresas" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ManageEmpresasForm" />
+		<property name="formView" value="managempresas" />
+		<property name="successView" value="managempresas.htm" />
+	</bean>
+
+	<bean name="/deleteempresa.htm" class="cl.zpricing.avant.web.DeleteEmpresaController">
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="successView" value="managempresas.htm" />
+	</bean>
+
+	<!-- Complejos -->
+	<bean name="/admin_managecomplejos.htm" class="cl.zpricing.avant.web.ManageComplejosController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managecomplejos" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ManageComplejosForm" />
+		<property name="formView" value="managecomplejos" />
+		<property name="successView" value="admin_managecomplejos.htm" />
+	</bean>
+
+	<bean name="/admin_modifycomplejo.htm" class="cl.zpricing.avant.web.ModifyComplejosController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="modifycomplejo" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ManageComplejosForm" />
+		<property name="formView" value="modifycomplejo" />
+		<property name="successView" value="admin_managecomplejos.htm" />
+	</bean>
+
+	<bean name="/admin_deletecomplejo.htm" class="cl.zpricing.avant.web.DeleteComplejoController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="successView" value="admin_managecomplejos.htm" />
+	</bean>
+	
+	<bean name="/admin_cinema_extract.htm" class="cl.zpricing.avant.web.CinemaExtractDataController">
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="procesoCinemaExtraction" ref="procesoCinemaExtractionData"/>
+		<property name="factoryProcesos" ref="factoryProcesos"/>
+	</bean>
+
+	<!-- Roles -->
+	<bean name="/admin_manageroles.htm" class="cl.zpricing.avant.web.ManageRolesController">
+		<property name="rolDao" ref="rolDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="manageroles" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ManageRolesForm" />
+		<property name="formView" value="manageroles" />
+		<property name="successView" value="admin_manageroles.htm" />
+	</bean>
+
+	<bean name="/admin_deleterol.htm" class="cl.zpricing.avant.web.DeleteRolController">
+		<property name="rolDao" ref="rolDao"></property>
+		<property name="successView" value="admin_manageroles.htm" />
+	</bean>
+
+	<!-- autoridades -->
+	<bean name="/admin_setautorities.htm" class="cl.zpricing.avant.web.SetAutoritiesController">
+		<property name="autoridadDao" ref="autoridadDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="setautorities" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.SetAutoritiesForm" />
+		<property name="formView" value="setautorities" />
+		<property name="successView" value="admin_setautorities.htm" />
+	</bean>
+
+	<bean name="/admin_deleteauthority.htm" class="cl.zpricing.avant.web.DeleteAuthorityController">
+		<property name="autoridadDao" ref="autoridadDao"></property>
+		<property name="successView" value="admin_setautorities.htm" />
+	</bean>
+
+	<!-- Markers -->
+	
+	<bean name="/admin_markers.htm" 
+		class="cl.zpricing.avant.web.administrators.MarkersController">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="markers" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.MarkersForm" />
+		<property name="formView" value="markers" />
+		<property name="successView" value="admin_markers.htm" />
+	</bean>
+	
+	<bean id="markerManager" class="cl.zpricing.avant.negocio.MarkerManagerImpl">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="serviciosRM" ref="serviciosRM" />
+	</bean>
+
+	<bean name="/showmarkers.htm" class="cl.zpricing.avant.web.ShowMarkersController">
+		<property name="markerDao" ref="markerDao"></property>
+	</bean>
+
+	<bean name="/admin_managemarkers.htm"
+		class="cl.zpricing.avant.web.administrators.ManageMarkersController">
+		<property name="markerDao" ref="markerDao" />
+		<property name="claseDao" ref="claseDao" />
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="tipoMarkerDao" ref="tipoMarkerDao" />
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="complejoDao" ref="complejoDao" />
+		<property name="peliculaDao" ref="peliculaDao" />
+		<property name="salaDao" ref="salaDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managemarkers" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ManageMarkersForm" />
+		<property name="formView" value="managemarkers" />
+		<property name="successView" value="admin_managemarkers.htm" />
+	</bean>
+
+	<bean name="/admin_modifymarkers.htm" class="cl.zpricing.avant.web.administrators.ModifyMarkersController">
+		<property name="markerDao" ref="markerDao" />
+		<property name="claseDao" ref="claseDao" />
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="tipoMarkerDao" ref="tipoMarkerDao" />
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="complejoDao" ref="complejoDao" />
+		<property name="peliculaDao" ref="peliculaDao" />
+		<property name="salaDao" ref="salaDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managemarkers" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ManageMarkersForm" />
+		<property name="formView" value="modifymarkers" />
+		<property name="successView" value="admin_managemarkers.htm" />
+	</bean>
+
+	<bean name="/admin_tipomarker.htm"
+		class="cl.zpricing.avant.web.administrators.TipoMarkerController">
+		<property name="tipoMarkerDao" ref="tipoMarkerDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="tipomarker" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.TipoMarkerForm" />
+		<property name="formView" value="tipomarker" />
+		<property name="successView" value="admin_tipomarker.htm" />
+	</bean>
+
+	<bean name="/admin_modifytipomarker.htm"
+		class="cl.zpricing.avant.web.administrators.ModifyTipoMarkerController">
+		<property name="tipoMarkerDao" ref="tipoMarkerDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="tipomarker" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.TipoMarkerForm" />
+		<property name="formView" value="modifytipomarker" />
+		<property name="successView" value="admin_tipomarker.htm" />
+	</bean>
+
+	<bean name="/admin_deletetipomarker.htm"
+		class="cl.zpricing.avant.web.administrators.DeleteTipoMarkerController">
+		<property name="tipoMarkerDao" ref="tipoMarkerDao"></property>
+		<property name="successView" value="admin_tipomarker.htm" />
+	</bean>
+
+	<bean name="/admin_deletemarker.htm"
+		class="cl.zpricing.avant.web.administrators.DeleteMarkerController">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="successView" value="admin_managemarkers.htm" />
+	</bean>
+
+	<!-- Reportes -->
+	<bean name="/reportes.htm" class="cl.zpricing.avant.web.ReportesController">
+		<property name="reportesDao" ref="reportesDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="reportes" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ReportesForm" />
+		<property name="formView" value="reportes" />
+		<property name="successView" value="reportes.htm" />	
+	</bean>
+
+	<!-- peliculas  -->
+	<bean id="admin_peliculas"
+		class="cl.zpricing.avant.web.administrators.PeliculaController">
+		<property name="menu" ref="menu"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="busqueda" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.BusquedaPeliculasForm" />
+		<property name="formView" value="peliculas" />
+		<property name="successView" value="admin_peliculas.htm" />
+
+	</bean>
+	
+	<bean name="/admin_peliculasSinClasificar.htm" class="cl.zpricing.avant.web.administrators.PeliculasSinClasificarController">
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="peliculaDao" ref="peliculaDao" />
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="peliculas" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PeliculasSinClasificarForm" />
+		<property name="formView" value="peliculasSinClasificar" />
+		<property name="successView" value="admin_peliculasSinClasificar.htm" />
+	</bean>
+	
+	<bean id="admin_peliculas2.0"
+		class="cl.zpricing.avant.web.administrators.PeliculaController">
+		<property name="menu" ref="menu"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="busqueda" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.BusquedaPeliculasForm" />
+		<property name="formView" value="administrator/peliculas" />
+		<property name="successView" value="admin_peliculas.htm" />
+
+	</bean>
+
+	<bean name="/admin_agregarpelicula.htm" class="cl.zpricing.avant.web.administrators.PeliculaAeController">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregarPelicula" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PeliculasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.PeliculasValidator" />
+		</property>
+		<property name="formView" value="agregarpelicula" />
+		<property name="successView" value="admin_agregarpelicula.htm" />
+	</bean>
+
+	<bean name="/admin_eliminarpelicula.htm" class="cl.zpricing.avant.web.administrators.EliminarPeliculaController">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="successView" value="admin_peliculas.htm" />
+	</bean>
+
+	<bean name="/admin_editarpelicula.htm" class="cl.zpricing.avant.web.administrators.PeliculaEditarController">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="editarPelicula" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PeliculasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.PeliculasValidator" />
+		</property>
+		<property name="formView" value="editarpelicula" />
+		<property name="successView" value="admin_editarpelicula.htm" />
+	</bean>
+
+	<!-- categoria -->
+
+	<bean name="/admin_categorias.htm"
+		class="cl.zpricing.avant.web.administrators.CategoriasController">
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="categorias" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.CategoriasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.CategoriasValidator" />
+		</property>
+		<property name="formView" value="categorias" />
+		<property name="successView" value="admin/admin_categorias.htm" />
+	</bean>
+
+	<bean name="/admin_aecategoria.htm"
+		class="cl.zpricing.avant.web.administrators.CategoriasAeController">
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.CategoriasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.CategoriasValidator" />
+		</property>
+		<property name="formView" value="aecategoria" />
+		<property name="successView" value="admin_aecategoria.htm" />
+	</bean>
+
+	<bean name="/admin_eliminarcategoria.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarCategoriaController">
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="successView" value="admin_aecategoria.htm" />
+	</bean>
+
+	<!-- epoca -->
+	<bean name="/admin_epocas.htm"
+		class="cl.zpricing.avant.web.administrators.EpocasController">
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="epocas" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.EpocasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.EpocasValidator" />
+		</property>
+		<property name="formView" value="epocas" />
+		<property name="successView" value="admin_epocas.htm" />
+	</bean>
+
+	<bean name="/admin_aeepoca.htm"
+		class="cl.zpricing.avant.web.administrators.EpocasAeController">
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.EpocasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.EpocasValidator" />
+		</property>
+		<property name="formView" value="aeepoca" />
+		<property name="successView" value="admin_aeepoca.htm" />
+	</bean>
+
+	<bean name="/admin_eliminarepoca.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarEpocaController">
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="successView" value="admin_aeepoca.htm" />
+	</bean>
+
+	<!-- publico-->
+	<bean name="/admin_publicos.htm"
+		class="cl.zpricing.avant.web.administrators.PublicosController">
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="publicos" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PublicosForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.PublicosValidator" />
+		</property>
+		<property name="formView" value="publicos" />
+		<property name="successView" value="admin_publicos.htm" />
+	</bean>
+
+	<bean name="/admin_aepublico.htm"
+		class="cl.zpricing.avant.web.administrators.PublicosAeController">
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PublicosForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.PublicosValidator" />
+		</property>
+		<property name="formView" value="aepublico" />
+		<property name="successView" value="admin_aepublico.htm" />
+	</bean>
+
+	<bean name="/admin_eliminarpublico.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarPublicoController">
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="successView" value="admin_aepublico.htm" />
+	</bean>
+
+	<!-- grupos complejos -->
+	<bean name="/admin_managegruposcomplejos.htm" class="cl.zpricing.avant.web.administrators.GrupoComplejoController">
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="grupoComplejoDao" ref="grupoComplejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="managegruposcomplejos" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.GrupoComplejoForm" />
+		<property name="formView" value="managegruposcomplejos" />
+		<property name="successView" value="admin_managegruposcomplejos.htm" />
+	</bean>
+	
+	<bean name="/admin_eliminargrupocomplejo.htm" class="cl.zpricing.avant.web.administrators.EliminarGrupoComplejoController">
+		<property name="grupoComplejoDao" ref="grupoComplejoDao"></property>
+		<property name="successView" value="admin_managegruposcomplejos.htm" />
+	</bean>
+	
+	<!-- funciones -->
+	<bean id="admin_funciones" class="cl.zpricing.avant.web.administrators.FuncionesController">
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="mascaraDao" ref="mascaraDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="salaDao" ref="salaDao"/>
+		<property name="serviciosRevenueManager" ref="serviciosRM"/>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="funciones" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.FuncionesCalForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.FuncionesCalValidator" />
+		</property>
+		<property name="formView" value="performances/funciones" />
+		<property name="successView" value="admin_funciones.htm" />
+	</bean>
+	
+	<bean name="/admin_asignar_restricciones_pelicula.htm" class="cl.zpricing.avant.web.restriccion.AsignarRestriccionesPeliculaController">
+		<property name="peliculaDao" ref="peliculaDao"/>
+		<property name="restrictionDao" ref="restrictionDao"/>
+		<property name="commandName" value="asignar_restriccion_pelicula" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.RestriccionAsignarPeliculasForm" />
+		<property name="formView" value="restrictions/asignar_restricciones_pelicula" />
+		<property name="successView" value="admin_ver_restricciones_pelicula.htm" />
+	</bean>
+	
+	<bean name="/admin_ver_restricciones_pelicula.htm" class="cl.zpricing.avant.web.restriccion.VerRestriccionesPeliculaController">
+		<property name="restrictionDao" ref="restrictionDao"/>
+	</bean>
+	
+	<bean name="/admin_eliminar_restricciones_pelicula.htm" class="cl.zpricing.avant.web.restriccion.EliminarRestriccionPeliculaController">
+		<property name="restrictionDao" ref="restrictionDao"/>
+	</bean>
+
+	<bean name="/admin_eliminarfuncion.htm" class="cl.zpricing.avant.web.administrators.EliminarFuncionController">
+		<property name="funcionDao" ref="funcionDao"></property>
+	</bean>
+	
+	<bean name="/admin_guardarMascarasFunciones.htm" class="cl.zpricing.avant.web.administrators.FuncionesGuardarMascarasController">
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+	</bean>
+	
+	<bean name="/admin_copiarMascarasFunciones.htm" class="cl.zpricing.avant.web.administrators.FuncionesCopiarMascarasController">
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+	</bean>
+
+	<bean name="/admin_agregarfuncion.htm"
+		class="cl.zpricing.avant.web.administrators.FuncionesAeController">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="salaDao" ref="salaDao"></property>
+		<property name="tipoFuncionDao" ref="tipoFuncionDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregarFuncion" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.FuncionesForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.FuncionesValidator" />
+		</property>
+		<property name="formView" value="performances/agregarfuncion" />
+		<property name="successView" value="admin_agregarfuncion.htm" />
+	</bean>
+
+	<bean name="/admin_editarfuncion.htm"
+		class="cl.zpricing.avant.web.administrators.FuncionesEditarController">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="salaDao" ref="salaDao"></property>
+		<property name="tipoFuncionDao" ref="tipoFuncionDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="editarFuncion" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.FuncionesForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.FuncionesValidator" />
+		</property>
+		<property name="formView" value="performances/editarfuncion" />
+		<property name="successView" value="admin_editarfuncion.htm" />
+	</bean>
+
+	<!-- tipofuncion-->
+	<bean name="/admin_tipofuncion.htm"
+		class="cl.zpricing.avant.web.administrators.TipoFuncionController">
+		<property name="tipoFuncionDao" ref="tipoFuncionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="tipofuncion" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.TipoFuncionForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.TipoFuncionValidator" />
+		</property>
+		<property name="formView" value="tipofuncion" />
+		<property name="successView" value="admin_tipofuncion.htm" />
+	</bean>
+
+	<bean name="/admin_aetipofuncion.htm"
+		class="cl.zpricing.avant.web.administrators.TipoFuncionAeController">
+		<property name="tipoFuncionDao" ref="tipoFuncionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.TipoFuncionForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.TipoFuncionValidator" />
+		</property>
+		<property name="formView" value="aetipofuncion" />
+		<property name="successView" value="admin_aetipofuncion.htm" />
+	</bean>
+
+	<bean name="/admin_eliminartipofuncion.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarTipoFuncionController">
+		<property name="tipoFuncionDao" ref="tipoFuncionDao"></property>
+		<property name="successView" value="admin_aetipofuncion.htm" />
+	</bean>
+
+	<!-- asistencia -->
+
+	<bean name="/admin_asistencias.htm" class="cl.zpricing.avant.web.administrators.AsistenciasController">
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.AsistenciasForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.AsistenciasValidator" />
+		</property>
+		<property name="formView" value="asistencias" />
+		<property name="successView" value="admin_asistencias.htm" />
+	</bean>
+
+	<bean name="/asistenciaporpelicula.htm"
+		class="cl.zpricing.avant.web.AsistenciaPorPeliculaController">
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="peliculaDao" ref="peliculaDao" />
+		<property name="commandName" value="asistenciaporpelicula" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.AsistenciaPorPeliculaForm" />
+
+	</bean>
+
+	<bean name="/admin_eliminarasistencia.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarAsistenciaController">
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="successView" value="admin_asistencias.htm" />
+	</bean>
+
+
+	<!-- clase-->
+
+	<bean name="/admin_clases.htm"
+		class="cl.zpricing.avant.web.administrators.ClasesController">
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="clases" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.ClasesPreciosForm" />
+		<property name="formView" value="clases" />
+		<property name="successView" value="admin_clases.htm" />
+	</bean>
+
+	<bean name="/admin_agregarclase.htm"
+		class="cl.zpricing.avant.web.administrators.ClasesAeController">
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="agregar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ClasesForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.ClasesValidator" />
+		</property>
+		<property name="formView" value="agregarclase" />
+		<property name="successView" value="admin_clases.htm" />
+	</bean>
+
+	<bean name="/admin_editarclase.htm"
+		class="cl.zpricing.avant.web.administrators.ClasesEditarController">
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="editar" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.ClasesForm" />
+		<property name="validator">
+			<bean class="cl.zpricing.avant.web.validator.ClasesValidator" />
+		</property>
+		<property name="formView" value="editarclase" />
+		<property name="successView" value="admin_clases.htm" />
+	</bean>
+
+	<bean name="/admin_eliminarclase.htm"
+		class="cl.zpricing.avant.web.administrators.EliminarClaseController">
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="successView" value="admin_clases.htm" />
+	</bean>
+
+	<!-- seleccionarPeliculas -->
+	<bean name="/seleccionarpeliculas.htm" class="cl.zpricing.avant.web.prediction.SeleccionarPeliculaController">
+		<property name="prediccionManager" ref="prediccionManager"></property>
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="seleccionarPeliculas" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.SeleccionarPeliculaForm" />
+		<property name="formView" value="seleccionarpeliculas" />
+		<property name="successView" value="asistenciapeliculadia.htm" />
+	</bean>
+
+	<bean name="/seleccionarpeliculas2.htm"
+		class="cl.zpricing.avant.web.prediction.SeleccionarPelicula2Controller">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="prediccionManager" ref="prediccionManager"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="categoriaDao" ref="categoriaDao"></property>
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="seleccionarPeliculas" />
+		<property name="commandClass"
+			value="cl.zpricing.avant.web.form.SeleccionarPeliculaForm" />
+
+
+		<property name="formView" value="seleccionarpeliculas2" />
+		<property name="successView" value="asistenciapeliculadia.htm" />
+	</bean>
+
+
+	<!-- predicciones -->
+	<!--
+		<bean name="PrediccionesMethodNameResolver"
+		class="cl.zpricing.avant.web.prediction.CommonMethodNameResolver">
+	-->
+	<!--		    <property name="paramName"><value>method</value></property>-->
+	<!--
+		<property name="defaultMethod"><value>referenceData</value></property>
+	-->
+	<!--	-->
+	<!--	</bean>-->
+	<!--	-->
+	<bean name="/predicciones.htm" class="cl.zpricing.avant.web.prediction.PrediccionController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="prediccionManager" ref="prediccionManager"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="predicciones" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.PrediccionPorClaseForm" />
+		<property name="formView" value="predicciones" />
+		<property name="successView" value="predicciones.htm" />
+		<!--<property name="methodNameResolver">-->
+		<!--<ref bean="PrediccionesMethodNameResolver"/></property>-->
+	</bean>
+	
+	<bean name="/cargaPrediccionHistorica.htm"
+		class="cl.zpricing.avant.web.prediction.CargaPrediccionController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+	</bean>
+	
+	<bean name="/recargaPrediccion.htm" class="cl.zpricing.avant.web.prediction.PrediccionRecargaController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+	</bean>
+
+	<bean id="prediccionManager" class="cl.zpricing.avant.negocio.PrediccionManagerImpl">
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="aggregateDao" ref="aggregateDao"></property>
+		<property name="claseDao" ref="claseDao"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="markerManager" ref="markerManager"></property>
+		<property name="plantillaDao" ref="plantillaDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="markerDao" ref="markerDao"></property>
+	</bean>
+
+	<bean name="/asistenciapeliculadia.htm" class="cl.zpricing.avant.web.AsistenciaPeliculaDiaController">
+		<property name="prediccionDao" ref="prediccionDao" />
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="peliculaDao" ref="peliculaDao" />
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+		<property name="prediccionManager" ref="prediccionManager"></property>
+		<property name="commandName" value="asistenciapeliculadia" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.AsistenciaPeliculaDiaForm" />
+		<property name="formView" value="asistenciapeliculadia" />
+		<property name="sessionForm" value="true" />
+		<property name="successView" value="asistenciapeliculadia.htm" />
+	</bean>
+
+
+
+	<bean name="/mostrarprediccion.htm" class="cl.zpricing.avant.web.MostrarPrediccionController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+	</bean>
+
+
+	<bean id="PrediccionIncompletaMethodNameResolver"
+		class="cl.zpricing.avant.web.prediction.CommonMethodNameResolver">
+		<property name="paramName">
+			<value>method</value>
+		</property>
+		<property name="defaultMethod">
+			<value>referenceData</value>
+		</property>
+	</bean>
+
+	<bean name="/prediccionincompleta.htm"
+		class="cl.zpricing.avant.web.prediction.PrediccionIncompletaController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="peliculaDao" ref="peliculaDao"></property>
+		<property name="serviciosRM" ref="serviciosRM"></property>
+		<property name="prediccionManager" ref="prediccionManager"></property>
+		<property name="usuarioDao" ref="usuarioDao"></property>
+		<property name="funcionDao" ref="funcionDao"></property>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="epocaDao" ref="epocaDao"></property>
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="publicoDao" ref="publicoDao"></property>
+		<property name="mascaraDao" ref="mascaraDao"></property>
+
+		<!--		<property name="sessionForm" value="true" />-->
+		<!--		<property name="commandName" value="prediccionincompleta" />-->
+		<!--
+			<property name="commandClass"
+			value="cl.zpricing.avant.web.form.PrediccionIncompletaForm" />
+		-->
+		<!--		<property name="formView" value="prediccionincompleta" />-->
+		<!--		<property name="successView" value="predicciones.htm" /> -->
+		<property name="methodNameResolver">
+			<ref bean="PrediccionIncompletaMethodNameResolver" />
+		</property>
+	</bean>
+
+	<bean name="/eliminarprediccion.htm"
+		class="cl.zpricing.avant.web.prediction.EliminarPrediccionController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+	</bean>
+
+	<bean name="/prediccionesHistoricas.htm" class="cl.zpricing.avant.web.prediction.PrediccionesHistoricasController">
+		<property name="usuarioDao" ref="usuarioDao" />
+		<property name="prediccionDao" ref="prediccionDao" />
+	</bean>
+
+	<bean name="/mostrarPrediccionHistoricaDiaria.htm"
+		class="cl.zpricing.avant.web.prediction.MostrarPrediccionHistoricaDiariaController">
+		<property name="prediccionDao" ref="prediccionDao"></property>
+		<property name="aggregateDao" ref="aggregateDao"></property>
+	</bean>
+
+	<bean name="/mostrarPrediccionHistoricaFunciones.htm"
+		class="cl.zpricing.avant.web.prediction.MostrarPrediccionHistoricaFuncionesController">
+		<property name="prediccionDao" ref="prediccionDao" />
+		<property name="funcionDao" ref="funcionDao" />
+	</bean>
+
+<!--	  Para subir los archivos Excel -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="1000000000" />
+	</bean>
+
+	<bean name="/subirArchivo.htm"
+		class="cl.zpricing.avant.web.reports.SubirArchivoExcelController">
+		<property name="sessionForm" value="true" />
+		<property name="commandName" value="SubirArchivo" />
+		<property name="commandClass" value="cl.zpricing.avant.web.form.SubirArchivoForm" />
+		<property name="formView" value="reports/subirarchivo" />
+		<property name="successView" value="reports/subirarchivo" />
+		<property name="reporteDao" ref="reporteDao"></property>
+	</bean>
+	
+	<!-- Administrar cosas Nielsen -->
+	<bean name="/administrarNielsen.htm" class="cl.zpricing.avant.web.reports.AdministrarNielsenController">
+		<property name="sessionForm" value="true" />
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="formView" value="reports/administrarnielsen" />
+		<property name="successView" value="reports/administrarnielsen" />
+
+	</bean>
+	<bean name="/agregarComplejoNielsen.htm" class="cl.zpricing.avant.web.reports.AgregarComplejoNielsenController">
+		<property name="sessionForm" value="true"/>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="formView" value="reports/agregarcomplejonielsen" />
+		<property name="successView" value="administrarNielsen.htm"></property>
+		<property name="commandClass" value="cl.zpricing.avant.web.form.AgregarComplejoNielsenForm"></property>
+		<property name="commandName" value="AgregarComplejoNielsen"></property>
+	</bean>
+	
+	<bean name="/auxiliarNielsen.htm" class="cl.zpricing.avant.web.reports.AuxiliarNielsenController">
+		<property name="sessionForm" value="true"/>
+		<property name="complejoDao" ref="complejoDao"></property>
+		<property name="empresaDao" ref="empresaDao"></property>
+		<property name="formView" value="reports/auxiliarnielsen"></property>
+		<property name="successView" value="reports/auxiliarnielsen"></property>
+	</bean>
+	
+	<bean name="/403.htm" class="cl.zpricing.avant.web.Error403Controller">
+		<property name="formView" value="error403"/>
+	</bean>
+</beans>

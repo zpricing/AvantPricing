@@ -1,0 +1,1522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<transformation>
+  <info>
+    <name>transformacion archivo nielsen</name>
+    <description/>
+    <extended_description/>
+    <trans_version/>
+    <trans_status>0</trans_status>
+    <directory>&#47;</directory>
+    <parameters>
+        <parameter>
+            <name>archivo_excel</name>
+            <default_value>c:\Users\zp6\Desktop\Reporte_Semana_Nielsen_xls.xls</default_value>
+            <description>Ubicación del archivo Excel del reporte Nielsen</description>
+        </parameter>
+        <parameter>
+            <name>db</name>
+            <default_value>zp_dev</default_value>
+            <description>Nombre de la base de datos</description>
+        </parameter>
+        <parameter>
+            <name>pass</name>
+            <default_value>zp</default_value>
+            <description>Contraseña</description>
+        </parameter>
+        <parameter>
+            <name>servidor</name>
+            <default_value>zpserver</default_value>
+            <description>Direccion del servidor de SQL Server</description>
+        </parameter>
+        <parameter>
+            <name>usuario</name>
+            <default_value>zp</default_value>
+            <description>Nombre de usuario </description>
+        </parameter>
+    </parameters>
+    <log>
+      <read/>
+      <write/>
+      <input/>
+      <output/>
+      <update/>
+      <rejected/>
+      <connection/>
+      <table/>
+      <step_performance_table/>
+      <use_batchid>Y</use_batchid>
+      <use_logfield>N</use_logfield>
+      <size_limit_lines/>
+    </log>
+    <maxdate>
+      <connection/>
+      <table/>
+      <field/>
+      <offset>0.0</offset>
+      <maxdiff>0.0</maxdiff>
+    </maxdate>
+    <size_rowset>10000</size_rowset>
+    <sleep_time_empty>50</sleep_time_empty>
+    <sleep_time_full>50</sleep_time_full>
+    <unique_connections>N</unique_connections>
+    <feedback_shown>Y</feedback_shown>
+    <feedback_size>50000</feedback_size>
+    <using_thread_priorities>Y</using_thread_priorities>
+    <shared_objects_file/>
+    <capture_step_performance>N</capture_step_performance>
+    <step_performance_capturing_delay>1000</step_performance_capturing_delay>
+    <dependencies>
+    </dependencies>
+    <partitionschemas>
+    </partitionschemas>
+    <slaveservers>
+    </slaveservers>
+    <clusterschemas>
+    </clusterschemas>
+  <modified_user>-</modified_user>
+  <modified_date>2010&#47;01&#47;20 17:15:30.337</modified_date>
+  </info>
+  <notepads>
+  </notepads>
+  <connection>
+    <name>ConexionParametrizada</name>
+    <server>${servidor}</server>
+    <type>MSSQL</type>
+    <access>Native</access>
+    <database>${db}</database>
+    <port>1433</port>
+    <username>${usuario}</username>
+    <password>${pass}</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MSSQL_DOUBLE_DECIMAL_SEPARATOR</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>1433</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>N</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <connection>
+    <name>conn</name>
+    <server>192.168.100.195</server>
+    <type>MSSQL</type>
+    <access>Native</access>
+    <database>zp_dev</database>
+    <port>1433</port>
+    <username>zp</username>
+    <password>Encrypted 2be98afc86aa7f2e4cb79ce10bef2b5ca</password>
+    <servername/>
+    <data_tablespace/>
+    <index_tablespace/>
+    <attributes>
+      <attribute><code>FORCE_IDENTIFIERS_TO_LOWERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>FORCE_IDENTIFIERS_TO_UPPERCASE</code><attribute>N</attribute></attribute>
+      <attribute><code>IS_CLUSTERED</code><attribute>N</attribute></attribute>
+      <attribute><code>MSSQL_DOUBLE_DECIMAL_SEPARATOR</code><attribute>N</attribute></attribute>
+      <attribute><code>PORT_NUMBER</code><attribute>1433</attribute></attribute>
+      <attribute><code>QUOTE_ALL_FIELDS</code><attribute>N</attribute></attribute>
+      <attribute><code>SUPPORTS_BOOLEAN_DATA_TYPE</code><attribute>N</attribute></attribute>
+      <attribute><code>USE_POOLING</code><attribute>N</attribute></attribute>
+    </attributes>
+  </connection>
+  <order>
+  <hop> <from>Obtener Excel Input Nielsen Report</from><to>Seleccionar columnas relevantes</to><enabled>Y</enabled> </hop>  <hop> <from>Seleccionar columnas relevantes</from><to>Obtener nombre y cantidad de salas</to><enabled>Y</enabled> </hop>  <hop> <from>Obtener nombre y cantidad de salas</from><to>Olvidar &quot;Cine&quot;</to><enabled>Y</enabled> </hop>  <hop> <from>Obtener título del reporte</from><to>Compatibilizar con Javascript</to><enabled>Y</enabled> </hop>  <hop> <from>Compatibilizar con Javascript</from><to>Parsear título del reporte</to><enabled>Y</enabled> </hop>  <hop> <from>Parsear título del reporte</from><to>Ahora tenemos la fecha mm-dd-aaaa</to><enabled>Y</enabled> </hop>  <hop> <from>Olvidar &quot;Cine&quot;</from><to>Ponerle la fecha a todas las filas</to><enabled>Y</enabled> </hop>  <hop> <from>Ahora tenemos la fecha mm-dd-aaaa</from><to>Ponerle la fecha a todas las filas</to><enabled>Y</enabled> </hop>  <hop> <from>Ponerle la fecha a todas las filas</from><to>Obtener empresa_id</to><enabled>Y</enabled> </hop>  <hop> <from>Obtener empresa_id</from><to>Agregar complejos si no existen</to><enabled>Y</enabled> </hop>  <hop> <from>Agregar complejos si no existen</from><to>y obtener los id de los complejos</to><enabled>Y</enabled> </hop>  <hop> <from>y obtener los id de los complejos</from><to>Agregar fecha final</to><enabled>Y</enabled> </hop>  <hop> <from>Agregar fecha final</from><to>Guardar AsistenciaHistorica</to><enabled>Y</enabled> </hop>  <hop> <from>Agregar fecha final</from><to>Guardar RecaudacionHistorica</to><enabled>Y</enabled> </hop>  </order>
+  <step>
+    <name>Agregar complejos si no existen</name>
+    <type>ExecSQL</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>ConexionParametrizada</connection>
+    <execute_each_row>Y</execute_each_row>
+    <replace_variables>N</replace_variables>
+    <sql>EXECUTE
+InsertarDatosComplejoSiNoExistiaComplejo
+&apos;?&apos;, ?, &apos;?&apos;, &apos;?&apos;, ?;</sql>
+    <insert_field/>
+    <update_field/>
+    <delete_field/>
+    <read_field/>
+    <arguments>
+       <argument><name>NombreCine</name></argument>
+       <argument><name>empresa_id</name></argument>
+       <argument><name>Ciudad</name></argument>
+       <argument><name>fecha</name></argument>
+       <argument><name>CantidadSalas</name></argument>
+    </arguments>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>550</xloc>
+      <yloc>319</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Agregar fecha final</name>
+    <type>Calculator</type>
+    <description/>
+    <distribute>N</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+       <calculation><field_name>siete</field_name>
+<calc_type>CONSTANT</calc_type>
+<field_a>6</field_a>
+<field_b/>
+<field_c/>
+<value_type>Integer</value_type>
+<value_length>-1</value_length>
+<value_precision>-1</value_precision>
+<remove>Y</remove>
+<conversion_mask/>
+<decimal_symbol/>
+<grouping_symbol/>
+<currency_symbol/>
+</calculation>
+       <calculation><field_name>fecha_fin</field_name>
+<calc_type>ADD_DAYS</calc_type>
+<field_a>fecha</field_a>
+<field_b>siete</field_b>
+<field_c/>
+<value_type>-</value_type>
+<value_length>-1</value_length>
+<value_precision>-1</value_precision>
+<remove>N</remove>
+<conversion_mask/>
+<decimal_symbol/>
+<grouping_symbol/>
+<currency_symbol/>
+</calculation>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>549</xloc>
+      <yloc>125</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Ahora tenemos la fecha mm-dd-aaaa</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <fields>        <select_unspecified>N</select_unspecified>
+      <remove>        <name>titulo</name>
+      </remove>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>257</xloc>
+      <yloc>217</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Compatibilizar con Javascript</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <fields>      <field>        <name>Chile : Lista de todos los Cines : A Nivel Nacional ( 01-07-2010) $ Chl</name>
+        <rename>titulo</rename>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>        <select_unspecified>N</select_unspecified>
+    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>254</xloc>
+      <yloc>32</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Obtener Excel Input Nielsen Report</name>
+    <type>ExcelInput</type>
+    <description/>
+    <distribute>N</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <header>Y</header>
+    <noempty>Y</noempty>
+    <stoponempty>Y</stoponempty>
+    <filefield/>
+    <sheetfield/>
+    <sheetrownumfield/>
+    <rownumfield/>
+    <sheetfield/>
+    <filefield/>
+    <limit>0</limit>
+    <encoding/>
+    <add_to_result_filenames>Y</add_to_result_filenames>
+    <accept_filenames>N</accept_filenames>
+    <accept_field/>
+    <accept_stepname/>
+    <file>
+      <name>${archivo_excel}</name>
+      <filemask/>
+      <file_required/>
+    </file>
+    <fields>
+      <field>
+        <name>S Rk</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>Región</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>Ciudad</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>Cto</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>Cine</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07 Jue. Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-08 Vie Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-09 Sabado Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-10 Dom. Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-11 Lun. Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-12 Mar. Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. Adm %Camb. NA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-13 Mie. Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-10 FS Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-10 FS Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-10 FS %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-10 FS Asist %Camb. SA</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>%Camb. FS Ant Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>%Camb. FS Ant Asistentes</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-13 Semana Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-13 Semana Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-13 Semana %Camb. S Pas.</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>01-07-01-13 Semana Asist %Camb. SA</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>%Camb. S Pas. Recaudación</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>%Camb. S Pas. Asistentes</name>
+        <type>Number</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+    </fields>
+    <sheets>
+      <sheet>
+        <name/>
+        <startrow>4</startrow>
+        <startcol>0</startcol>
+        </sheet>
+    </sheets>
+    <strict_types>N</strict_types>
+    <error_ignored>N</error_ignored>
+    <error_line_skipped>N</error_line_skipped>
+    <bad_line_files_destination_directory/>
+    <bad_line_files_extension>warning</bad_line_files_extension>
+    <error_line_files_destination_directory/>
+    <error_line_files_extension>error</error_line_files_extension>
+    <line_number_files_destination_directory/>
+    <line_number_files_extension>line</line_number_files_extension>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>85</xloc>
+      <yloc>12</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Obtener empresa_id</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>ConexionParametrizada</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>dbo</schema>
+      <table>RPT_Empresa</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>Codigo_Nielsen</name>
+        <field>codigo_nielsen</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>rpt_empresa_id</name>
+        <rename>empresa_id</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>405</xloc>
+      <yloc>322</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Obtener nombre y cantidad de salas</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <compatible>N</compatible>
+    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var cinestring = &quot;&quot; + Cine;
+var palabras = cinestring.split(&quot; &quot;);
+var NombreCine;
+var CantidadSalas;
+if (isNaN(palabras[palabras.length-1])) {
+&#47;&#47;Tiene una sala
+ NombreCine = palabras.join(&quot; &quot;);
+ CantidadSalas = 1;
+} else {
+&#47;&#47;Tiene mas de una sala&quot;;
+ NombreCine = palabras.slice(0, palabras.length-1).join(&quot; &quot;);
+ CantidadSalas = palabras[palabras.length-1];
+}
+</jsScript_script>
+      </jsScript>    </jsScripts>    <fields>      <field>        <name>NombreCine</name>
+        <rename>NombreCine</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>      <field>        <name>CantidadSalas</name>
+        <rename>CantidadSalas</rename>
+        <type>Integer</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>79</xloc>
+      <yloc>209</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Obtener título del reporte</name>
+    <type>ExcelInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <header>N</header>
+    <noempty>Y</noempty>
+    <stoponempty>N</stoponempty>
+    <filefield/>
+    <sheetfield/>
+    <sheetrownumfield/>
+    <rownumfield/>
+    <sheetfield/>
+    <filefield/>
+    <limit>1</limit>
+    <encoding/>
+    <add_to_result_filenames>Y</add_to_result_filenames>
+    <accept_filenames>N</accept_filenames>
+    <accept_field/>
+    <accept_stepname/>
+    <file>
+      <name>${archivo_excel}</name>
+      <filemask/>
+      <file_required/>
+    </file>
+    <fields>
+      <field>
+        <name>Chile : Lista de todos los Cines : A Nivel Nacional ( 01-07-2010) $ Chl</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+    </fields>
+    <sheets>
+      <sheet>
+        <name/>
+        <startrow>0</startrow>
+        <startcol>0</startcol>
+        </sheet>
+    </sheets>
+    <strict_types>N</strict_types>
+    <error_ignored>N</error_ignored>
+    <error_line_skipped>N</error_line_skipped>
+    <bad_line_files_destination_directory/>
+    <bad_line_files_extension>warning</bad_line_files_extension>
+    <error_line_files_destination_directory/>
+    <error_line_files_extension>error</error_line_files_extension>
+    <line_number_files_destination_directory/>
+    <line_number_files_extension>line</line_number_files_extension>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>397</xloc>
+      <yloc>35</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Olvidar &quot;Cine&quot;</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <fields>        <select_unspecified>N</select_unspecified>
+      <remove>        <name>Cine</name>
+      </remove>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>79</xloc>
+      <yloc>311</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Parsear título del reporte</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <compatible>N</compatible>
+    <jsScripts>      <jsScript>        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var txt = titulo;
+
+      var re1=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 1
+      var re2=&apos;([a-z])&apos;;	&#47;&#47; Any Single Word Character (Not Whitespace) 1
+      var re3=&apos;.*?&apos;;	&#47;&#47; Non-greedy match on filler
+      var re4=&apos;(\\s+)&apos;;	&#47;&#47; White Space 1
+      var re5=&apos;(.)&apos;;	&#47;&#47; Any Single Character 1
+      var re6=&apos;(\\s+)&apos;;	&#47;&#47; White Space 2
+      var re7=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 2
+      var re8=&apos;(\\s+)&apos;;	&#47;&#47; White Space 3
+      var re9=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 3
+      var re10=&apos;(\\s+)&apos;;	&#47;&#47; White Space 4
+      var re11=&apos;((?:[a-z][a-z0-9_]*))&apos;;	&#47;&#47; Variable Name 1
+      var re12=&apos;(\\s+)&apos;;	&#47;&#47; White Space 5
+      var re13=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 4
+      var re14=&apos;(\\s+)&apos;;	&#47;&#47; White Space 6
+      var re15=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 5
+      var re16=&apos;(\\s+)&apos;;	&#47;&#47; White Space 7
+      var re17=&apos;.*?&apos;;	&#47;&#47; Non-greedy match on filler
+      var re18=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 6
+      var re19=&apos;(\\s+)&apos;;	&#47;&#47; White Space 8
+      var re20=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 7
+      var re21=&apos;(\\s+)&apos;;	&#47;&#47; White Space 9
+      var re22=&apos;.*?&apos;;	&#47;&#47; Non-greedy match on filler
+      var re23=&apos;((?:[0]?[1-9]|[1][012])[-:\\&#47;.](?:(?:[0-2]?\\d{1})|(?:[3][0,1]{1}))[-:\\&#47;.](?:(?:[1]{1}\\d{1}\\d{1}\\d{1})|(?:[2]{1}\\d{3})))(?![\\d])&apos;;	&#47;&#47; MMDDYYYY 1
+      var re24=&apos;.*?&apos;;	&#47;&#47; Non-greedy match on filler
+      var re25=&apos;(\\s+)&apos;;	&#47;&#47; White Space 10
+      var re26=&apos;(.)&apos;;	&#47;&#47; Any Single Character 2
+      var re27=&apos;(\\s+)&apos;;	&#47;&#47; White Space 11
+      var re28=&apos;((?:[a-z][a-z]+))&apos;;	&#47;&#47; Word 8
+
+      var p = new RegExp(re1+re2+re3+re4+re5+re6+re7+re8+re9+re10+re11+re12+re13+re14+re15+re16+re17+re18+re19+re20+re21+re22+re23+re24+re25+re26+re27+re28,[&quot;i&quot;]);
+      var m = p.exec(txt);
+      if (m != null)
+      {
+          var word1=m[1];
+          var w1=m[2];
+          var ws1=m[3];
+          var c1=m[4];
+          var ws2=m[5];
+          var word2=m[6];
+          var ws3=m[7];
+          var word3=m[8];
+          var ws4=m[9];
+          var var1=m[10];
+          var ws5=m[11];
+          var word4=m[12];
+          var ws6=m[13];
+          var word5=m[14];
+          var ws7=m[15];
+          var word6=m[16];
+          var ws8=m[17];
+          var word7=m[18];
+          var ws9=m[19];
+          var mmddyyyy1=m[20];
+          var ws10=m[21];
+          var c2=m[22];
+          var ws11=m[23];
+          var word8=m[24];
+          var lol = &quot;(&quot;+word1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+w1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+c1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws2.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word2.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws3.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word3.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws4.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+var1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws5.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word4.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws6.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word5.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws7.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word6.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws8.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word7.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws9.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+mmddyyyy1.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws10.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+c2.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+ws11.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;(&quot;+word8.replace(&#47;&lt;&#47;,&quot;&amp;lt;&quot;)+&quot;)&quot;+&quot;\n&quot;;
+      }
+
+lol = m[20];
+
+&#47;&#47; Splitear la fecha
+var numeros = lol.split(&quot;-&quot;);
+&#47;&#47; numeros es un array de tres cosas
+var mes = numeros[0];
+var dia = numeros[1];
+var año = numeros[2];
+var fecha = new Date(año, mes-1, dia);
+var fech2 = new Date(2010, 9, 31)
+</jsScript_script>
+      </jsScript>    </jsScripts>    <fields>      <field>        <name>fecha</name>
+        <rename>fecha</rename>
+        <type>Date</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>251</xloc>
+      <yloc>114</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Ponerle la fecha a todas las filas</name>
+    <type>JoinRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+      <directory>%%java.io.tmpdir%%</directory>
+      <prefix>out</prefix>
+      <cache_size>500</cache_size>
+      <main>Olvidar &quot;Cine&quot;</main>
+    <compare>
+<condition>
+ <negated>N</negated>
+ <leftvalue>Codigo_Nielsen</leftvalue>
+ <function>IS NOT NULL</function>
+ <rightvalue/>
+ </condition>
+    </compare>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>253</xloc>
+      <yloc>321</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Seleccionar columnas relevantes</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <fields>      <field>        <name>Ciudad</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>Cto</name>
+        <rename>Codigo_Nielsen</rename>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>Cine</name>
+        <rename/>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>01-07-01-13 Semana Recaudación</name>
+        <rename>Recaudacion</rename>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>      <field>        <name>01-07-01-13 Semana Asistentes</name>
+        <rename>Asistentes</rename>
+        <length>-2</length>
+        <precision>-2</precision>
+      </field>        <select_unspecified>N</select_unspecified>
+    </fields>     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>85</xloc>
+      <yloc>128</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>y obtener los id de los complejos</name>
+    <type>DBLookup</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>ConexionParametrizada</connection>
+    <cache>N</cache>
+    <cache_load_all>N</cache_load_all>
+    <cache_size>0</cache_size>
+    <lookup>
+      <schema>dbo</schema>
+      <table>RPT_Complejo</table>
+      <orderby/>
+      <fail_on_multiple>N</fail_on_multiple>
+      <eat_row_on_failure>N</eat_row_on_failure>
+      <key>
+        <name>NombreCine</name>
+        <field>nombre</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>rpt_complejo_id</name>
+        <rename>complejo_id</rename>
+        <default/>
+        <type>Integer</type>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>549</xloc>
+      <yloc>221</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Guardar AsistenciaHistorica</name>
+    <type>InsertUpdate</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>ConexionParametrizada</connection>
+    <commit>100</commit>
+    <update_bypassed>N</update_bypassed>
+    <lookup>
+      <schema>dbo</schema>
+      <table>AsistenciaHistorica</table>
+      <key>
+        <name>fecha</name>
+        <field>fecha_inicio</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <key>
+        <name>complejo_id</name>
+        <field>complejo_id</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>fecha_inicio</name>
+        <rename>fecha</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>fecha_fin</name>
+        <rename>fecha_fin</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>complejo_id</name>
+        <rename>complejo_id</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>asistencia</name>
+        <rename>Asistentes</rename>
+        <update>Y</update>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>807</xloc>
+      <yloc>65</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step>
+    <name>Guardar RecaudacionHistorica</name>
+    <type>InsertUpdate</type>
+    <description/>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+         <partitioning>
+           <method>none</method>
+           <schema_name/>
+           </partitioning>
+    <connection>ConexionParametrizada</connection>
+    <commit>100</commit>
+    <update_bypassed>N</update_bypassed>
+    <lookup>
+      <schema>dbo</schema>
+      <table>RecaudacionHistorica</table>
+      <key>
+        <name>fecha</name>
+        <field>fecha_inicio</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <key>
+        <name>complejo_id</name>
+        <field>complejo_id</field>
+        <condition>=</condition>
+        <name2/>
+      </key>
+      <value>
+        <name>fecha_inicio</name>
+        <rename>fecha</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>fecha_fin</name>
+        <rename>fecha_fin</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>complejo_id</name>
+        <rename>complejo_id</rename>
+        <update>N</update>
+      </value>
+      <value>
+        <name>recaudacion</name>
+        <rename>Recaudacion</rename>
+        <update>Y</update>
+      </value>
+    </lookup>
+     <cluster_schema/>
+ <remotesteps>   <input>   </input>   <output>   </output> </remotesteps>    <GUI>
+      <xloc>809</xloc>
+      <yloc>168</yloc>
+      <draw>Y</draw>
+      </GUI>
+    </step>
+
+  <step_error_handling>
+  </step_error_handling>
+   <slave-step-copy-partition-distribution>
+</slave-step-copy-partition-distribution>
+   <slave_transformation>N</slave_transformation>
+</transformation>

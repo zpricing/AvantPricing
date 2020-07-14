@@ -1,0 +1,27 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Agrupar peliculas
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    
+    <script id="insert_movies_temp" connection-id="zpcinemas">
+		INSERT Grupo_Pelicula (nombre)
+		SELECT DISTINCT ltrim(rtrim(dbo.strip_prefix_suffix(p.nombre)))
+		FROM Pelicula p
+		WHERE NOT EXISTS (SELECT * FROM Grupo_Pelicula gp WHERE gp.nombre = ltrim(rtrim(dbo.strip_prefix_suffix(p.nombre))))
+	</script>
+    
+    <script connection-id="zpcinemas">
+    	UPDATE Pelicula
+    	SET grupo_pelicula_id = Grupo_Pelicula.id
+    	FROM Pelicula
+    	JOIN Grupo_Pelicula ON ltrim(rtrim(dbo.strip_prefix_suffix(Pelicula.nombre))) = Grupo_Pelicula.nombre
+    	WHERE grupo_pelicula_id is null
+    </script>
+</etl>

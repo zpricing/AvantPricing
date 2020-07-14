@@ -1,0 +1,47 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de distribuidores.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script connection-id="zpcinemas">
+    	IF OBJECT_ID('distribuidor_stagging', 'U') IS NOT NULL DROP TABLE distribuidor_stagging 
+    	CREATE TABLE distribuidor_stagging (code varchar(50), name varchar(255));
+    </script>
+    
+    <query connection-id="cinema">
+        SELECT CodDistribuidor as code, NomDistribuidora as name
+        FROM Distribuidoras
+        
+       	<script connection-id="zpcinemas">
+       		INSERT INTO distribuidor_stagging (code, name) VALUES (?code, ?name)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT Distribuidor (nombre, distribuidor_id_externo)
+		SELECT name, code
+		FROM distribuidor_stagging ds
+		WHERE NOT EXISTS (SELECT * FROM Distribuidor d WHERE d.distribuidor_id_externo COLLATE DATABASE_DEFAULT = ds.code COLLATE DATABASE_DEFAULT)
+		
+		UPDATE
+		    Distribuidor
+		SET
+		    Distribuidor.nombre = distribuidor_stagging.name
+		FROM
+		    Distribuidor
+		INNER JOIN
+		    distribuidor_stagging
+		ON
+		    Distribuidor.distribuidor_id_externo COLLATE DATABASE_DEFAULT = distribuidor_stagging.code COLLATE DATABASE_DEFAULT
+		    
+		DROP table distribuidor_stagging
+    </script>
+</etl>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="FuncionArea">
+	<resultMap class="cl.zpricing.avant.etl.model.Session" id="MapSession">
+		<result property="funcionId" column="funcion_id" />
+		<result property="cinemaId" column="complejo_id_externo" />
+		<result property="cinemaName" column="cinema_name" />
+		<result property="movieId" column="pelicula_complejo_id_externo" />
+		<result property="movieName" column="titulo_pelicula"/>
+		<result property="movieFormat" column="formato"/>
+		<result property="movieRating" column="censura"/>
+		<result property="movieGraphicUrl" column="pelicula_graphic_url"/>
+		<result property="sessionId" column="funcion_id_externo" />
+		<result property="date" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date"/>
+		<result property="time" column="fecha" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="fullPrice" column="precio"/>
+		<result property="fullPriceBookingFee" column="bfee"/>
+		<result property="availability" column="funcion_id" select="obtenerDisponibilidadDeFuncion"/>
+		<result property="upselling" column="funcion_id" select="obtenerFuncionesDeUpselling"/>
+		<result property="secondSelling" column="funcion_id" select="obtenerFuncionesDeSecondSelling"/>
+		<result property="lastMinuteSelling" column="last_minute_selling"/>
+		<result property="eliminada" column="eliminada"/>
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.SessionPersonalizedSuggestions" id="MapPersonalizedSuggestionSession">
+		<result property="funcionId" column="funcion_id" />
+		<result property="cinemaId" column="complejo_id_externo" />
+		<result property="movieId" column="pelicula_complejo_id_externo" />
+		<result property="sessionId" column="funcion_id_externo" />
+		<result property="date" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date"/>
+		<result property="time" column="fecha" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp"/>
+		<result property="eliminada" column="eliminada"/>
+		<result property="suggestions" column="funcion_id" select="obtenerFuncionesDeClientesDeSecondSelling"/>
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.Availability" id="MapAvailability">
+		<result property="ticketTypeId" column="ticket_id_externo" />
+		<result property="ticketPrice" column="precio" />
+		<result property="ticketBookingFee" column="bfee" />
+		<result property="total" column="total" />
+		<result property="available" column="disponible" />
+		<result property="occupied" column="ocupados" />
+		<result property="daysBeforeSessionExpiration" column="dias_antes_expira" />
+		<result property="type" column="tipo" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.Upselling" id="MapUpselling">
+		<result property="sessionId" column="session_id" />
+		<result property="orden" column="upselling_orden" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.SecondSelling" id="MapSecondSelling">
+		<result property="sessionId" column="session_id" />
+		<result property="orden" column="second_selling_orden" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.SecondSellingClient" id="MapSecondSellingClientSuggestion">
+		<result property="sessionId" column="session_id" />
+		<result property="clientId" column="cliente_id" />
+		<result property="orden" column="second_selling_orden" />
+	</resultMap>
+
+	<select id="obtenerFuncionesAreaFuturasLocal" resultMap="MapSession">
+		SELECT * FROM
+			(SELECT *, ROW_NUMBER() OVER (ORDER BY funcion_id) as num FROM
+				(SELECT distinct f.funcion_id, c.complejo_id_externo, f.funcion_id_externo, f.fecha, f.fecha_contabilidad, f.eliminada,
+				pc.pelicula_complejo_id_externo, c.nombre as cinema_name, p.nombre as titulo_pelicula, pf.descripcion as formato, p.censura, p.graphic_url as pelicula_graphic_url, 
+				pct.precio, pct.bfee,
+				CASE WHEN M.descripcion = 'LM' THEN 1 ELSE 0 END as last_minute_selling
+				FROM Funcion f
+				JOIN Complejo c ON c.complejo_id = f.complejo_id
+				JOIN Pelicula p ON p.pelicula_id = f.pelicula_id
+				JOIN Pel_Formato pf ON pf.id = p.pel_formato_id
+				JOIN Pelicula_Complejo pc ON pc.complejo_id = c.complejo_id AND pc.pelicula_id = f.pelicula_id 
+				JOIN Mascara M ON M.id = f.mascara_id
+				JOIN Area a ON a.descripcion = 'Adulto'
+				JOIN Ticket t ON t.area_id = a.id
+				JOIN PriceCardTicket pct ON pct.pricecard_id = f.price_card_id AND pct.ticket_id = t.ticket_id
+				WHERE f.fecha >= GETDATE()
+			) X
+		) T
+		WHERE T.num BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	</select>
+	
+	<select id="obtenerSecondSellingPersonalizedSuggestions" resultMap="MapPersonalizedSuggestionSession">
+		SELECT * FROM
+			(SELECT f.funcion_id, c.complejo_id_externo, f.funcion_id_externo, f.fecha, f.fecha_contabilidad, f.eliminada,
+			pc.pelicula_complejo_id_externo, ROW_NUMBER() OVER (ORDER BY f.funcion_id) as num
+			FROM Funcion f
+			JOIN Complejo c ON c.complejo_id = f.complejo_id
+			JOIN Pelicula_Complejo pc ON pc.complejo_id = c.complejo_id AND pc.pelicula_id = f.pelicula_id 
+			WHERE f.fecha >= GETDATE()
+			AND f.funcion_id IN (SELECT second_selling_funcion_id FROM Second_Selling_Sessions_Customer)) T
+		WHERE T.num BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	</select>
+	
+	<select id="obtenerDisponibilidadDeFuncion" resultMap="MapAvailability" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		SELECT TR.ticket_id_externo, TR.precio, TR.bfee,
+		CASE WHEN TR.precio + TR.bfee < TR.precio_minimo THEN 0 ELSE TR.total END as total,
+		CASE WHEN TR.precio + TR.bfee < TR.precio_minimo THEN 0 ELSE TR.disponible END as disponible,
+		TR.ocupados, TR.dias_antes_expira, TR.tipo, TR.fecha_contabilidad
+		FROM
+		(SELECT T.*, 
+			(SELECT COALESCE(MAX(precio_minimo), 0)
+			FROM Restriccion_Regla
+			WHERE restriccion_id IN (restriccion_distribuidor, restriccion_sala, restriccion_pelicula)
+			AND dia = datepart(dw,T.fecha)
+			AND hora_desde <= CONVERT(TIME, T.fecha)
+			AND CHARINDEX(';*;', complejos) > 0 
+			OR CHARINDEX (';' + CAST(T.complejo_id as VARCHAR(10)) + ';', complejos) > 0 
+			) as precio_minimo
+		FROM 
+			(SELECT DISTINCT
+				f.fecha,
+				f.complejo_id,
+				tc.ticket_id_externo, 
+				pct.precio, 
+				pct.bfee,
+				CASE WHEN DATEDIFF(day, GETDATE(), f.fecha_contabilidad) > agm.dias_antes_expira THEN agm.capacidad ELSE 0 END as disponible,
+				0 as ocupados, 
+				agm.capacidad as total, 
+				agm.dias_antes_expira, 
+				a.tipo, 
+				f.fecha_contabilidad,
+				rd.restriccion_id as restriccion_distribuidor,
+				rs.restriccion_id as restriccion_sala,
+				rp.restriccion_id as restriccion_pelicula
+			FROM Funcion f
+			JOIN Sala s ON s.sala_id = f.sala_id
+			JOIN Area_Grupo_Mascara agm ON agm.grupo_id = s.grupo_id AND agm.mascara_id = f.mascara_id
+			JOIN Area a ON a.id = agm.area_id
+			JOIN Ticket t ON t.area_id = agm.area_id
+			JOIN Ticket_Complejo tc ON t.ticket_id = tc.ticket_id AND tc.complejo_id = f.complejo_id
+			JOIN PriceCardTicket pct ON f.price_card_id = pct.pricecard_id AND t.ticket_id = pct.ticket_id
+			JOIN Pelicula p ON p.pelicula_id = f.pelicula_id
+			LEFT JOIN Restriccion_Distribuidor rd ON rd.distribuidor_id = p.distribuidor_id
+			LEFT JOIN Restriccion_Sala rs ON rs.sala_id = f.sala_id
+			LEFT JOIN Restriccion_Pelicula rp ON rp.pelicula_id = f.pelicula_id AND rp.fecha_hasta >= f.fecha_contabilidad
+			WHERE f.funcion_id = #value#) T
+		) TR
+		ORDER BY TR.dias_antes_expira desc
+		]]>
+	</select>
+	
+	<select id="obtenerFuncionesDeUpselling" resultMap="MapUpselling">
+		SELECT F.funcion_id_externo as session_id, US.upselling_orden
+		FROM Upselling_Sessions US
+		JOIN Funcion F ON F.funcion_id = US.funcion_id
+		WHERE US.funcion_upselling_id = #value#
+	</select>
+	
+	<select id="obtenerFuncionesDeSecondSelling" resultMap="MapSecondSelling">
+		SELECT F.funcion_id_externo as session_id, SS.second_selling_orden
+		FROM Second_Selling_Sessions SS
+		JOIN Funcion F ON F.funcion_id = SS.funcion_id
+		WHERE SS.second_selling_funcion_id = #value#
+	</select>
+	
+	<select id="obtenerFuncionesDeClientesDeSecondSelling" resultMap="MapSecondSellingClientSuggestion">
+		SELECT F.funcion_id_externo as session_id, SSC.cliente_id, SSC.second_selling_orden
+		FROM Second_Selling_Sessions_Customer SSC
+		JOIN Funcion F ON F.funcion_id = SSC.funcion_id
+		WHERE SSC.second_selling_funcion_id = #value#
+	</select>
+</sqlMap>

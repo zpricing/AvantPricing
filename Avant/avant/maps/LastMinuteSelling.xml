@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LastMinuteSelling">
+	<resultMap id="MapLastMinuteSession" class="cl.zpricing.avant.model.LastMinuteSession">
+		<result property="funcionId" column="funcion_id" />
+		<result property="complejoId" column="complejo_id"  />
+		<result property="grupoPeliculaId" column="grupo_pelicula_id"  />
+		<result property="fechaContabilidad" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="bloque" column="bloque" />
+		<result property="orden" column="orden" />
+	</resultMap>
+
+	<delete id="cleanLMSellingSessions">
+		DELETE FROM LM_Selling_Sessions
+	</delete>
+	
+	<insert id="updateLMSellingSessions" parameterClass="java.util.Map">
+		<![CDATA[
+		INSERT INTO LM_Selling_Sessions (funcion_id, grupo_pelicula_id, complejo_id, fecha_contabilidad, bloque, orden)
+		SELECT funcion_id, grupo_pelicula_id, complejo_id, fecha_contabilidad, bloque,
+		ROW_NUMBER() OVER(PARTITION BY complejo_id, fecha_contabilidad ORDER BY porc_ocup_bajo_prom) as orden
+		FROM
+			(SELECT funcion_id, grupo_pelicula_id, complejo_id,
+			porcentaje_ocupacion_proyectado - (AVG(porcentaje_ocupacion_proyectado) OVER(PARTITION BY complejo_id, fecha_contabilidad, bloque)) as porc_ocup_bajo_prom,
+			fecha_contabilidad, bloque
+			FROM
+				(SELECT funcion_id, grupo_pelicula_id, complejo_id, porcentaje_ocupacion_proyectado, fecha_contabilidad, 
+				CASE 
+					WHEN DATEDIFF(hh, hora_inicio, hora_fin) < #max_funciones_diarias# THEN 1
+					WHEN CEILING(DATEDIFF(hh, hora_inicio, fecha) / Round(CONVERT(decimal(8,4), DATEDIFF(hh, hora_inicio, hora_fin)) / #max_funciones_diarias#, 0)) = 0 THEN 1
+					WHEN CEILING(DATEDIFF(hh, hora_inicio, fecha) / Round(CONVERT(decimal(8,4), DATEDIFF(hh, hora_inicio, hora_fin)) / #max_funciones_diarias#, 0)) > #max_funciones_diarias# THEN #max_funciones_diarias#
+					ELSE CEILING(DATEDIFF(hh, hora_inicio, fecha) / Round(CONVERT(decimal(8,4), DATEDIFF(hh, hora_inicio, hora_fin)) / #max_funciones_diarias#, 0))
+				END as bloque
+				FROM 
+					(SELECT DISTINCT funcion_id, F.complejo_id, F.porcentaje_ocupacion_proyectado, F.fecha_contabilidad, F.fecha, 
+					MIN(F.fecha) OVER(PARTITION BY F.complejo_id, F.fecha_contabilidad) as hora_inicio, 
+					MAX(F.fecha) OVER(PARTITION BY F.complejo_id, F.fecha_contabilidad) as hora_fin,
+					E.pelicula_id, P.nombre, E.fecha_estreno, P.grupo_pelicula_id 
+					FROM Complejo C
+					JOIN Funcion F ON 
+						C.complejo_id = F.complejo_id 
+						AND C.activo = 1 
+						AND F.eliminada = 0 
+						AND F.estado = 'O'
+						AND F.fecha_contabilidad = CONVERT(date, GETDATE()) 
+						AND F.pelicula_id NOT IN (SELECT pelicula_id FROM Restriccion_Pelicula WHERE fecha_hasta >= F.fecha) 
+						AND F.porcentaje_ocupacion_proyectado <= #max_porcentaje_ocupacion_proyectado#
+					JOIN Sala S ON S.sala_id = F.sala_id
+					JOIN Area_Grupo_Mascara AGM ON 
+						AGM.mascara_id = F.mascara_id 
+						AND AGM.grupo_id = S.grupo_id 
+						AND AGM.area_id = 36 
+						AND AGM.capacidad > 0
+					JOIN (
+						SELECT pelicula_id, complejo_id, MIN(fecha_contabilidad) as fecha_estreno 
+						FROM Funcion F
+						GROUP BY pelicula_id, complejo_id
+					) E ON 
+						F.pelicula_id = E.pelicula_id 
+						AND F.complejo_id = E.complejo_id 
+						AND E.fecha_estreno <= DATEADD(dd, -#min_dias_cartelera#, F.fecha_contabilidad)
+					JOIN Pelicula P ON 
+						P.pelicula_id = E.pelicula_id 
+						AND P.pel_formato_id IN (SELECT id FROM Pel_Formato WHERE last_minute_enabled = 1)
+					) X
+				) Y
+			) Z
+		]]>
+	</insert>
+	<update id="cleanLMMasks">
+		<![CDATA[
+			UPDATE Funcion SET mascara_id = null, bloqueada = 0, 
+			asistencia_proyectada = null, porcentaje_ocupacion_proyectado = null
+			WHERE mascara_id IN (SELECT id FROM Mascara WHERE descripcion = 'LM')
+			AND fecha_contabilidad >= DATEADD(dd, 1, CONVERT(date, GETDATE()))
+			AND fecha_contabilidad <= DATEADD(dd, 3, CONVERT(date, GETDATE()))
+		]]>
+	</update>
+	
+	<select id="getLastMinuteSellingSessions" resultMap="MapLastMinuteSession">
+		SELECT * FROM LM_Selling_Sessions
+		WHERE complejo_id = #value# 
+		ORDER BY complejo_id, orden
+	</select>
+</sqlMap>

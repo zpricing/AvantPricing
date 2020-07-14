@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Complejo">
+	<resultMap id="resultComplejo" class="cl.zpricing.avant.model.Complejo">
+		<result property="id" column="complejo_id"/>
+		<result property="nombre" column="nombre"/>
+		<result property="empresa" column="empresa_id" select="obtenerEmpresaComplejo"/>
+		<result property="direccion" column="direccion"/>
+		<result property="servidorIp" column="server_ip"/>
+		<result property="servidorBaseDeDatos" column="server_dbName"/>
+		<result property="servidorUsuario" column="server_user"/>
+		<result property="servidorPassword" column="server_pass"/>
+		<result property="ultimaCargaCompleta" column="ultima_carga_completa" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="ultimaCargaFunciones" column="ultima_carga_funciones" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="complejo_id_externo" column="complejo_id_externo"/>
+		<result property="areas" column="complejo_id" select="obtenerAreasComplejo"/>
+		<result property="markers" column="complejo_id" select="obtenerMarkersComplejo"/>
+	</resultMap>
+	
+	<resultMap id="resultComplejoNoMarkers" class="cl.zpricing.avant.model.Complejo">
+		<result property="id" column="complejo_id"/>
+		<result property="nombre" column="nombre"/>
+		<result property="empresa" column="empresa_id" select="obtenerEmpresaComplejo"/>
+		<result property="direccion" column="direccion"/>
+		<result property="servidorIp" column="server_ip"/>
+		<result property="servidorBaseDeDatos" column="server_dbName"/>
+		<result property="servidorUsuario" column="server_user"/>
+		<result property="servidorPassword" column="server_pass"/>
+		<result property="ultimaCargaCompleta" column="ultima_carga_completa" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="ultimaCargaFunciones" column="ultima_carga_funciones" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="complejo_id_externo" column="complejo_id_externo" />
+		<result property="rptComplejo" column="rpt_complejo_id" select="obtenerRptComplejo"  ></result>
+		<result property="areas" column="complejo_id" select="obtenerAreasComplejo"/>
+	</resultMap>
+	
+	<select id="obtenerComplejosByGrupo" resultMap="resultComplejo" parameterClass="cl.zpricing.avant.model.GrupoComplejo">
+		SELECT c.complejo_id, c.nombre, c.empresa_id, c.direccion, c.ip_servidor, c.complejo_id_externo, c.fecha_ultima_carga_asistencias
+		FROM Complejo c
+		WHERE c.grupo_complejo_id =  #id#
+	</select>
+	
+	<select id="obtenerEmpresaComplejo" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Empresa">
+		SELECT empresa_id as id, nombre as nombre, direccion as direccion, email as email, rpt_empresa_id as rpt_empresa_id
+		FROM Empresa
+		WHERE empresa_id = #value#
+	</select>
+	
+	<update id="actualizarComplejo" parameterClass="cl.zpricing.avant.model.Complejo">
+		BEGIN TRANSACTION
+			UPDATE Complejo
+			SET nombre = #nombre# 
+				<isNotNull property="direccion">, direccion = #direccion# </isNotNull>
+				, empresa_id= #empresa.id# 
+				<isNotNull property="servidorIp">, server_ip = #servidorIp#</isNotNull>
+				<isNotNull property="ultimaCargaFunciones">, server_dbName = #servidorBaseDeDatos#</isNotNull>
+				<isNotNull property="servidorBaseDeDatos">, server_user = #servidorUsuario#</isNotNull>
+				<isNotNull property="servidorPassword">, server_pass = #servidorPassword#</isNotNull>
+				, complejo_id_externo = #complejo_id_externo# 
+				<isNotNull property="ultimaCargaFunciones">, ultima_carga_funciones = #ultimaCargaFunciones#</isNotNull>
+				<isNotNull property="ultimaCargaCompleta">, ultima_carga_completa = #ultimaCargaCompleta#</isNotNull> 
+			WHERE complejo_id = #id#;
+			
+			UPDATE RPT_Complejo
+			SET complejo_id = null
+			WHERE complejo_id = #id#;
+			
+			UPDATE RPT_Complejo
+			SET complejo_id = #id#
+			WHERE rpt_complejo_id = #rptComplejo.rptComplejoId#;
+		COMMIT TRANSACTION
+  	</update>
+		
+	<insert id="agregarComplejo" parameterClass="cl.zpricing.avant.model.Complejo">
+			INSERT INTO
+			Complejo (nombre, empresa_id, direccion)
+			VALUES (#nombre#, #empresa.id#, #direccion#);
+			
+			<selectKey resultClass="int">
+				SELECT @@IDENTITY AS ID
+	        </selectKey>
+  	</insert>
+
+	<select id="obtenerComplejo" resultMap="resultComplejo">
+		SELECT complejo_id, nombre, empresa_id, direccion, server_ip, server_user, server_pass, server_dbName, complejo_id_externo, (SELECT rpt_complejo_id FROM RPT_Complejo WHERE complejo_id = #value#) as rpt_complejo_id, ultima_carga_completa, ultima_carga_funciones
+		FROM Complejo
+		WHERE complejo_id = #value#
+	</select>
+	
+	<select id="obtenerComplejoPorIdExterno" resultMap="resultComplejo">
+		SELECT complejo_id, nombre, empresa_id, direccion, server_ip, server_user, server_pass, server_dbName, complejo_id_externo, ultima_carga_completa, ultima_carga_funciones
+		FROM Complejo
+		WHERE complejo_id_externo = #value#
+	</select>
+	
+	<select id="obtenerComplejoNoMarkers" resultMap="resultComplejoNoMarkers">
+		SELECT complejo_id, nombre, empresa_id, direccion, server_ip, server_user, server_pass, server_dbName, complejo_id_externo, (SELECT rpt_complejo_id FROM RPT_Complejo WHERE complejo_id = #value#) as rpt_complejo_id, ultima_carga_completa, ultima_carga_funciones
+		FROM Complejo
+		WHERE complejo_id = #value#
+	</select>
+	
+	<delete id="eliminarComplejo" parameterClass="cl.zpricing.avant.model.Complejo">
+		BEGIN TRANSACTION
+		
+		UPDATE RPT_Complejo
+		SET complejo_id = null
+		WHERE complejo_id = #id#; 
+		
+		DELETE Complejo
+		WHERE complejo_id = #id#;
+		COMMIT TRANSACTION
+  	</delete>
+	
+	<select id="complejoTodos" resultMap="resultComplejo">
+		SELECT c.complejo_id, c.nombre, c.empresa_id, c.direccion, c.server_ip, c.server_user, c.server_pass, c.server_dbName, c.complejo_id_externo, c.ultima_carga_completa, c.ultima_carga_funciones
+		FROM Complejo c
+		WHERE c.activo = 1 
+		ORDER BY empresa_id
+	</select>
+	
+	<insert id="agregaRelacionGrupoComplejo" parameterClass="java.util.HashMap">
+		BEGIN TRANSACTION
+		UPDATE Complejo
+		SET grupo_complejo_id = #idGrupo#
+		WHERE complejo_id = #id#
+		COMMIT TRANSACTION
+	</insert>
+	
+</sqlMap>

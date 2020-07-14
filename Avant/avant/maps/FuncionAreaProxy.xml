@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="FuncionAreaProxy">
+	<resultMap class="cl.zpricing.avant.model.FuncionAreaProxy" id="MapFuncionAreaProxy">
+		<result property="funcionAreaId" column="funcion_area_id" />
+		<result property="cinemaId" column="cinema_id" />
+		<result property="movieId" column="movie_id" />
+		<result property="sessionId" column="session_id" />
+		<result property="ticketTypeId" column="ticket_type_id" />
+		<result property="sessionDate" column="session_date" />
+		<result property="totalCapacity" column="total" />
+		<result property="availableCapacity" column="available" />
+		<result property="occupiedCapacity" column="occupied" />
+		<result property="expirationDaysBeforeSession" column="expiration_days_anticipation" />
+	</resultMap>
+	
+	<select id="obtenerFuncionesAreaFuturasLocal" resultMap="MapFuncionAreaProxy">
+		SELECT c.complejo_id_externo, f.funcion_id_externo, f.fecha, f.fecha_contabilidad, pc.pelicula_complejo_id_externo, tc.ticket_id_externo, pct.precio, pct.bfee, fa.total, fa.disponible, fa.ocupados, agm.dias_antes_expira
+		FROM Funcion f
+		JOIN Complejo c ON c.complejo_id = f.complejo_id
+		JOIN Pelicula_Complejo pc ON pc.complejo_id = c.complejo_id AND pc.pelicula_id = f.pelicula_id 
+		JOIN FuncionArea fa ON fa.funcion_id = f.funcion_id
+		JOIN PriceCardTicket pct ON f.price_card_id = pct.pricecard_id
+		JOIN Ticket t ON t.ticket_id = pct.ticket_id AND t.area_id = fa.area_id
+		JOIN Ticket_Complejo tc ON t.ticket_id = tc.ticket_id AND tc.complejo_id = f.complejo_id
+		JOIN Sala s ON s.sala_id = f.sala_id
+		JOIN Area_Grupo_Mascara agm ON agm.area_id = fa.area_id AND agm.grupo_id = s.grupo_id AND agm.mascara_id = f.mascara_id
+		WHERE f.fecha >= GETDATE()
+		ORDER BY f.funcion_id, dias_antes_expira desc
+	</select>
+
+	<select id="obtenerFuncionAreaById" parameterClass="java.lang.Integer" resultMap="MapFuncionAreaProxy">
+		SELECT funcion_area_id, cinema_id, movie_id, session_id, ticket_type_id, session_date, total, available, occupied, expiration_days_anticipation
+		FROM FuncionArea
+		WHERE funcion_area_id = #value#
+	</select>
+	
+	<select id="obtenerFuncionAreaProxy" parameterClass="java.util.Map" resultMap="MapFuncionAreaProxy">
+		SELECT funcion_area_id, cinema_id, movie_id, session_id, ticket_type_id, session_date, total, available, occupied, expiration_days_anticipation
+		FROM FuncionArea
+		WHERE cinema_id = #cinema_id#
+		AND session_id = #session_id#
+		AND ticket_type_id = #ticket_type_id#
+	</select>
+	
+	<select id="obtenerFuncionesArea" parameterClass="java.util.Map" resultMap="MapFuncionAreaProxy">
+		SELECT funcion_area_id, cinema_id, movie_id, session_id, ticket_type_id, session_date, total, available, occupied, expiration_days_anticipation
+		FROM FuncionArea
+		WHERE cinema_id = #cinema_id#
+		AND session_id = #session_id#
+	</select>
+	
+	<update id="actualizarFuncionArea" parameterClass="cl.zpricing.avant.model.FuncionAreaProxy">
+		UPDATE FuncionArea 
+		SET available = #availableCapacity#, total = #totalCapacity#
+		WHERE funcion_area_id = #funcionAreaId#
+	</update>
+	
+	<update id="actualizarFuncionAreaAvailability" parameterClass="cl.zpricing.avant.model.FuncionAreaProxy">
+		UPDATE FuncionArea 
+		SET total = #totalCapacity#
+			, available = #availableCapacity#
+			, expiration_days_anticipation = #expirationDaysBeforeSession#
+			, ticket_type_id = #ticketTypeId#
+			, ticket_price = #ticketPrice#
+			, ticket_bfee = #ticketBookingFee#
+			, session_time = #sessionTime#
+			, rm_level = #levelRM#
+		WHERE funcion_area_id = #funcionAreaId#
+	</update>
+	
+	<insert id="agregarFuncionArea" parameterClass="cl.zpricing.avant.model.FuncionAreaProxy">
+		INSERT INTO FuncionArea (cinema_id, movie_id, session_id, ticket_type_id, ticket_price, ticket_bfee, session_date, session_time, total, available, occupied, expiration_days_anticipation, rm_level)
+		VALUES (#cinemaId#, #movieId#, #sessionId#, #ticketTypeId#, #ticketPrice#, #ticketBookingFee# , #sessionDate#, #sessionTime#, #totalCapacity#, #availableCapacity#, #occupiedCapacity#, #expirationDaysBeforeSession#, #levelRM#)
+		<selectKey resultClass="int" keyProperty="funcionAreaId">
+			SELECT last_insert_id() as id
+		</selectKey>
+	</insert>
+	
+</sqlMap>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Venta">
+	<resultMap id="ventaDiariaMap" class="cl.zpricing.avant.model.VentaDiaria">
+		<result property="fecha" column="fecha" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="ventaRevenueCantidad" column="ventaRevenueCantidad"/>
+		<result property="ventaRevenueWebCantidad" column="ventaRevenueWebCantidad"/>
+		<result property="ventaRevenueBoleteriaCantidad" column="ventaRevenueBoleteriaCantidad"/>
+		<result property="ventaTotalCantidad" column="ventaTotalCantidad"/>
+	</resultMap>
+	
+	<resultMap id="ventaDiariaTicketMap" class="cl.zpricing.avant.model.VentaDiariaTicket">
+		<result property="fecha" column="fecha" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="ventaRevenueCantidad" column="ventaRevenueCantidad"/>
+		<result property="ventaRevenueWebCantidad" column="ventaRevenueWebCantidad"/>
+		<result property="ventaRevenueBoleteriaCantidad" column="ventaRevenueBoleteriaCantidad"/>
+		<result property="ventaTotalCantidad" column="ventaTotalCantidad"/>
+		<result property="ticket" column="ticket_id" select="obtenerTicket"/>
+	</resultMap>
+	
+	<select id="obtenerVentaDiariaFecha" parameterClass="java.util.Map" resultMap="ventaDiariaMap">
+		SELECT 	v.fecha, 
+				sum(case when t.ticket_rm = 1 Then v.ventas_attendance else 0 end) as ventaRevenueCantidad, 
+		        sum(v.ventas_attendance) as ventaTotalCantidad
+		FROM Ventas v, Ticket t
+		WHERE v.ticket_id = t.ticket_id
+		AND v.fecha = #fecha#
+		AND v.complejo_id = #complejo#
+		GROUP BY v.fecha
+	</select>
+	
+	<select id="obtenerVentaDiariaRangoFechas" parameterClass="java.util.Map" resultMap="ventaDiariaMap">
+		SELECT 	v.fecha, 
+				sum(case when t.ticket_rm = 1 Then v.ventas_attendance else 0 end) as ventaRevenueCantidad,
+				sum(case when t.ticket_rm = 1 and t.ticket_web = 1 Then v.ventas_attendance else 0 end) as ventaRevenueWebCantidad,
+				sum(case when t.ticket_rm = 1 and t.ticket_web = 0 Then v.ventas_attendance else 0 end) as ventaRevenueBoleteriaCantidad,  
+		        sum(v.ventas_attendance) as ventaTotalCantidad
+		FROM Ventas v, Ticket t
+		WHERE v.ticket_id = t.ticket_id
+		AND v.fecha >= #fecha_desde#
+		AND v.fecha &lt;= #fecha_hasta#
+		AND v.complejo_id = #complejo#
+		GROUP BY v.fecha
+	</select>
+	
+	<select id="obtenerVentaTicketsRevenueDia" parameterClass="java.util.Map" resultMap="ventaDiariaMap">
+		SELECT v.id ,v.fecha ,v.complejo_id ,v.ticket_id ,v.ventas_attendance ,v.ventas_revenue
+	  	FROM [PROD_zpcinemas_movieland].[dbo].[Ventas] v, Ticket t
+	  	WHERE fecha = #fecha#
+	    AND t.ticket_id = v.ticket_id
+	  	AND t.ticket_rm = 1
+	</select>
+	
+</sqlMap>

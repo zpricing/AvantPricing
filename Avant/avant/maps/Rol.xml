@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Rol">
+	<resultMap id="resultRol" class="cl.zpricing.avant.model.Rol">
+		<result property="id" column="rol_id" />
+		<result property="rol" column="Nombre" />
+		<result property="descripcion" column="descripcion" />
+		<result property="autoridades" column="rol_id" select="obtenerAutoridadesRol"/>
+	</resultMap>
+	
+	<select id="sacarTodos" resultMap="resultRol">
+		SELECT rol_id, Nombre, descripcion
+		FROM Rol
+	</select>
+	
+	<select id="getRol" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Rol">
+		SELECT
+		rol_id as id,
+		Nombre as rol,
+		descripcion as descripcion
+		FROM Rol
+		WHERE rol_id = #value#
+	</select>
+	
+	<insert id="insertRol" parameterClass="cl.zpricing.avant.model.Rol">
+		INSERT INTO
+		Rol (Nombre, descripcion)
+		VALUES (#rol#,#descripcion#)
+	</insert>
+
+	<update id="modifyRol" parameterClass="cl.zpricing.avant.model.Rol">
+		UPDATE Rol
+		SET Nombre = #rol#, descripcion = #descripcion#
+		WHERE rol_id=#id#
+  	</update>
+  	
+  	<delete id="deleteRol" parameterClass="java.lang.Integer">
+		DELETE Rol
+		WHERE rol_id=#value#
+  	</delete>
+	
+	<select id="obtenerAutoridadesRol" parameterClass="java.lang.Integer"
+		resultClass="cl.zpricing.avant.model.Autoridad">
+		SELECT
+		autoridad_id as id,
+		autoridad,
+		rol_id
+		FROM Autoridad
+		WHERE rol_id = #value#
+	</select>
+</sqlMap>

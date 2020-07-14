@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Reportes">
+	<resultMap class="cl.zpricing.avant.model.Diaria" id="mapDiaria">
+		<result property="fecha" column="fecha" />
+		<result property="semana" column="semana" />
+		<result property="asistencia_HT" column="asistencia_HT" />
+		<result property="ingreso_HT" column="ingreso_HT" />
+		<result property="asistencia_RM" column="asistencia_RM" />
+		<result property="ingreso_RM" column="ingreso_RM" />
+		<result property="asistencia_total" column="asistencia_total" />
+		<result property="ingreso_total" column="ingreso_total" />
+		<result property="asistencia_online" column="asistencia_online" />
+		<result property="asistencia_online_prev_year" column="asistencia_online_prev_year" />
+		<result property="porc_asistencia_HT" column="porc_Asistencia_HT" />
+		<result property="crec_asistencia_RM" column="crec_asistencia_RM" />
+		<result property="porc_asistencia_online" column="porc_asistencia_online" />
+		<result property="porc_asistencia_online_prev_year" column="porc_asistencia_online_prev_year" />
+		<result property="prom_HT" column="prom_HT" />
+		<result property="prom_RM" column="prom_RM" />
+		<result property="prom_total" column="prom_total" />
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Semanal" id="mapSemanal">
+		<result property="semana" column="semana" />
+		<result property="mes" column="mes" />
+		<result property="anno" column="anno" />
+		<result property="asistencia_HT" column="asistencia_HT" />
+		<result property="ingreso_HT" column="ingreso_HT" />
+		<result property="asistencia_RM" column="asistencia_RM" />
+		<result property="ingreso_RM" column="ingreso_RM" />
+		<result property="asistencia_total" column="asistencia_total" />
+		<result property="ingreso_total" column="ingreso_total" />
+		<result property="asistencia_online" column="asistencia_online" />
+		<result property="asistencia_online_prev_year" column="asistencia_online_prev_year" />
+		<result property="porc_asistencia_HT" column="porc_Asistencia_HT" />
+		<result property="crec_asistencia_RM" column="crec_asistencia_RM" />
+		<result property="porc_asistencia_online" column="porc_asistencia_online" />
+		<result property="porc_asistencia_online_prev_year" column="porc_asistencia_online_prev_year" />
+		<result property="prom_HT" column="prom_HT" />
+		<result property="prom_RM" column="prom_RM" />
+		<result property="prom_total" column="prom_total" />
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Mensual" id="mapMensual">
+		<result property="anno" column="anno" />
+		<result property="mes" column="mes" />
+		<result property="asistencia_HT" column="asistencia_HT" />
+		<result property="ingreso_HT" column="ingreso_HT" />
+		<result property="asistencia_RM" column="asistencia_RM" />
+		<result property="ingreso_RM" column="ingreso_RM" />
+		<result property="asistencia_total" column="asistencia_total" />
+		<result property="ingreso_total" column="ingreso_total" />
+		<result property="asistencia_online" column="asistencia_online" />
+		<result property="asistencia_online_prev_year" column="asistencia_online_prev_year" />
+		<result property="porc_asistencia_HT" column="porc_Asistencia_HT" />
+		<result property="crec_asistencia_RM" column="crec_asistencia_RM" />
+		<result property="porc_asistencia_online" column="porc_asistencia_online" />
+		<result property="porc_asistencia_online_prev_year" column="porc_asistencia_online_prev_year" />
+		<result property="prom_HT" column="prom_HT" />
+		<result property="prom_RM" column="prom_RM" />
+		<result property="prom_total" column="prom_total" />
+	</resultMap>
+
+	<select id="obtenerReporteDiario" parameterClass="java.util.Map" resultMap="mapDiaria">
+		<![CDATA[ 
+		SELECT RD.fecha, RD.semana, RD.asistencia_HT, 
+		RD.ingreso_HT, RD.asistencia_RM, RD.ingreso_RM, RD.asistencia_total, RD.ingreso_total, 
+		RD.asistencia_online, COALESCE(RDA.asistencia_online, 0) as asistencia_online_prev_year, 
+		RD.porc_asistencia_online, COALESCE(RDA.porc_asistencia_online, 0) as porc_asistencia_online_prev_year,
+		RD.porc_asistencia_HT, RD.crec_asistencia_RM, 
+		RD.prom_HT, RD.prom_RM, RD.prom_total
+		FROM Reporte_Diario RD
+		LEFT JOIN Reporte_Diario RDA 
+		ON RD.semana = RDA.semana AND RD.dia_semana = RDA.dia_semana 
+		AND RDA.anno = (RD.anno - 1)
+		WHERE RD.fecha >= #fecha_inicio#
+		AND RD.fecha <= #fecha_fin#
+		ORDER BY RD.fecha
+		]]>
+	</select>
+
+	<select id="obtenerReporteSemanal" parameterClass="java.util.Map" resultMap="mapSemanal">
+		<![CDATA[
+		SELECT RS.semana, RS.mes, RS.anno, RS.asistencia_HT, 
+		RS.ingreso_HT, RS.asistencia_RM, RS.ingreso_RM, RS.asistencia_total, RS.ingreso_total, 
+		RS.asistencia_online, COALESCE(RSA.asistencia_online, 0) as asistencia_online_prev_year, 
+		RS.porc_asistencia_online, COALESCE(RSA.porc_asistencia_online, 0) as porc_asistencia_online_prev_year,
+		RS.porc_asistencia_HT, RS.crec_asistencia_RM, 
+		RS.prom_HT, RS.prom_RM, RS.prom_total
+		FROM Reporte_Semanal RS
+		JOIN
+		(SELECT DISTINCT semana, ano
+			FROM Semana_Cine
+			WHERE 
+			(fecha_desde <= #fecha_inicio# AND fecha_hasta >= #fecha_inicio#)
+			OR (fecha_desde > #fecha_inicio# AND fecha_hasta < #fecha_fin#)
+			OR (fecha_desde <= #fecha_fin# AND fecha_hasta >= #fecha_fin#)
+		) S
+		ON S.ano = RS.anno AND S.semana = RS.semana
+		LEFT JOIN Reporte_Semanal RSA 
+		ON RS.semana = RSA.semana AND RSA.anno = (RS.anno -1)
+		ORDER BY RS.anno, RS.semana
+		]]>
+	</select>
+
+	<select id="obtenerReporteMensual" parameterClass="java.util.Map" resultMap="mapMensual">
+		<![CDATA[
+		SELECT RM.mes, RM.anno, RM.asistencia_HT, 
+		RM.ingreso_HT, RM.asistencia_RM, RM.ingreso_RM, RM.asistencia_total, RM.ingreso_total, 
+		RM.asistencia_online, COALESCE(RMA.asistencia_online, 0) as asistencia_online_prev_year, 
+		RM.porc_asistencia_online, COALESCE(RMA.porc_asistencia_online, 0) as porc_asistencia_online_prev_year,
+		RM.porc_asistencia_HT, RM.crec_asistencia_RM, 
+		RM.prom_HT, RM.prom_RM, RM.prom_total
+		FROM Reporte_Mensual RM
+		JOIN
+		(SELECT DISTINCT mes, ano
+			FROM Semana_Cine
+			WHERE 
+			(fecha_desde <= #fecha_inicio# AND fecha_hasta >= #fecha_inicio#)
+			OR (fecha_desde > #fecha_inicio# AND fecha_hasta < #fecha_fin#)
+			OR (fecha_desde <= #fecha_fin# AND fecha_hasta >= #fecha_fin#)
+		) M
+		ON M.ano = RM.anno AND M.mes = RM.mes
+		LEFT JOIN Reporte_Mensual RMA
+		ON RM.mes = RMA.mes AND RMA.anno = (RM.anno -1)
+		]]>
+	</select>
+	
+	<delete id="limpiarReporteDiario">
+		<![CDATA[
+		DELETE FROM Reporte_Diario WHERE fecha >= DATEADD(dd, -14, GETDATE())
+		]]>
+	</delete>
+	
+	<delete id="limpiarReporteSemanal">
+		<![CDATA[
+		DELETE FROM Reporte_Semanal
+		FROM Reporte_Semanal RS
+		INNER JOIN 
+			(SELECT semana, ano FROM Semana_Cine 
+			WHERE (fecha_desde <= DATEADD(dd, -14, GETDATE()) AND fecha_hasta >= DATEADD(dd, -14, GETDATE()))
+			OR (fecha_desde > DATEADD(dd, -14, GETDATE())) AND fecha_hasta < GETDATE()
+			OR (fecha_desde <= GETDATE() AND fecha_hasta >= GETDATE())) S
+		ON S.semana = RS.semana AND S.ano = RS.anno
+		]]>
+	</delete>
+	
+	<delete id="limpiarReporteMensual">
+		<![CDATA[
+		DELETE FROM Reporte_Mensual
+		FROM Reporte_Mensual RM
+		INNER JOIN
+			(SELECT mes, ano FROM Semana_Cine
+			WHERE (fecha_desde <= GETDATE() AND fecha_hasta >= GETDATE())
+			OR (fecha_desde <= DATEADD(m, -1, GETDATE()) AND fecha_hasta >= DATEADD(m, -1, GETDATE()))) S
+		ON S.mes = RM.mes AND S.ano = RM.anno
+		]]>
+	</delete>
+	
+	<insert id="actualizarReporteDiario">
+		<![CDATA[
+		INSERT INTO Reporte_Diario
+		(anno, dia_semana, semana, fecha, asistencia_HT, ingreso_HT, asistencia_RM, ingreso_RM, asistencia_total
+		,ingreso_total, asistencia_online, porc_asistencia_HT, crec_asistencia_RM, porc_asistencia_online
+		,prom_HT, prom_RM, prom_total)
+		SELECT 
+		sc.ano as anno, datepart(dw,f_compra) as dia_semana, sc.semana as semana, f_compra 
+		,SUM(att_HT) as att_HT, SUM(rev_HT) as rev_HT, SUM(att_RM) as att_RM, SUM(rev_RM) as rev_RM
+		,SUM(att_total) as att_total, SUM(rev_total) as rev_total, SUM(att_online) as att_online
+		,CASE WHEN SUM(att_total) = 0 THEN 0 ELSE cast(SUM(att_HT) as float)/cast(SUM(att_total) as float)*100 END as porc_att_HT
+		,CASE WHEN SUM(att_total)-SUM(att_RM) = 0 THEN 0 ELSE cast(SUM(att_RM) as float)/cast((SUM(att_total)-SUM(att_RM)) as float)*100 END as crec_RM 
+		,CASE WHEN SUM(att_total) = 0 THEN 0 ELSE cast(SUM(att_online) as float)/cast(SUM(att_total) as float)*100 END as porc_online
+		,CASE WHEN SUM(att_HT) = 0 THEN 0 ELSE cast(SUM(rev_HT) as float)/cast(SUM(att_HT) as float) END as atp_HT
+		,CASE WHEN SUM(att_RM) = 0 THEN 0 ELSE cast(SUM(rev_RM) as float)/cast(SUM(att_RM) as float) END as atp_RM
+		,CASE WHEN SUM(att_total) = 0 THEN 0 ELSE cast(SUM(rev_total) as float)/cast(SUM(att_total) as float) END as atp_total
+		FROM v_att_last_month VA 
+		LEFT JOIN Semana_Cine SC ON VA.f_compra <= SC.fecha_hasta AND VA.f_compra >= SC.fecha_desde
+		WHERE VA.f_compra >= DATEADD(dd, -14, GETDATE())
+		AND NOT EXISTS (SELECT * FROM Reporte_Diario RD WHERE RD.fecha = VA.f_compra)
+		GROUP BY sc.ano, datepart(dw,f_compra), sc.semana , f_compra
+		]]>
+	</insert>
+	
+	<insert id="actualizarReporteSemanal">
+		<![CDATA[
+		INSERT INTO Reporte_Semanal
+		(anno, semana, mes, asistencia_HT, ingreso_HT, asistencia_RM, ingreso_RM, asistencia_total,
+		ingreso_total, asistencia_online, porc_asistencia_HT, crec_asistencia_RM, porc_asistencia_online,
+		prom_HT, prom_RM, prom_total)
+		SELECT
+		anno ,d.semana, sc.mes as mes, SUM(asistencia_HT) as att_HT, SUM(ingreso_HT) as rev_HT, SUM(asistencia_RM) as att_RM
+		,SUM(ingreso_RM) as rev_RM, SUM(asistencia_total) as att_total, SUM(ingreso_total) as rev_total, SUM(asistencia_online) as att_online
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(asistencia_HT) as float)/cast(SUM(asistencia_total) as float)*100 END as porc_att_HT
+		,CASE WHEN SUM(asistencia_total)-SUM(asistencia_RM) = 0 THEN 0 ELSE cast(SUM(asistencia_RM) as float)/cast((SUM(asistencia_total)-SUM(asistencia_RM)) as float)*100 END as crec_RM 
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(asistencia_online) as float)/cast(SUM(asistencia_total) as float)*100 END as porc_online
+		,CASE WHEN SUM(asistencia_HT) = 0 THEN 0 ELSE cast(SUM(ingreso_HT) as float)/cast(SUM(asistencia_HT) as float) END as atp_HT
+		,CASE WHEN SUM(asistencia_RM) = 0 THEN 0 ELSE cast(SUM(ingreso_RM) as float)/cast(SUM(asistencia_RM) as float) END as atp_RM
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(ingreso_total) as float)/cast(SUM(asistencia_total) as float) END as atp_total
+		FROM Reporte_Diario D
+		LEFT JOIN Semana_Cine SC on D.fecha <= SC.fecha_hasta and D.fecha >= SC.fecha_desde
+		WHERE NOT EXISTS (SELECT * FROM Reporte_Semanal RS WHERE RS.anno = D.anno AND RS.semana = D.semana)
+		GROUP BY anno, D.semana, SC.mes
+		]]>
+	</insert>
+	
+	<insert id="actualizarReporteMensual">
+		<![CDATA[
+		INSERT INTO Reporte_Mensual
+		(anno, mes, asistencia_HT, ingreso_HT, asistencia_RM, ingreso_RM, asistencia_total, ingreso_total, asistencia_online,
+		porc_asistencia_HT, crec_asistencia_RM, porc_asistencia_online, prom_HT, prom_RM, prom_total)
+		SELECT 
+		anno, mes, SUM(asistencia_HT) att_HT, SUM(ingreso_HT) as rev_HT, SUM(asistencia_RM) as att_RM, SUM(ingreso_RM)as rev_RM
+		,SUM(asistencia_total) as att_total, SUM(ingreso_total)as rev_total, SUM(asistencia_online) as att_online
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(asistencia_HT) as float)/cast(SUM(asistencia_total) as float)*100 END as porc_att_HT
+		,CASE WHEN SUM(asistencia_total) - SUM(asistencia_RM) = 0 THEN 0 ELSE cast(SUM(asistencia_RM) as float)/cast((SUM(asistencia_total)-SUM(asistencia_RM)) as float)*100 END as crec_RM 
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(asistencia_online) as float)/cast(SUM(asistencia_total) as float)*100 END as porc_online
+		,CASE WHEN SUM(asistencia_HT) = 0 THEN 0 ELSE cast(SUM(ingreso_HT) as float)/cast(SUM(asistencia_HT) as float) END as atp_HT
+		,CASE WHEN SUM(asistencia_RM) = 0 THEN 0 ELSE cast(SUM(ingreso_RM) as float)/cast(SUM(asistencia_RM) as float) END as atp_RM
+		,CASE WHEN SUM(asistencia_total) = 0 THEN 0 ELSE cast(SUM(ingreso_total) as float)/cast(SUM(asistencia_total) as float) END as atp_total
+		FROM Reporte_Semanal S
+		WHERE NOT EXISTS (SELECT * FROM Reporte_Mensual RM WHERE RM.anno = S.anno AND RM.mes = S.mes)
+		GROUP BY anno,mes;
+ 		]]>
+	</insert>
+	
+</sqlMap>

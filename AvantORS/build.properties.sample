@@ -1,0 +1,27 @@
+# Ant properties for building the springapp
+appserver.home=C:/Program Files/Apache Software Foundation/Tomcat 6.0
+# for Tomcat 5 use $appserver.home}/server/lib
+# for Tomcat 6 use $appserver.home}/lib
+appserver.lib=${appserver.home}/lib
+deploy.path=${appserver.home}/webapps
+tomcat.manager.url=http://localhost:8080/manager
+tomcat.manager.username=admin
+tomcat.manager.password=admin
+build.major.number=1
+build.minor.number=1
+build.revision.number=000
+
+hoyts.tomcat.remote.url=http://190.151.20.26:31415/manager
+hoyts.tomcat.remote.username=admin
+hoyts.tomcat.remote.password=book
+hoyts.app.name=ZPCinemasWS
+
+cinemundo.tomcat.remote.url=http://190.151.20.26:31415/manager
+cinemundo.tomcat.remote.username=admin
+cinemundo.tomcat.remote.password=book
+cinemundo.app.name=ZPCinemasWS
+
+cinepolis.tomcat.remote.url=http://10.2.90.26/manager
+cinepolis.tomcat.remote.username=zpricing
+cinepolis.tomcat.remote.password=AG255
+cinepolis.app.name=ZPCinemasWS

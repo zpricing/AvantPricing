@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	
+	<!-- Test Abstract Routing Data Source -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url.zpcinemas}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+	
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="sql-map-test-config.xml" />
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="propertyConfigurer" class="cl.zpricing.revman.util.PropertiesUtil">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.test.properties</value>
+				<value>classpath:etl.test.properties</value>
+			</list>
+		</property>
+	</bean>
+		
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="testDataLoad" class="cl.zpricing.unittest.dataload.TestDataLoadImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+		<property name="areaDao" ref="areaDao"/>
+		<property name="grupoDao" ref="grupoDao"/>
+		<property name="salaDao" ref="salaDao"/>
+		<property name="mascaraDao" ref="mascaraDao"/>
+		<property name="funcionDao" ref="funcionDao"/>
+	</bean>
+	
+	<bean id="grupoDao" class="cl.zpricing.revman.servicios.ibatis.GrupoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="areaDao" class="cl.zpricing.revman.servicios.ibatis.AreaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="priceCardDao" class="cl.zpricing.revman.servicios.hoyts.ibatis.PriceCardDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="timeSpanDao" class="cl.zpricing.revman.servicios.ibatis.TimeSpanDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+		<property name="markerManager" ref="markerManager"/>
+	</bean>
+	<bean id="funcionDao" class="cl.zpricing.revman.servicios.ibatis.FuncionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="plantillaDao" class="cl.zpricing.revman.servicios.ibatis.PlantillaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="complejoDao" class="cl.zpricing.revman.servicios.ibatis.ComplejoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="peliculaDao" class="cl.zpricing.revman.servicios.ibatis.PeliculaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="mascaraDao" class="cl.zpricing.revman.servicios.ibatis.MascaraDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="prediccionDao" class="cl.zpricing.revman.servicios.ibatis.PrediccionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="serviciosRM" class="cl.zpricing.revman.servicios.ibatis.ServiciosRevenueManagerImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="salaDao" class="cl.zpricing.revman.servicios.ibatis.SalaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="markerManager" class="cl.zpricing.revman.negocio.MarkerManagerImpl">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="serviciosRM" ref="serviciosRM" />
+	</bean>
+	<bean id="markerDao" class="cl.zpricing.revman.servicios.ibatis.MarkerDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="restrictionDao" class="cl.zpricing.revman.servicios.ibatis.RestrictionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="funcionAreaDao" class="cl.zpricing.revman.servicios.ibatis.FuncionAreaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="logProcesosManager" class="cl.zpricing.revman.model.log.LogProcesosManager">	
+		<property name="logProcesosDao" ref="logProcesosDao"/>
+	</bean>
+	
+	<bean id="logProcesosDao" class="cl.zpricing.revman.servicios.ibatis.LogProcesosDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="zhetaPricingServices" class="cl.zpricing.revman.webservices.ZhetaPricingServicesImpl">
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="complejoDao" ref="complejoDao" />
+		<property name="peliculaDao" ref="peliculaDao" />
+	</bean>
+
+	<bean id="loadManager" class="cl.zpricing.revman.negocio.loadmanager.impl.LoadManagerLocal">
+		<property name="timeSpanDao" ref="timeSpanDao"/>
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="plantillaDao" ref="plantillaDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="mascaraDao" ref="mascaraDao"/>
+		<property name="prediccionDao" ref="prediccionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />		
+		<property name="areaDao" ref="areaDao"/>
+		<property name="restriccionDao" ref="restrictionDao"/>
+		
+		<!--  property name="funcionAreaDao" ref="funcionAreaDao"/>
+		<property name="peliculaDao" ref="peliculaDao"/-->
+	</bean>
+	
+    
+    <bean id="cinemaScreenEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/salas.xml"/>
+    </bean>
+    <bean id="cinemaDistributorEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/distribuidor.xml"/>
+    </bean>
+    <bean id="cinemaCategoryEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/categorias.xml"/>
+    </bean>
+    <bean id="cinemaMovieEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/peliculas.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/price_cards.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardPricesEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/precios.xml"/>
+    </bean>
+    <bean id="cinemaSessionEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/funciones.xml"/>
+    </bean>
+    <bean id="cinemaTicketEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/tickets.xml"/>
+    </bean>
+    <bean id="cinemaAttendanceEtl" class="cl.zpricing.revman.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/asistencia.xml"/>
+    </bean>
+    
+    
+    <bean id="etlCompleteExtractionImpl" class="cl.zpricing.revman.etl.scriptella.EtlCompleteExtractionImpl"  scope="prototype">
+    	<property name="cinemaScreenEtl" ref="cinemaScreenEtl"/>
+    	<property name="cinemaDistributorEtl" ref="cinemaDistributorEtl"/>
+    	<property name="cinemaCategoryEtl" ref="cinemaCategoryEtl"/>
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaPriceCardEtl" ref="cinemaPriceCardEtl"/>
+    	<property name="cinemaPriceCardPricesEtl" ref="cinemaPriceCardPricesEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="cinemaTicketEtl" ref="cinemaTicketEtl"/>
+    	<property name="cinemaAttendanceEtl" ref="cinemaAttendanceEtl"/>
+    	<property name="groupMoviesEtl" ref="groupMoviesEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    	<property name="executionLock" ref="executionLock"/>
+    </bean>
+
+    <bean id="etlSessionExtractionImpl" class="cl.zpricing.revman.etl.scriptella.EtlSessionExtractionImpl"  scope="prototype">
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    	<property name="executionLock" ref="executionLock"/>
+    	<property name="mascarasManager" ref="mascarasManager"/>
+    </bean>
+    
+    <bean id="etlOnlineRevenueServicesImpl" class="cl.zpricing.revman.etl.scriptella.EtlOnlineRevenueServicesImpl" >
+    	<property name="upsellingOrsEtl" ref="upsellingOrsEtl"/>
+    </bean>
+    
+    <bean id="executionLock" class="cl.zpricing.revman.etl.ExecutionLock" scope="singleton">
+    </bean>
+    
+    <bean id="upsellingOrsEtl" class="cl.zpricing.revman.etl.scriptella.OnlineRevenueServicesEtlImpl">
+    	<property name="resourceEtlExecutor" value="upselling.xml"/>
+    </bean>
+    
+    <bean id="groupMoviesEtl" class="cl.zpricing.revman.etl.scriptella.GroupMoviesEtlImpl">
+    	<property name="resourceEtlExecutor" value="grupo_pelicula.xml"/>
+    </bean>
+</beans>

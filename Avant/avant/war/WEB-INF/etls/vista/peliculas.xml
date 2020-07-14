@@ -1,0 +1,81 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de peliculas.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script id="create_movie_database_temp" connection-id="zpcinemas">
+    	IF OBJECT_ID('pelicula_stagging', 'U') IS NOT NULL DROP TABLE pelicula_stagging 
+    	CREATE TABLE pelicula_stagging (local_code varchar(50), ho_code varchar(50), distributor_ho_code varchar(50), category_ho_code varchar(50), title varchar(255), censor varchar(255), description text, duration int, status varchar(50), restricted_until varchar(50), year varchar(50), country varchar(50), opening_date datetime, is_3d int, is_premium int, cinema_code varchar(10), graphic_url varchar(255));
+    </script>
+    
+    <query id="select_movies_info" connection-id="cinema">
+    	SELECT Film_strCode as film_local_code, f.HOPK as film_ho_code, d.HOPK as distributor_ho_code, c.HOPK as category_ho_code, Film_strTitle, Film_strCensor, Film_strDescription, Film_intDuration, Film_strStatus, Film_strTitleAlt, Film_strCensorAlt, Film_strContentAlt, Film_dtmOpeningDate, CHARINDEX('3D', f.Film_strTitle COLLATE Latin1_General_CI_AS) as is_3d, CHARINDEX('premium', f.Film_strTitle COLLATE Latin1_General_CI_AS) as is_premium, co.CinOperator_strCode as cinema_code, f.Film_strURLforGraphic
+		FROM tblCinema_Operator co, tblFilm f
+		JOIN tblDistributor d ON f.Distrib_strCode = d.Distrib_strCode
+		JOIN tblFilmCategory c ON f.FilmCat_strCode = c.FilmCat_strCode
+		WHERE Film_strStatus != 'D'
+		AND (('false' = ?full_data_extraction AND f.Film_dtmModifiedDate >= DATEADD(day, -90, GETDATE())) OR ('true' = ?full_data_extraction AND  f.Film_dtmModifiedDate >= DATEADD(year, -2, GETDATE()) ))
+        
+       	<script id="insert_movies_temp" connection-id="zpcinemas">
+       		INSERT INTO pelicula_stagging (local_code, ho_code, distributor_ho_code, category_ho_code, title, censor, description, duration, status, restricted_until, year, country, opening_date, is_3d, is_premium, cinema_code, graphic_url) VALUES (?film_local_code, ?film_ho_code, ?distributor_ho_code, ?category_ho_code, ?Film_strTitle, ?Film_strCensor, ?Film_strDescription, ?Film_intDuration, ?Film_strStatus, ?Film_strTitleAlt, ?Film_strCensorAlt, ?Film_strContentAlt, ?Film_dtmOpeningDate, ?is_3d, ?is_premium, ?cinema_code, ?Film_strURLforGraphic)
+		</script>
+    </query>
+    
+    <script id="insert_new_movies" connection-id="zpcinemas">
+   	 	<!-- Insercion de nuevas peliculas -->
+    	INSERT Pelicula (pelicula_id_externo, distribuidor_id, nombre, descripcion, duracion, censura, formato3d, formato_id, fecha_estreno, graphic_url)
+		SELECT ho_code, d.distribuidor_id, title, description, duration, censor, CASE WHEN is_3d > 0 THEN 1 ELSE 0 END as is_3d, CASE WHEN is_premium > 0 THEN 2 ELSE 1 END as formato_id, opening_date, graphic_url
+		FROM pelicula_stagging ps
+		JOIN Distribuidor d ON ps.distributor_ho_code COLLATE DATABASE_DEFAULT  = d.distribuidor_id_externo COLLATE DATABASE_DEFAULT 
+		WHERE NOT EXISTS (SELECT * FROM Pelicula p WHERE p.pelicula_id_externo COLLATE DATABASE_DEFAULT = ps.ho_code COLLATE DATABASE_DEFAULT)
+	</script>
+	<script id="insert_movie_category" connection-id="zpcinemas">
+		<!-- Insercion de las categorias de pelicula -->
+		INSERT PeliculaCategoria (pelicula_id, categoria_id)
+		SELECT p.pelicula_id, c.categoria_id
+		FROM pelicula_stagging ps
+		JOIN Pelicula p ON ps.ho_code COLLATE DATABASE_DEFAULT = p.pelicula_id_externo COLLATE DATABASE_DEFAULT
+		JOIN Categoria c ON ps.category_ho_code COLLATE DATABASE_DEFAULT = c.categoria_id_externo COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM PeliculaCategoria pc WHERE pc.pelicula_id = p.pelicula_id)
+	</script>
+	<script id="insert_movie_cinema" connection-id="zpcinemas">
+		<!-- Insercion de las peliculas por complejo -->
+		INSERT Pelicula_Complejo (pelicula_id, pelicula_complejo_id_externo, complejo_id)
+		SELECT p.pelicula_id, ps.local_code, c.complejo_id
+		FROM pelicula_stagging ps
+		JOIN Pelicula p ON ps.ho_code COLLATE DATABASE_DEFAULT = p.pelicula_id_externo COLLATE DATABASE_DEFAULT
+		JOIN Complejo c ON ps.cinema_code COLLATE DATABASE_DEFAULT = c.complejo_id_externo COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM Pelicula_Complejo pc WHERE pc.pelicula_id = p.pelicula_id AND pc.pelicula_complejo_id_externo = ps.local_code AND pc.complejo_id = c.complejo_id)
+	</script>
+	<script id="update_movies" connection-id="zpcinemas">
+		<!-- Actualizacion de datos de pelicula -->
+		UPDATE Pelicula
+		SET
+			Pelicula.nombre = pelicula_stagging.title,
+			Pelicula.distribuidor_id = Distribuidor.distribuidor_id,
+			Pelicula.graphic_url = pelicula_stagging.graphic_url
+		FROM
+			Pelicula
+		INNER JOIN
+			pelicula_stagging
+		ON
+			Pelicula.pelicula_id_externo COLLATE DATABASE_DEFAULT = pelicula_stagging.ho_code COLLATE DATABASE_DEFAULT
+		INNER JOIN 
+			Distribuidor
+		ON pelicula_stagging.distributor_ho_code COLLATE DATABASE_DEFAULT = Distribuidor.distribuidor_id_externo COLLATE DATABASE_DEFAULT
+		WHERE 
+			Pelicula.nombre COLLATE DATABASE_DEFAULT != pelicula_stagging.title COLLATE DATABASE_DEFAULT
+			OR Pelicula.distribuidor_id != Distribuidor.distribuidor_id
+			OR ((Pelicula.graphic_url is null AND pelicula_stagging.graphic_url is not null) OR pelicula_stagging.graphic_url != Pelicula.graphic_url)
+			
+		DROP table pelicula_stagging
+    </script>
+</etl>

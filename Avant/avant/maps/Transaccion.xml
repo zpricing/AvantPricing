@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Transaccion">
+	<resultMap id="transaccionMap" class="cl.zpricing.avant.model.Transaccion">
+		<result property="id" column="transaccion_id" />
+		<result property="funcion" column="funcion_id" select="obtenerFuncion" />
+		<result property="ticket" column="ticket_id" select="obtenerTicket" />
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date" />
+		<result property="cantidad" column="cantidad"/>
+		<result property="venta" column="venta"/>
+		<result property="anulado" column="anulado" jdbcType="INT" javaType="boolean"/>
+		<result property="transaccionIdExterno" column="transaccion_id_externo"/>
+	</resultMap>
+	
+	<select id="obtenerListadoTransaccionFecha" parameterClass="java.util.Date" resultMap="transaccionMap">
+		SELECT t.transaccion_id, t.funcion_id, t.ticket_id, t.fecha, t.cantidad, t.venta, t.anulado, t.transaccion_id_externo
+		FROM Transaccion t, Funcion f
+		WHERE t.funcion_id = f.funcion_id
+		AND CONVERT(DATE,t.fecha, 101) = #value#
+		AND t.anulado = 0
+		ORDER BY f.fecha
+	</select>
+</sqlMap>

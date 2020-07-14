@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Mascara">
+	
+	<resultMap id="MascaraMap" class="cl.zpricing.avant.model.Mascara">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="idExterno" column="mascara_id_externo"/>
+		<result property="porcentajeDefault" column="porcentaje_default" javaType="double" jdbcType="DECIMAL"/>
+		<result property="activo" column="activo" jdbcType="BIT"/>
+		<result property="orden" column="orden"/>
+		<result property="descripcionDetallada" column="descripcion_detallada" javaType="String" jdbcType="VARCHAR"/>
+	</resultMap>
+	
+	<!-- Este obtiene todas las mascaras -->
+	<select id="obtenerMascaras" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, ISNULL(porcentaje_default, -1.0) AS porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #value#
+		ORDER BY orden
+	</select>
+	
+	<!-- Obtiene las mascaras activas de una sala -->
+	<select id="obtenerMascarasSalaActivos" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, ISNULL(porcentaje_default, -1.0) AS porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #value# AND activo = 'True'
+		ORDER BY orden
+	</select>
+	
+	<select id="obtenerMascarasSalaDefault" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #value# AND porcentaje_default is not NULL 
+		ORDER BY porcentaje_default ASC
+	</select>
+	
+	<select id="obtenerMascaraSala" parameterClass="java.util.HashMap" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, ISNULL(porcentaje_default, -1.0) AS porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #complejoId# AND id = #mascaraId#
+		ORDER BY orden
+	</select>	
+	
+	<select id="obtenerMascara" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, porcentaje_default, mascara_id_externo, activo, orden
+		FROM Mascara
+		WHERE id = #value#
+		ORDER BY orden
+	</select>
+	
+	<update id="actualizarMascara" parameterClass="cl.zpricing.avant.model.Mascara">
+		UPDATE Mascara
+		SET descripcion = #descripcion#, porcentaje_default = #porcentajeDefault#, activo = #activo#, orden = #orden#
+		WHERE id = #id#
+	</update>
+	
+	<select id="obtenerMascaraCargadaParaUnaFuncion" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, porcentaje_default, mascara_id_externo, activo, orden
+		FROM Mascara 
+		WHERE id = 
+			(SELECT TOP 1 ppf.mascara_id
+			FROM Funcion f, Prediccion_demanda_x_funcion ppf, Prediccion_demanda_x_dia ppd, Prediccion p, Mascara m
+			WHERE
+			ppf.funcion_id = f.funcion_id
+			AND ppd.pred_dda_dia_id = ppf.pred_dda_dia_id
+			AND p.prediccion_id = ppd.prediccion_id
+			AND f.funcion_id = #value#
+			AND ppf.cargada = 1
+			AND ppf.mascara_id = m.id
+			ORDER BY p.fecha desc)
+		ORDER BY orden
+	</select>
+	
+	<select id="obtenerMascaraPorSalaDescripcion" parameterClass="java.util.Map" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, ISNULL(porcentaje_default, -1.0) AS porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #complejo_id#
+		AND descripcion = #mascara#
+		ORDER BY orden
+	</select>	
+	
+	<insert id="guardarMascara" parameterClass="cl.zpricing.avant.model.Mascara">
+		INSERT INTO Mascara (descripcion, complejo_id, activo)
+		VALUES (#descripcion#, #complejo.id#, #activo#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<select id="obtenerMascaraLastMinute" parameterClass="java.lang.Integer" resultMap="MascaraMap">
+		SELECT id, descripcion, descripcion_detallada, mascara_id_externo, ISNULL(porcentaje_default, -1.0) AS porcentaje_default, activo, orden
+		FROM Mascara
+		WHERE complejo_id = #value#
+		AND activo = 'True'
+		AND descripcion = 'LM'
+	</select>
+</sqlMap>

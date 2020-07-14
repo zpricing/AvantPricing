@@ -1,0 +1,549 @@
+<?xml version="1.0"?>
+<project name="AvantPricing" basedir="." default="usage">
+	<property file="build.properties"/>
+	<property name="src.dir" value="src"/>
+	<property name="src-test.dir" value="src-test"/>
+	<property name="lib.dir" value="lib"/>
+	
+	<property name="web.dir.avant" value="avant/war"/>
+	<property name="build.dir.avant" value="${web.dir.avant}/WEB-INF/classes"/>
+	<property name="build-test.dir.avant" value="${web.dir.avant}/WEB-INF/classes-test"/>
+	<property name="config.dir.avant" value="avant/config"/>
+	
+	<property name="config-test.avant.dir" value="${config.dir.avant}/test"/>
+	
+	<property name="web.dir.avant.ors" value="avantors/war"/>
+	<property name="build.dir.avant.ors" value="${web.dir.avant.ors}/WEB-INF/classes"/>
+	<property name="config.dir.avant.ors" value="avantors/config"/>
+	
+	<property name="app.env" value="" />
+	<property name="app.avant.war.name" value=""/>
+	<property name="app.avant.ors.war.name" value=""/>
+	<property name="tomcat.url" value="" />
+	<property name="tomcat.username" value="" />
+	<property name="tomcat.password" value="" />
+	
+	<path id="avant-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="avant/*.jar"/>
+			<include name="commons/*.jar"/>
+			<include name="test/*.jar"/>
+		</fileset>
+		<fileset dir="${appserver.lib}">
+			<include name="servlet-api.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="avant-ors-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="avantors/*.jar"/>
+			<include name="commons/*.jar"/>
+		</fileset>
+		<fileset dir="${appserver.lib}">
+			<include name="servlet-api.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="test-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="avant/*.jar"/>
+			<include name="commons/*.jar"/>
+			<include name="test/*.jar"/>
+		</fileset>
+
+		<pathelement path="${config-test.avant.dir}"/>
+		<pathelement path="${build.dir.avant}"/>
+		<pathelement path="${build.dir.avant.ors}"/>
+		<pathelement path="${build-test.dir.avant}"/>
+		<pathelement path="${config-test.avant.dir}/local"/>
+		<pathelement path="avant/maps"/>
+		<pathelement path="avant/war"/>
+	</path>
+	
+	<target name="build-avant" depends="clean" description="Compile Avant Pricing java files">
+		<mkdir dir="${build.dir.avant}"/>
+		<javac destdir="${build.dir.avant}" includes="cl/zpricing/avant/**,cl/zpricing/commons/**" excludes="cl/zpricing/avantors/**" source="1.6" target="1.6" debug="on" deprecation="false" failonerror="true">
+			<src path="${src.dir}"/>
+			<classpath refid="avant-classpath"/>
+		</javac>
+	</target>
+	
+	<target name="build-avant-ors" depends="clean" description="Compile Avant Pricing ORS java files">
+		<mkdir dir="${build.dir.avant.ors}"/>
+		<javac destdir="${build.dir.avant.ors}" includes="cl/zpricing/avantors/**, cl/zpricing/revman/**" excludes="cl/zpricing/avant/**,cl/zpricing/commons/**" source="1.6" target="1.6" debug="on" deprecation="false" failonerror="true">
+			<src path="${src.dir}"/>
+			<classpath refid="avant-ors-classpath"/>
+		</javac>
+	</target>
+	
+	<target name="build-tests" depends="build-avant,build-avant-ors" description="Compile Avant Pricing Tests java files">
+		<mkdir dir="${build-test.dir.avant}"/>
+		<javac destdir="${build-test.dir.avant}" source="1.6" target="1.6" debug="on" deprecation="false" failonerror="true">
+			<src path="${src-test.dir}"/>
+			<classpath refid="test-classpath"/>
+		</javac>
+	</target>
+	
+	<target name="deploy-avant-devel" depends="build-avant" description="Deploy Avant application in devel environment">
+		<copy todir="${deploy.path}/${devel.avant.app.name}" preservelastmodified="true">
+			<fileset dir="${web.dir.avant}">
+				<include name="**/*.*"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.app.name}/WEB-INF/classes" preservelastmodified="true">
+			<fileset dir="avant">
+				<include name="maps/**/*.*"/>
+				<include name="theme/**/*.*"/>
+				<include name="*.*"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.app.name}/WEB-INF" preservelastmodified="true">
+			<fileset dir=".">
+				<include name="version"/>
+				<include name="changes.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.app.name}/WEB-INF/lib" preservelastmodified="true">
+			<fileset dir="lib/avant">
+				<include name="**/*.*"/>
+			</fileset>
+			<fileset dir="lib/commons">
+				<include name="**/*.*"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.app.name}/WEB-INF/classes" overwrite="true">
+			<fileset dir="avant/config/devel">
+				<include name="*.*"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="deploy-avant-ors-devel" depends="build-avant-ors" description="Deploy Avant ORS application in devel environment">
+		<copy todir="${deploy.path}/${devel.avant.ors.app.name}" preservelastmodified="true">
+			<fileset dir="${web.dir.avant.ors}">
+				<include name="**/*.*"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.ors.app.name}/WEB-INF" preservelastmodified="true">
+			<fileset dir=".">
+				<include name="version"/>
+				<include name="changes.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.ors.app.name}/WEB-INF/lib" preservelastmodified="true">
+			<fileset dir="lib/avantors">
+				<include name="**/*.*"/>
+			</fileset>
+			<fileset dir="lib/commons">
+				<include name="**/*.*"/>
+			</fileset>
+		</copy>
+		<copy todir="${deploy.path}/${devel.avant.ors.app.name}/WEB-INF/classes" overwrite="true">
+			<fileset dir="avantors/config/devel">
+				<include name="*.*"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="buildwar-avant" depends="build-avant" description="Build Avant application as a WAR file" >
+		<echo message="app.war.name : ${app.avant.war.name}" />
+		<echo message="app.env : ${app.env}" />
+		<war destfile="${app.avant.war.name}.war" webxml="${web.dir.avant}/WEB-INF/web.xml">
+			<fileset dir="${web.dir.avant}">
+				<include name="**/*.*"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+			<webinf dir=".">
+				<include name="version"/>
+				<include name="changes.txt"/>
+			</webinf>
+			<lib dir="lib/avant">
+				<include name="**/*.*"/>
+			</lib>
+			<lib dir="lib/commons">
+				<include name="**/*.*"/>
+			</lib>
+			<classes dir="avant/config/${app.env}">
+				<include name="*.*"/>
+			</classes>
+			<classes dir="avant">
+				<include name="maps/**/*.*"/>
+				<include name="theme/**/*.*"/>
+				<include name="*.properties"/>
+			</classes>
+		</war>
+	</target>
+	
+	<target name="buildwar-avant-ors" depends="build-avant-ors" description="Build Avant ORS application as a WAR file">
+		<echo message="app.war.name : ${app.avant.ors.war.name}" />
+		<echo message="app.env : ${app.env}" />
+		<mkdir dir="lib/avantors"/>
+		<war destfile="${app.avant.ors.war.name}.war" webxml="${web.dir.avant.ors}/WEB-INF/web.xml">
+			<fileset dir="${web.dir.avant.ors}">
+				<include name="**/*.*"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+			<webinf dir=".">
+				<include name="version"/>
+				<include name="changes.txt"/>
+			</webinf>
+			<lib dir="lib/avantors">
+				<include name="**/*.*"/>
+			</lib>
+			<lib dir="lib/commons">
+				<include name="**/*.*"/>
+			</lib>
+			<classes dir="avantors/config/${app.env}">
+				<include name="*.*"/>
+			</classes>
+		</war>
+	</target>
+	
+	<target name="stop-avant">
+		<stop url="${tomcat.url}" 
+			username="${tomcat.username}"
+			password="${tomcat.password}"
+			path="/${app.avant.war.name}"/>
+	</target>
+	
+	<target name="deploywar-avant" description="Install application to Tomcat server" >
+		<echo message="${tomcat.url}" />
+		<echo message="Avant war: ${app.avant.war.name}.war" />
+		<deploy url="${tomcat.url}" username="${tomcat.username}"
+					password="${tomcat.password}"
+					path="/${app.avant.war.name}"
+					update="true"
+					war="file:${app.avant.war.name}.war" />
+	</target>
+	
+	<target name="deploywar-avant-ors" description="Install application to Tomcat server" >
+		<echo message="${tomcat.url}" />
+		<echo message="Avant ORS war: ${app.avant.ors.war.name}.war" />
+		<deploy url="${tomcat.url}" username="${tomcat.username}"
+					password="${tomcat.password}"
+					path="/${app.avant.ors.war.name}"
+					update="true"
+					war="file:${app.avant.ors.war.name}.war" 
+		/>
+	</target>
+	
+	<target name="test-functional" depends="build-tests,configure-environment-test,buildwar-avant-ors,deploywar-avant-ors" description="Avant functional tests (includes Avant ORS tests)">
+		<echo message="${build.dir.avant}" />
+		<echo message="${build.dir.avant.ors}" />
+		<echo message="${build-test.dir.avant}" />
+		<echo message="${config-test.avant.dir}" />
+		<junit fork="no" haltonfailure="yes">
+			<classpath refid="test-classpath" />
+			<formatter type="brief" usefile="false" />
+			<test name="cl.zpricing.avant.test.functional.RevenueManagementAvailabilityTest" />
+			<test name="cl.zpricing.avant.test.functional.UpSellingTest" />
+			<test name="cl.zpricing.avant.test.functional.dataload.BusinessIntelligenceClientsJobTest" />
+			<test name="cl.zpricing.avant.test.functional.dataload.BusinessIntelligenceClustersJobTest" />
+			<test name="cl.zpricing.avant.test.unit.processes.LastMinuteSellingProcessTest" />
+		</junit>
+	</target>
+	
+	<target name="deploy-avantors-demo" depends="configure-ors-environment-demo">
+		<antcall target="buildwar-avant-ors" />
+		<antcall target="deploywar-avant-ors" />
+	</target>
+	
+	<target name="deploy-local" depends="configure-environment-devel">
+		<antcall target="buildwar-avant" />
+		<antcall target="deploywar-avant" />
+		<antcall target="buildwar-avant-ors" />
+		<antcall target="deploywar-avant-ors" />
+		<antcall target="liquibase-updateDB" />
+		<antcall target="liquibase-tagDB" />
+	</target>
+	
+	<target name="liquibase-devel-update" depends="configure-environment-devel">
+		<antcall target="liquibase-updateDB" />
+		<antcall target="liquibase-tagDB" />
+	</target>
+	
+	<target name="liquibase-devel-rollback" depends="configure-environment-devel">
+		<antcall target="liquibase-rollbackDB" />
+	</target>
+	
+	<target name="deploy-hoyts" depends="test-functional,configure-environment-hoyts">
+		<antcall target="liquibase-updateDB" />
+		<antcall target="liquibase-tagDB" />
+		<antcall target="buildwar-avant" />
+		<antcall target="deploywar-avant" />
+		<antcall target="buildwar-avant-ors" />
+		<antcall target="deploywar-avant-ors" />
+	</target>
+	
+	<target name="deploy-cinepolis" depends="test-functional,configure-environment-cinepolis">
+		<antcall target="buildwar-avant" />
+		<antcall target="deploywar-avant" />
+		<antcall target="buildwar-avant-ors" />
+		<antcall target="deploywar-avant-ors" />
+		<antcall target="liquibase-updateDB" />
+		<antcall target="liquibase-tagDB" />
+	</target>
+	
+	<target name="deploy-lab" depends="test-functional,configure-environment-lab">
+		<antcall target="buildwar-avant" />
+		<antcall target="deploywar-avant" />
+		<antcall target="liquibase-updateDB" />
+		<antcall target="liquibase-tagDB" />
+	</target>
+	
+	<target name="configure-environment-hoyts">
+		<echo message="app.avant.war.name : ${hoyts.avant.app.name}" />
+		<echo message="app.avant.ors.war.name : ${hoyts.avant.ors.app.name}" />
+		<script language="javascript">
+			project.setProperty("app.env", "hoyts");
+			project.setProperty("app.avant.war.name", project.getProperty("hoyts.avant.app.name"));
+			project.setProperty("app.avant.ors.war.name", project.getProperty("hoyts.avant.ors.app.name"));
+			project.setProperty("tomcat.url", project.getProperty("hoyts.tomcat.remote.url"));
+			project.setProperty("tomcat.username", project.getProperty("hoyts.tomcat.remote.username"));
+			project.setProperty("tomcat.password", project.getProperty("hoyts.tomcat.remote.password"));
+		</script>
+	</target>
+	
+	<target name="configure-environment-cinepolis">
+		<echo message="app.avant.war.name : ${cinepolis.avant.app.name}" />
+		<echo message="app.avant.ors.war.name : ${cinepolis.avant.ors.app.name}" />
+		<script language="javascript">
+			project.setProperty("app.env", "cinepolis");
+			project.setProperty("app.avant.war.name", project.getProperty("cinepolis.avant.app.name"));
+			project.setProperty("app.avant.ors.war.name", project.getProperty("cinepolis.avant.ors.app.name"));
+			project.setProperty("tomcat.url", project.getProperty("cinepolis.tomcat.remote.url"));
+			project.setProperty("tomcat.username", project.getProperty("cinepolis.tomcat.remote.username"));
+			project.setProperty("tomcat.password", project.getProperty("cinepolis.tomcat.remote.password"));
+		</script>
+	</target>
+	
+	<target name="configure-environment-devel">
+		<echo message="app.avant.war.name : ${testing.avant.app.name}" />
+		<echo message="app.avant.ors.war.name : ${testing.avant.ors.app.name}" />
+		<script language="javascript">
+			project.setProperty("app.env", "devel");
+			project.setProperty("app.avant.war.name", project.getProperty("testing.avant.app.name"));
+			project.setProperty("app.avant.ors.war.name", project.getProperty("testing.avant.ors.app.name"));
+			project.setProperty("tomcat.url", project.getProperty("testing.tomcat.local.url"));
+			project.setProperty("tomcat.username", project.getProperty("testing.tomcat.local.username"));
+			project.setProperty("tomcat.password", project.getProperty("testing.tomcat.local.password"));
+		</script>
+	</target>
+	
+	<target name="configure-environment-test">
+		<echo message="app.avant.war.name : ${testing.avant.app.name}" />
+		<echo message="app.avant.ors.war.name : ${testing.avant.ors.app.name}" />
+		<script language="javascript">
+			project.setProperty("app.env", "test");
+			project.setProperty("app.avant.war.name", project.getProperty("testing.avant.app.name"));
+			project.setProperty("app.avant.ors.war.name", project.getProperty("testing.avant.ors.app.name"));
+			project.setProperty("tomcat.url", project.getProperty("testing.tomcat.local.url"));
+			project.setProperty("tomcat.username", project.getProperty("testing.tomcat.local.username"));
+			project.setProperty("tomcat.password", project.getProperty("testing.tomcat.local.password"));
+		</script>
+	</target>
+	
+	<target name="configure-environment-lab">
+		<property name="app.env" value="lab" />
+		<property name="app.avant.war.name" value="${lab.avant.app.name}"/>
+		<property name="app.avant.ors.war.name" value="${lab.avant.ors.app.name}"/>
+		<property name="tomcat.url" value="${lab.tomcat.remote.url}" />
+		<property name="tomcat.username" value="${lab.tomcat.remote.username}" />
+		<property name="tomcat.password" value="${lab.tomcat.remote.password}" />
+	</target>
+	
+	<target name="configure-ors-environment-demo">
+		<echo message="app.avant.war.name : ${testing.avant.app.name}" />
+		<echo message="app.avant.ors.war.name : ${testing.avant.ors.app.name}" />
+		<script language="javascript">
+			project.setProperty("app.env", "demo");
+			project.setProperty("app.avant.ors.war.name", project.getProperty("demo.avant.ors.app.name"));
+			project.setProperty("tomcat.url", project.getProperty("demo.tomcat.local.url"));
+			project.setProperty("tomcat.username", project.getProperty("demo.tomcat.local.username"));
+			project.setProperty("tomcat.password", project.getProperty("demo.tomcat.local.password"));
+		</script>
+	</target>
+	
+	
+	<target name="clean" description="Clean output directories">
+		<mkdir dir="${build.dir.avant}"/>
+		<mkdir dir="${build.dir.avant.ors}"/>
+		<mkdir dir="${build-test.dir.avant}"/>
+		<delete>
+			<fileset dir="${build.dir.avant}">
+				<include name="**/*.*" />
+			</fileset>
+			<fileset dir="${build.dir.avant.ors}">
+				<include name="**/*.*" />
+			</fileset>
+			<fileset dir="${build-test.dir.avant}">
+				<include name="**/*.*" />
+			</fileset>
+		</delete>
+	</target>
+	
+	<target name="usage">
+		<echo message=""/>
+		<echo message="${name} build file"/>
+		<echo message="-----------------------------------"/>
+		<echo message=""/>
+		<echo message="Available targets are:"/>
+		<echo message=""/>
+		<echo message="clean --> Cleans the build directory"/>
+		<echo message="build --> Build the application"/>
+		<echo message="test --> Runs Unittests on the application"/>
+		<echo message="configure-devel --> Copies devel configuration files"/>
+		<echo message="configure-demo --> Copies demo configuration files"/>
+		<echo message="configure-testing --> Copies testing configuration files"/>
+		<echo message="configure-hoyts --> Copies hoyts configuration files"/>
+		<echo message="configure-cinepolis --> Copies cinepolis configuration files"/>
+		<echo message="deploy-devel --> Deploy application as directory"/>
+		<echo message="deploywar-demo --> Deploy demo application as a WAR file"/>
+		<echo message="deploywar-testing --> Deploy testing application as a WAR file"/>
+		<echo message="deploywar-hoyts --> Deploy Hoyts application as a WAR file"/>
+		<echo message="deploywar-cinepolis --> Deploy Cinepolis application as a WAR file"/>
+		<echo message="deploywarremote-demo --> Deploy Demo application as a WAR file on demo server"/>
+		<echo message="deploywarremote-testing --> Deploy Testing application as a WAR file on demo server"/>
+		<echo message="deploywarremote-hoyts --> Deploy Hoyts application as a WAR file on prod server"/>
+		<echo message="deploywarremote-cinepolis --> Deploy Cinepolis application as a WAR file on prod server"/>
+		<echo message=""/>
+	</target>
+	
+	<!-- ============================================================== -->
+	<!-- Tomcat tasks - remove these if you don't have Tomcat installed -->
+	<!-- ============================================================== -->
+	<path id="catalina-ant-classpath">
+		<!-- We need the Catalina jars for Tomcat -->
+		<!-- * for other app servers - check the docs -->
+		<fileset dir="${appserver.lib}">
+			<include name="catalina-ant.jar"/>
+		</fileset>
+	</path>
+	<taskdef name="install" classname="org.apache.catalina.ant.InstallTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	<taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	<taskdef name="list" classname="org.apache.catalina.ant.ListTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	<taskdef name="start" classname="org.apache.catalina.ant.StartTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	<taskdef name="stop" classname="org.apache.catalina.ant.StopTask">
+		<classpath refid="catalina-ant-classpath"/>
+	</taskdef>
+	
+	<!-- ============================================================== -->
+	<!-- liquibase tasks                                                -->
+	<!-- ============================================================== -->
+	<taskdef resource="liquibasetasks.properties">
+		<classpath>
+			<pathelement location="${ant.home}/lib/liquibase.jar"/>
+		</classpath>
+	</taskdef>
+	
+	<path id="db-classpath">
+		<pathelement location="${lib.dir}/avant/sqljdbc.jar"/>
+	</path>
+
+	<target name="liquibase-configure">
+		<echo message="app.env : ${app.env}" />
+		<property file="avant/config/${app.env}/jdbc.properties"/>
+		<property file="version"/>
+		<property name="db.changelog.file" value="changelog.xml"/>
+		<echo message="jdbc.url.zpcinemas : ${jdbc.url.zpcinemas}" />
+	</target>
+
+	<target name="liquibase-generateChangelog" depends="liquibase-configure">
+		<fail unless="jdbc.url.zpcinemas">jdbc.url.zpcinemas not set</fail>
+		<fail unless="jdbc.username">jdbc.username not set</fail>
+		<fail unless="jdbc.password">jdbc.password not set</fail>
+		
+		<generateChangeLog 
+			outputFile="changelog.xml" 
+			driver="${jdbc.driverClassName}" 
+			url="${jdbc.url.zpcinemas}"
+			username="${jdbc.username}"
+			password="${jdbc.password}"
+			classpathref="db-classpath"
+		/>
+	</target>
+
+	<target name="liquibase-updateDB" depends="liquibase-configure">
+		<fail unless="db.changelog.file">db.changelog.file not set</fail>
+		<fail unless="jdbc.url.zpcinemas">jdbc.url.zpcinemas not set</fail>
+		<fail unless="jdbc.username">jdbc.username not set</fail>
+		<fail unless="jdbc.password">jdbc.password not set</fail>
+		
+		<updateDatabase
+			changeLogFile="${db.changelog.file}"
+			driver="${jdbc.driverClassName}"
+			url="${jdbc.url.zpcinemas}"
+			username="${jdbc.username}"
+			password="${jdbc.password}"
+			promptOnNonLocalDatabase="false"
+			dropFirst="false"
+			classpathref="db-classpath"
+		/>
+	</target>
+
+	<target name="liquibase-docDB" depends="liquibase-configure">
+		<fail unless="db.changelog.file">db.changelog.file not set</fail>
+		<fail unless="jdbc.url.zpcinemas">jdbc.url.zpcinemas not set</fail>
+		<fail unless="jdbc.username">jdbc.username not set</fail>
+		<fail unless="jdbc.password">jdbc.password not set</fail>
+		
+		<dbDoc
+			changeLogFile="${db.changelog.file}"
+			driver="${jdbc.driverClassName}"
+			url="${jdbc.url.zpcinemas}"
+			username="${jdbc.username}"
+			password="${jdbc.password}"
+			outputDirectory="docDB"
+			classpathref="db-classpath"
+		/>
+	</target>
+
+	<target name="liquibase-tagDB" depends="liquibase-configure">
+		<fail unless="db.changelog.file">db.changelog.file not set</fail>
+		<fail unless="jdbc.url.zpcinemas">jdbc.url.zpcinemas not set</fail>
+		<fail unless="jdbc.username">jdbc.username not set</fail>
+		<fail unless="jdbc.password">jdbc.password not set</fail>
+		
+		<echo message="Tag: ${zpcinemas.version}"/>
+		<tagDatabase
+			driver="${jdbc.driverClassName}"
+			url="${jdbc.url.zpcinemas}"
+			username="${jdbc.username}"
+			password="${jdbc.password}"
+			classpathref="db-classpath"
+			tag="${zpcinemas.version}"
+		/>
+	</target>
+
+	<target name="liquibase-rollbackDB" depends="liquibase-configure">
+		<fail unless="db.changelog.file">db.changelog.file not set</fail>
+		<fail unless="jdbc.url.zpcinemas">jdbc.url.zpcinemas not set</fail>
+		<fail unless="jdbc.username">jdbc.username not set</fail>
+		<fail unless="jdbc.password">jdbc.password not set</fail>
+		
+		<echo message="Rollbacking to Tag: ${zpcinemas.version}"/>
+		<rollbackDatabase
+			changeLogFile="${db.changelog.file}"
+			driver="${jdbc.driverClassName}"
+			url="${jdbc.url.zpcinemas}"
+			username="${jdbc.username}"
+			password="${jdbc.password}"
+			classpathref="db-classpath"
+			rollbackTag="${zpcinemas.version}"
+		/>
+	</target>
+	<!-- End liquibase tasks -->
+</project>

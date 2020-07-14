@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TipoFuncion">
+
+	<select id="obtenerTipoFuncion" parameterClass="java.lang.Integer"
+		resultClass="cl.zpricing.avant.model.TipoFuncion">
+		SELECT tipo_funcion_id as id, descripcion
+		FROM Tipo_Funcion
+		WHERE
+		tipo_funcion_id = #value#
+	</select>
+
+	<select id="obtenerTipoFunciones" resultClass="cl.zpricing.avant.model.TipoFuncion">
+		SELECT tipo_funcion_id
+		as id
+		,descripcion
+		FROM Tipo_Funcion
+	</select>
+
+	<update id="actualizarTipoFuncion" parameterClass="cl.zpricing.avant.model.TipoFuncion">
+		UPDATE Tipo_Funcion
+		SET descripcion =
+		#descripcion#
+		WHERE tipo_funcion_id= #id#
+	</update>
+
+	<insert id="agregarTipoFuncion" parameterClass="cl.zpricing.avant.model.TipoFuncion">
+		INSERT INTO
+		Tipo_Funcion
+		(descripcion)
+		VALUES (#descripcion#)
+  	</insert>
+
+	<delete id="eliminarTipoFuncion" parameterClass="cl.zpricing.avant.model.TipoFuncion">
+		DELETE Tipo_Funcion
+		WHERE tipo_funcion_id = #id#
+  	</delete>
+
+</sqlMap>

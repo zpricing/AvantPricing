@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+	
+	<!-- Activates various annotations to be detected in bean classes -->
+	<context:annotation-config />
+
+	<import resource="beans-dao.xml" />
+	<import resource="beans-etl.xml" />
+	<import resource="beans-services.xml" />
+	<import resource="dwr-context.xml" />
+	
+	<import resource="mongo-config.xml"/> 
+	<import resource="job-repository.xml"/> 
+ 	
+	<!--
+		the parent application context definition for the springapp
+		application
+	-->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url.zpcinemas}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="validationQuery" value="SELECT GETDATE()"></property>
+		<property name="testOnBorrow" value="true"></property>
+		<property name="testOnReturn" value="false"></property>
+	</bean>
+	
+	<bean id="dataSourceCineticket" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.cineticket.driverClassName}" />
+		<property name="url" value="${jdbc.cineticket.url}" />
+		<property name="username" value="${jdbc.cineticket.username}" />
+		<property name="password" value="${jdbc.cineticket.password}" />
+		<property name="validationQuery" value="SELECT now()"/>
+		<property name="testOnBorrow" value="true"/>
+		<property name="testOnReturn" value="false"/>
+	</bean>
+	
+	<bean id="dataSourceLoyalty" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.loyalty.driverClassName}" />
+		<property name="url" value="${jdbc.loyalty.url}" />
+		<property name="username" value="${jdbc.loyalty.username}" />
+		<property name="password" value="${jdbc.loyalty.password}" />
+		<property name="validationQuery" value="SELECT GETDATE()"/>
+		<property name="testOnBorrow" value="true"/>
+		<property name="testOnReturn" value="false"/>
+	</bean>
+	
+	<!--  
+	<bean id="dataSourceHoytsSanAgustin" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.sanagustin.url}"/>
+        <property name="username" value="${jdbc.sanagustin.username}"/>
+        <property name="password" value="${jdbc.sanagustin.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsPuenteAlto" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.puentealto.url}"/>
+        <property name="username" value="${jdbc.puentealto.username}"/>
+        <property name="password" value="${jdbc.puentealto.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsParqueArauco" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.pak.url}"/>
+        <property name="username" value="${jdbc.pak.username}"/>
+        <property name="password" value="${jdbc.pak.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsEstacionCentral" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.estacion.url}"/>
+        <property name="username" value="${jdbc.estacion.username}"/>
+        <property name="password" value="${jdbc.estacion.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsValparaiso" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.valparaiso.url}"/>
+        <property name="username" value="${jdbc.valparaiso.username}"/>
+        <property name="password" value="${jdbc.valparaiso.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsMaipu" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.maipu.url}"/>
+        <property name="username" value="${jdbc.maipu.username}"/>
+        <property name="password" value="${jdbc.maipu.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsLaReina" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.lareina.url}"/>
+        <property name="username" value="${jdbc.lareina.username}"/>
+        <property name="password" value="${jdbc.lareina.password}"/>
+	</bean>
+	
+	<bean id="dataSourceHoytsLaboratorio" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+		<property name="driverClassName" value="${jdbc.hoyts.driverClassName}"/>
+        <property name="url" value="${jdbc.hoyts.lab.url}"/>
+        <property name="username" value="${jdbc.lab.username}"/>
+        <property name="password" value="${jdbc.lab.password}"/>
+	</bean>
+	
+	<bean id="dataSourceCinemaRoutes" class="cl.zpricing.avant.negocio.loadmanager.CinemaRoutingDataSource">
+	   <property name="targetDataSources">
+	      <map key-type="java.lang.String">
+	      	 <entry key="003" value-ref="dataSourceHoytsPuenteAlto"/>
+	         <entry key="004" value-ref="dataSourceHoytsSanAgustin"/>
+	         <entry key="005" value-ref="dataSourceHoytsValparaiso"/>
+	         <entry key="006" value-ref="dataSourceHoytsLaReina"/>
+	         <entry key="007" value-ref="dataSourceHoytsEstacionCentral"/>
+	         <entry key="013" value-ref="dataSourceHoytsParqueArauco"/>
+	         <entry key="014" value-ref="dataSourceHoytsMaipu"/>
+	      </map>
+	   </property>
+	</bean>
+	-->
+	
+	<bean id="propertyConfigurer" class="cl.zpricing.avant.util.PropertiesUtil">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:system.properties</value>
+				<value>classpath:mongo.properties</value>
+				<value>classpath:../version</value>
+			</list>
+		</property>
+	</bean>	
+
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<aop:config proxy-target-class="true">
+		<!--
+			<aop:advisor pointcut="execution(* *..UsuarioDaoImpl.*(..))"
+			advice-ref="txAdvice"/>
+		-->
+	</aop:config>
+
+	<tx:advice id="txAdvice">
+		<tx:attributes>
+			<tx:method name="save*" />
+			<tx:method name="*" read-only="false" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- SqlMap setup for iBATIS Database Layer -->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="WEB-INF/sql-map-config.xml" />
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="sqlMapClientCineticket" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="WEB-INF/sql-map-cineticket-config.xml" />
+		<property name="dataSource" ref="dataSourceCineticket" />
+	</bean>
+	
+	<bean id="sqlMapClientLoyalty" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="WEB-INF/sql-map-vista-config.xml" />
+		<property name="dataSource" ref="dataSourceLoyalty" />
+	</bean>
+	
+	<!-- SqlMap setup for iBATIS Database Layer
+	<bean id="sqlMapClientHoyts" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="WEB-INF/sql-map-hoyts-config.xml" />
+		<property name="dataSource" ref="dataSourceCinemaRoutes" />
+	</bean>
+	-->
+	
+	<bean id="actualizacionDiaria" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="factoryProcesos" />
+	  	<property name="targetMethod" value="actualizacionDiaria" />
+	</bean>
+	<bean id="actualizacionNuevasFunciones" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="factoryProcesos" />
+	  	<property name="targetMethod" value="actualizacionNuevasFunciones" />
+	</bean>
+	<bean id="extraccionCustomerTransactionalDataFromCineticket" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="factoryProcesos" />
+	  	<property name="targetMethod" value="extraerDataUsuarios" />
+	</bean>
+	<bean id="actualizacionYcargaDeSecondSellingPersonalizedSuggestions" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="factoryProcesos" />
+	  	<property name="targetMethod" value="procesarYCargarSecondSellingPersonalizedSuggestions" />
+	</bean>
+	<bean id="actualizacionYcargaLastMinuteSellingOffers" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="factoryProcesos" />
+	  	<property name="targetMethod" value="procesarYCargarLastMinuteSelling" />
+	</bean>
+	
+	<!--Triggers-->	
+	<bean id="actualizacionDiariaTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="actualizacionDiaria" />
+    	<property name="cronExpression" value="0 1 0 * * ?" />
+	</bean>
+	<bean id="actualizacionFuncionesTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail" ref="actualizacionNuevasFunciones" />
+    	<property name="cronExpression" value="0 0 9-21/2 ? * TUE-WED" />
+	</bean>
+	<bean id="extraccionCustomerTransactionalDataFromCineticketTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="extraccionCustomerTransactionalDataFromCineticket" />
+    	<property name="cronExpression" value="0 0 2 * * ?" />
+	</bean>
+	<bean id="actualizacionYcargaDeSecondSellingPersonalizedSuggestionsTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail" ref="actualizacionYcargaDeSecondSellingPersonalizedSuggestions" />
+    	<property name="cronExpression" value="0 0 3 ? * THU" />
+	</bean>
+	<bean id="actualizacionYcargaLastMinuteSellingOffersTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail" ref="actualizacionYcargaLastMinuteSellingOffers" />
+    	<property name="cronExpression" value="0 0 0 ? * TUE" />
+	</bean>
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean" destroy-method="destroy">
+	    <property name="triggers">
+	        <list>
+	            <ref bean="actualizacionDiariaTrigger" />
+	            <ref bean="actualizacionFuncionesTrigger" />
+	            <ref bean="extraccionCustomerTransactionalDataFromCineticketTrigger" />
+	            <ref bean="actualizacionYcargaDeSecondSellingPersonalizedSuggestionsTrigger" />
+	            <ref bean="actualizacionYcargaLastMinuteSellingOffersTrigger" />
+	        </list>
+	    </property>
+	</bean>
+
+</beans>

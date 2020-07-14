@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BusinessIntelligenceProcessFromCineticket">
+	<delete id="limpiarTablaTempCineticketCustomer">
+		DELETE FROM temp_cineticket_customer
+	</delete>
+	<delete id="limpiarTablaTempCineticketTransaction">
+		DELETE FROM temp_cineticket_transaction
+	</delete>
+	
+	<insert id="insertarTransaccionesCineticket" parameterClass="java.util.Map">
+		INSERT INTO temp_cineticket_transaction (rut, email, comuna, nombre, apellido_paterno, apellido_materno, nombre_pelicula, funcion, cantidad, total, nombre_ticket, cinema_code, dia, hora, fecha_compra)
+   		VALUES (#rut#, 
+   				#mail#, 
+   				#comuna,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#nombre,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#apellido,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#apellido_materno,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#nombre_pelicula,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#fechahora_funcion,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#cantidad#, 
+   				#total#, 
+   				#tipo_ticket,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#cinema_code,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#dia#, 
+   				#hora#, 
+   				#created_at#)
+	</insert>
+	
+	<insert id="insertarCustomerCineticket" parameterClass="java.util.Map">
+		INSERT INTO temp_cineticket_customer (rut, email, comuna, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, created_at, updated_at)
+   		VALUES (#rut#, 
+   				#mail#, 
+   				#comuna,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#nombre,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#apellido,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#apellido_materno,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#fecha_nacimiento,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#,
+   				#created_at,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#,
+   				#updated_at,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#)
+	</insert>
+	
+	<insert id="agregarComunas">
+		INSERT Zona_Geografica_Comuna (nombre, zona_geografica_id)
+		SELECT distinct comuna, 1
+		FROM temp_cineticket_customer temp
+		WHERE temp.comuna IS NOT NULL AND NOT EXISTS (SELECT * FROM Zona_Geografica_Comuna c WHERE c.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT)
+  	</insert>
+	
+	<update id="actualizarDataCliente">
+		UPDATE Cliente
+    	SET comuna_id = cliente_comuna.comuna_id, updated_at = cliente_comuna.updated_at
+    	FROM (
+	    	SELECT temp.rut, temp.nombre, temp.apellido_paterno, temp.apellido_materno, temp.fecha_nacimiento, temp.email, c.comuna_id, temp.updated_at
+	    	FROM temp_cineticket_customer temp
+	    	JOIN Zona_Geografica_Comuna c ON (temp.comuna IS NULL AND c.nombre = 'N/A') OR c.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+	    	GROUP BY temp.rut, temp.nombre, temp.apellido_paterno, temp.apellido_materno, temp.fecha_nacimiento, temp.email, c.comuna_id, temp.updated_at
+    	) cliente_comuna
+    	WHERE Cliente.email = cliente_comuna.email
+	</update>
+	
+	<insert id="agregarClientesNuevos">
+		INSERT Cliente (rut, email, nombre, apellido_paterno, apellido_materno, fecha_nacimiento, comuna_id, created_at, updated_at)
+		SELECT DISTINCT temp.rut, temp.email, temp.nombre, temp.apellido_paterno, temp.apellido_materno, temp.fecha_nacimiento, com.comuna_id, temp.created_at, temp.updated_at
+		FROM temp_cineticket_customer temp
+		JOIN Zona_Geografica_Comuna com ON (temp.comuna IS NULL AND com.nombre = 'N/A') OR com.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM Cliente c WHERE c.email COLLATE DATABASE_DEFAULT = temp.email COLLATE DATABASE_DEFAULT)
+	</insert>
+	
+	<insert id="agregarOrigenCineticket">
+	    INSERT ClienteOrigen (cliente_id, origen)
+	    SELECT c.cliente_id, 'cineticket'
+	    FROM Cliente c
+	    JOIN temp_cineticket_customer temp ON c.email =  temp.email
+	    WHERE NOT EXISTS (SELECT * FROM ClienteOrigen co WHERE co.cliente_id = c.cliente_id AND origen = 'cineticket')
+	</insert>
+
+	<insert id="agregarTransacciones">
+		INSERT ClienteTransaccion (rut, email, comuna, nombre, apellido_paterno, apellido_materno, nombre_pelicula, funcion, cantidad_entradas, total_pagado, nombre_ticket, codigo_cine, dia, hora, fecha_compra)
+		SELECT rut, email, comuna, nombre, apellido_paterno, apellido_materno, nombre_pelicula, funcion, cantidad, total, nombre_ticket, cinema_code, dia, hora, fecha_compra
+		FROM temp_cineticket_transaction temp
+		WHERE NOT EXISTS (SELECT * FROM ClienteTransaccion ct WHERE ct.email = temp.email AND ct.fecha_compra = temp.fecha_compra)
+  	</insert>
+	
+	<select id="obtenerUltimaFechaTransaccionCineticket" resultClass="java.util.Date">
+		SELECT MAX(fecha_compra) as max_fecha_compra
+		FROM temp_cineticket_transaction
+	</select>
+	
+	<select id="obtenerUltimaFechaModificacionClienteCineticket" resultClass="java.util.Date">
+		SELECT CAST(MAX(updated_at) as datetime)
+		FROM temp_cineticket_customer
+	</select>
+	
+	<update id="actualizarComportamientoAsistenciaClientesCineticket">
+		UPDATE ClienteComportamientoAsistencia
+		SET asistencia = asistencia + temp.compras
+		FROM (SELECT email, dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT email, dia, CASE WHEN hora >= 19 THEN 2 WHEN hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_cineticket_transaction) as X
+			GROUP BY email, dia, bloque_horario
+			) as temp
+			JOIN Cliente ON temp.email COLLATE DATABASE_DEFAULT = Cliente.email COLLATE DATABASE_DEFAULT
+		WHERE ClienteComportamientoAsistencia.cliente_id = Cliente.cliente_id
+		AND ClienteComportamientoAsistencia.dia_semana = temp.dia
+		AND ClienteComportamientoAsistencia.bloque_horario = temp.bloque_horario
+	</update>
+	
+	<insert id="agregarComportamientoAsistencieClientesCineticket">
+		INSERT ClienteComportamientoAsistencia (cliente_id, dia_semana, bloque_horario, asistencia)
+		SELECT c.cliente_id, temp.dia, temp.bloque_horario, temp.compras
+		FROM (
+			SELECT email, dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT email, dia, CASE WHEN hora >= 19 THEN 2 WHEN hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_cineticket_transaction) as X
+			GROUP BY email, dia, bloque_horario
+			) as temp
+		JOIN Cliente c ON temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClienteComportamientoAsistencia cca 
+							WHERE cca.cliente_id = c.cliente_id
+							AND cca.dia_semana = temp.dia
+							AND cca.bloque_horario = temp.bloque_horario)
+	</insert>
+	
+	<insert id="agregarPeliculasVistasClientesCineticket">
+		INSERT ClientePeliculasVistas (cliente_id, pelicula_nombre, pelicula_id)
+		SELECT DISTINCT c.cliente_id, temp.nombre_pelicula, p.pelicula_id
+		FROM temp_cineticket_transaction temp
+		JOIN Cliente c ON temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		JOIN Pelicula p ON p.nombre COLLATE DATABASE_DEFAULT = temp.nombre_pelicula COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClientePeliculasVistas cpa 
+							WHERE cpa.cliente_id = c.cliente_id
+							AND cpa.pelicula_id = p.pelicula_id)
+	</insert>
+</sqlMap>

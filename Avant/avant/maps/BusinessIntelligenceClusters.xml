@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BusinessIntelligenceClusters">
+	<resultMap class="cl.zpricing.avant.etl.model.Cluster" id="mapCluster">
+		<result property="clusterId" column="cluster_id" />
+		<result property="name" column="nombre" />
+		<result property="description" column="descripcion" />
+		<result property="premieres" column="cluster_id" select="getClusterMoviesPremiere" />
+		<result property="showings" column="cluster_id" select="getClusterMovies" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.ClusterClient" id="mapClusterClient">
+		<result property="name" column="nombre" />
+		<result property="email" column="email" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.etl.model.ClusterProduct" id="mapClusterProduct">
+		<result property="name" column="nombre" />
+		<result property="urlImg" column="graphic_url" />
+		<result property="description" column="descripcion" />
+		<result property="distributor" column="nombre_distribuidor" />
+		<result property="duration" column="duracion" />
+		<result property="originalTitle" column="nombre_original" />
+	</resultMap>
+	
+	<insert id="actualizarGrupoPeliculasPorZonaGeografica">
+		<![CDATA[ 
+		INSERT GrupoPeliculaZonaGeografica (grupo_pelicula_id, zona_geografica_id)
+		SELECT X.grupo_pelicula_id, X.zona_id
+		FROM (SELECT gp.id as grupo_pelicula_id, gp.nombre as nombre_pelicula, zg.zona_id, zg.nombre,ROW_NUMBER() OVER (PARTITION BY zg.zona_id, gp.id ORDER BY p.pelicula_id) as orden
+				FROM Grupo_Pelicula gp
+				JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+				JOIN Distribuidor d ON p.distribuidor_id = d.distribuidor_id
+				JOIN Funcion f ON f.pelicula_id = p.pelicula_id
+				JOIN Complejo c ON c.complejo_id = f.complejo_id
+				JOIN Zona_Geografica zg ON zg.zona_id = c.zona_geografica_id OR zg.nombre = 'N/A'
+				JOIN (SELECT sc.*
+						FROM Semana_Cine sc
+						JOIN 
+							(SELECT fecha_hasta
+							FROM Semana_Cine
+							WHERE DATEADD(dd, 0, DATEDIFF(dd, 0, GETDATE())) between fecha_desde AND fecha_hasta
+							) as X ON DATEADD(dd, 1 + 0*7, X.fecha_hasta) between sc.fecha_desde AND sc.fecha_hasta
+				) as semana_cine ON f.fecha_contabilidad >= semana_cine.fecha_desde AND f.fecha_contabilidad < DATEADD(dd,1,semana_cine.fecha_hasta)
+			) as X
+		WHERE X.orden = 1
+		
+		
+		]]>
+	</insert>
+	
+	<insert id="actualizarClientesPorZonaGeografica">
+		INSERT ClienteZonaGeografica (cliente_id, zona_geografica_id)
+		SELECT X.cliente_id, X.zona_id
+		FROM
+			(SELECT Y.cliente_id, Y.zona_id 
+			FROM
+	 			(SELECT X.zona_id, X.zona_nombre, X.cliente_id, ROW_NUMBER() OVER (PARTITION BY X.cliente_id ORDER BY X.preferencia DESC) as row_num
+	 			FROM 
+	  				(SELECT zg.zona_id, zg.nombre as zona_nombre, cpc.cliente_id, SUM(factor_preferencia) as preferencia
+	  				FROM ClientePreferenciasCine cpc
+	  				JOIN Complejo c ON cpc.complejo_id = c.complejo_id
+	  				JOIN Zona_Geografica zg ON zg.zona_id = c.zona_geografica_id
+	  				GROUP BY zg.zona_id, zg.nombre, cpc.cliente_id
+	  				) as X
+	 			) as Y
+	 		JOIN Cliente c ON c.cliente_id = Y.cliente_id
+			WHERE Y.row_num = 1
+			
+			UNION
+	
+			SELECT c.cliente_id, zg.zona_id 
+			FROM Cliente c
+			JOIN Zona_Geografica_Comuna zgc ON c.comuna_id = zgc.comuna_id
+			JOIN Zona_Geografica zg ON zg.zona_id = zgc.zona_geografica_id
+			WHERE NOT EXISTS (SELECT * FROM ClientePreferenciasCine cpc WHERE cpc.cliente_id = c.cliente_id)
+			) as X
+			
+			UNION
+			
+			SELECT c.cliente_id, 1 as zona_id
+			FROM Cliente c
+			WHERE c.comuna_id IS NULL 
+			AND NOT EXISTS (SELECT * FROM ClientePreferenciasCine cpc WHERE cpc.cliente_id = c.cliente_id)
+	</insert>
+	
+	<insert id="recreateClusters">
+		INSERT INTO BI_Cluster (zona_geografica_id, categoria_id, name, description)
+		SELECT zona_id, categoria_id, name, description 
+		FROM
+		(SELECT zg.zona_id, c.categoria_id, 'Todos por Zona Geografica por Categoria' as name, zg.nombre COLLATE DATABASE_DEFAULT + '_' + c.descripcion COLLATE DATABASE_DEFAULT as description
+		FROM Zona_Geografica zg, (SELECT * FROM Categoria WHERE attendance_weight > #minimum_weight#) as c
+		WHERE NOT EXISTS (SELECT * FROM BI_Cluster bic WHERE bic.zona_geografica_id = zg.zona_id AND bic.categoria_id = c.categoria_id)
+		
+		UNION
+		
+		SELECT zg.zona_id, null as categoria_id, 'Todos por Zona Geografica por Categoria' as name, zg.nombre COLLATE DATABASE_DEFAULT + '_SinCategoria' as description
+		FROM Zona_Geografica zg
+		WHERE NOT EXISTS (SELECT * FROM BI_Cluster bic WHERE bic.zona_geografica_id = zg.zona_id AND bic.categoria_id is null AND name = 'Todos por Zona Geografica por Categoria')
+		
+		UNION
+		
+		SELECT zg.zona_id, null as categoria_id, 'Todos por Zona Geografica' as name, zg.nombre as description
+		FROM Zona_Geografica zg
+		WHERE NOT EXISTS (SELECT * FROM BI_Cluster bic WHERE bic.zona_geografica_id = zg.zona_id AND bic.categoria_id is null AND name = 'Todos por Zona Geografica')
+		) as X
+	</insert>
+	
+	<insert id="populateClusterClients">
+		INSERT BI_Cluster_Cliente (cluster_id, cliente_id)
+		SELECT cluster_id, cliente_id
+		FROM
+			(SELECT bi_c.cluster_id, geo.cliente_id
+			FROM ClienteZonaGeografica geo
+			JOIN ClientePreferenciasCategoria cat ON cat.cliente_id = geo.cliente_id 
+			JOIN BI_Cluster bi_c ON bi_c.zona_geografica_id = geo.zona_geografica_id AND bi_c.categoria_id = cat.categoria_id
+			WHERE cat.orden = 1
+			
+			UNION
+			
+			SELECT bi_c.cluster_id, geo.cliente_id
+			FROM ClienteZonaGeografica geo
+			JOIN BI_Cluster bi_c ON bi_c.zona_geografica_id = geo.zona_geografica_id AND bi_c.categoria_id IS NULL AND bi_c.name = 'Todos por Zona Geografica por Categoria'
+			WHERE NOT EXISTS (SELECT * FROM ClientePreferenciasCategoria cat WHERE cat.cliente_id = geo.cliente_id )
+			
+			UNION
+			
+			SELECT bi_c.cluster_id, geo.cliente_id
+			FROM ClienteZonaGeografica geo 
+			JOIN BI_Cluster bi_c ON bi_c.zona_geografica_id = geo.zona_geografica_id AND bi_c.categoria_id IS NULL AND bi_c.name = 'Todos por Zona Geografica'
+		) as X
+	</insert>
+	
+	<insert id="populateClusterMovies">
+		INSERT BI_Cluster_Pelicula (cluster_id, grupo_pelicula_id, estreno, orden)
+		SELECT cluster_id, grupo_pelicula_id, estreno, orden
+		FROM
+		(SELECT X.cluster_id, X.grupo_pelicula_id, X.estreno, ROW_NUMBER() OVER (PARTITION BY cluster_id ORDER BY similitud desc) as orden
+		FROM
+			(SELECT bi_c.cluster_id, bi_c.categoria_id as categoria_cluster, GrupoPeliculaZonaGeografica.grupo_pelicula_id, GrupoPeliculaZonaGeografica.estreno, ssc.similitud, ROW_NUMBER() OVER (PARTITION BY bi_c.cluster_id, GrupoPeliculaZonaGeografica.grupo_pelicula_id ORDER BY similitud DESC) as rownumber
+			FROM BI_Cluster bi_c
+			JOIN GrupoPeliculaZonaGeografica ON GrupoPeliculaZonaGeografica.zona_geografica_id = bi_c.zona_geografica_id
+			JOIN GrupoPeliculaCategoria gpc ON GrupoPeliculaZonaGeografica.grupo_pelicula_id = gpc.grupo_pelicula_id
+			JOIN (SELECT Distinct X.categoria_id_1, X.categoria_id_2, X.similitud
+				FROM
+					(SELECT categoria_id_1, categoria_id_2, similitud
+					FROM Second_Selling_Categorias
+					UNION
+					SELECT categoria_id_2 as categoria_id_1, categoria_id_1 as categoria_id_2, similitud
+					FROM Second_Selling_Categorias
+					) as X
+				) as ssc ON ssc.categoria_id_1 = bi_c.categoria_id AND ssc.categoria_id_2 = gpc.categoria_id
+			WHERE bi_c.categoria_id IS NOT NULL
+			) as X
+		WHERE rownumber = 1
+		
+		UNION
+		
+		SELECT cluster_id, grupo_pelicula_id, estreno, orden_ranking as orden
+		FROM
+			(SELECT cluster_id, grupo_pelicula_id, estreno, ROW_NUMBER() OVER (PARTITION BY cluster_id ORDER BY pel_ranking_id) as orden_ranking
+			FROM
+				(SELECT bi_c.cluster_id, gp.id as grupo_pelicula_id, geo.estreno, p.pel_ranking_id, ROW_NUMBER() OVER (PARTITION BY gp.id, bi_c.cluster_id ORDER BY p.pelicula_id) as orden
+				FROM BI_Cluster bi_c 
+				JOIN GrupoPeliculaZonaGeografica geo ON geo.zona_geografica_id = bi_c.zona_geografica_id
+				JOIN Grupo_Pelicula gp ON geo.grupo_pelicula_id = gp.id
+				JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+				WHERE bi_c.categoria_id IS NULL
+				) as X
+			WHERE X.orden = 1
+			) as Y
+		) as X
+	</insert>
+	
+	<update id="markGrupoPeliculasZonaGeograficaAsStarring">
+		UPDATE GrupoPeliculaZonaGeografica
+		SET estreno = 1
+		FROM
+			(SELECT *
+			FROM (SELECT gp.id as grupo_pelicula_id, gp.nombre, gp.nombre_original, gp.external_source_id, gp.external_source_data_loaded, zg.zona_id, zg.nombre as nombre_zona_geografica, MIN(f.fecha_contabilidad) as primera_funcion
+					FROM Grupo_Pelicula gp
+					JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+					JOIN Funcion f ON f.pelicula_id = p.pelicula_id
+					JOIN Complejo c ON c.complejo_id = f.complejo_id
+					JOIN Zona_Geografica zg ON zg.zona_id = c.zona_geografica_id OR zg.nombre = 'N/A'
+					WHERE f.estado = 'O'
+					GROUP BY gp.id, gp.nombre, gp.nombre_original, gp.external_source_id, gp.external_source_data_loaded, zg.zona_id, zg.nombre
+				) as X
+				JOIN (SELECT sc.*
+						FROM Semana_Cine sc
+						JOIN 
+							(SELECT fecha_hasta
+							FROM Semana_Cine
+							WHERE DATEADD(dd, 0, DATEDIFF(dd, 0, GETDATE())) between fecha_desde AND fecha_hasta
+							) as X ON DATEADD(dd, 1 + 0*7, X.fecha_hasta) between sc.fecha_desde AND sc.fecha_hasta
+				) as Y ON X.primera_funcion between DATEADD(dd, -1, Y.fecha_desde)  AND Y.fecha_hasta
+			) as W
+		WHERE W.zona_id = GrupoPeliculaZonaGeografica.zona_geografica_id
+		AND W.grupo_pelicula_id = GrupoPeliculaZonaGeografica.grupo_pelicula_id
+	</update>
+
+	<select id="getClusters" resultMap="mapCluster">
+		SELECT *
+		FROM
+			(SELECT bi_c.cluster_id, bi_c.zona_geografica_id, bi_c.categoria_id, bi_c.name as nombre, bi_c.description as descripcion, ROW_NUMBER() OVER (ORDER BY bi_c.cluster_id) as num 
+			FROM BI_Cluster bi_c
+			) as X
+		WHERE X.num BETWEEN (#_skiprows# + 1) AND (#_skiprows# + #_pagesize#)
+	</select>
+	
+	<select id="getClusterClients" parameterClass="java.lang.Integer" resultMap="mapClusterClient">
+		SELECT c.cliente_id, c.nombre, c.email
+		FROM BI_Cluster_Cliente bi_cc
+		JOIN Cliente c ON c.cliente_id = bi_cc.cliente_id
+		WHERE cluster_id = #value#
+	</select>
+	
+	<select id="getClusterMoviesPremiere" parameterClass="java.lang.Integer" resultMap="mapClusterProduct">
+		SELECT X.nombre, X.nombre_original, X.descripcion, X.graphic_url, X.nombre_distribuidor, X.duracion
+		FROM
+			(SELECT gp.nombre, gp.nombre_original, bi_cp.orden, p.descripcion, p.graphic_url, d.nombre as nombre_distribuidor, p.duracion, ROW_NUMBER() OVER (PARTITION BY gp.id ORDER BY p.pelicula_id) as orden_pelicula
+			FROM BI_Cluster_Pelicula bi_cp
+			JOIN Grupo_Pelicula gp ON gp.id = bi_cp.grupo_pelicula_id
+			JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+			JOIN Distribuidor d ON p.distribuidor_id = d.distribuidor_id
+			WHERE cluster_id = #value#
+			AND bi_cp.estreno = 1
+			) as X
+		WHERE X.orden_pelicula = 1
+		ORDER BY X.orden
+	</select>
+	
+	<select id="getClusterMovies" parameterClass="java.lang.Integer" resultMap="mapClusterProduct">
+		SELECT X.nombre, X.nombre_original, X.descripcion, X.graphic_url, X.nombre_distribuidor, X.duracion
+		FROM
+			(SELECT gp.nombre, gp.nombre_original, bi_cp.orden, p.descripcion, p.graphic_url, d.nombre as nombre_distribuidor, p.duracion, ROW_NUMBER() OVER (PARTITION BY gp.id ORDER BY p.pelicula_id) as orden_pelicula
+			FROM BI_Cluster_Pelicula bi_cp
+			JOIN Grupo_Pelicula gp ON gp.id = bi_cp.grupo_pelicula_id
+			JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+			JOIN Distribuidor d ON p.distribuidor_id = d.distribuidor_id
+			WHERE cluster_id = #value#
+			AND bi_cp.estreno = 0
+			) as X
+		WHERE X.orden_pelicula = 1
+		ORDER BY X.orden
+	</select>
+	
+	<delete id="cleanClustersCliente">
+		DELETE FROM BI_Cluster_Cliente
+	</delete>
+	<delete id="cleanClustersPelicula">
+		DELETE FROM BI_Cluster_Pelicula
+	</delete>
+	<delete id="cleanClusters">
+		DELETE FROM BI_Cluster
+	</delete>
+	<delete id="cleanClustersZonaGeografica">
+		DELETE FROM BI_Cluster_ZonaGeografica
+	</delete>
+	<delete id="cleanClientesPorZonaGeografica">
+		DELETE FROM ClienteZonaGeografica
+	</delete>
+	<delete id="cleanGrupoPeliculasPorZonaGeografica">
+		DELETE FROM GrupoPeliculaZonaGeografica
+	</delete>
+	
+	<update id="addSegmentIdToCluster" parameterClass="java.util.Map">
+		UPDATE BI_Cluster SET segment_id = #segment_id# WHERE cluster_id = #cluster_id# 
+	</update>	
+	
+</sqlMap>

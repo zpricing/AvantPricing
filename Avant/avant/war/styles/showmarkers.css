@@ -1,0 +1,29 @@
+.ModMarkers {
+	display: block;
+	width: 250px;
+	height: auto;
+	border-style: groove;
+	border-width: 2px;
+	border-color: red;
+}
+
+.ModMarkers .marker {
+	border-bottom-style: solid;
+	border-bottom: 1px;
+	border-bottom-color: gray;
+	font-size: 11px;
+	border-bottom: 1px solid gray;
+	margin-bottom: 8px;
+}
+
+.marker .titulo {
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.marker .descripcion {
+	display: none;
+	font-size: 11px;
+	font-weight: normal;
+}

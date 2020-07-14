@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+     xmlns:batch="http://www.springframework.org/schema/batch"     
+     xmlns:beans="http://www.springframework.org/schema/beans"
+     xmlns:aop="http://www.springframework.org/schema/aop"
+     xmlns:tx="http://www.springframework.org/schema/tx"
+     xmlns:p="http://www.springframework.org/schema/p"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+     xsi:schemaLocation="http://www.springframework.org/schema/beans 
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/batch 
+     http://www.springframework.org/schema/batch/spring-batch-2.0.xsd
+     http://www.springframework.org/schema/aop 
+     http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+     http://www.springframework.org/schema/tx 
+     http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+     http://www.springframework.org/schema/data/mongo 
+     http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+	
+	<bean id="revenueManagementAvailabilityReader" class="org.springframework.batch.item.database.IbatisPagingItemReader">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="queryId" value="obtenerFuncionesAreaFuturasLocal"/>
+	    <property name="pageSize" value="2500"/>
+	</bean>
+ 
+	<bean id="revenueManagementAvailabilityProcessor" class="cl.zpricing.avant.etl.springbatch.RevenueManagementAvailabilityProcessor"/>
+     
+	<bean id="revenueManagementAvailabilityWriter" class="cl.zpricing.avant.etl.springbatch.RevenueManagementAvailabilityWriter">
+		<property name="mongoOperation" ref="mongoTemplate"/>
+	</bean>
+ 
+ 	<batch:job id="revenueManagementAvailabilityJob" job-repository="jobRepository"> 
+		<batch:step id="step1"> 
+			<batch:tasklet>
+				<batch:chunk reader="revenueManagementAvailabilityReader" writer="revenueManagementAvailabilityWriter" commit-interval="2500" /> 
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+</beans> 

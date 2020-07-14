@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	
+	<import resource="mongo-config.xml"/> 
+	<import resource="job-repository.xml"/> 
+	
+	<!-- Test Abstract Routing Data Source -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url.zpcinemas}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+	
+	<bean id="dataSourceCineticket" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.cineticket.driverClassName}" />
+		<property name="url" value="${jdbc.cineticket.url}" />
+		<property name="username" value="${jdbc.cineticket.username}" />
+		<property name="password" value="${jdbc.cineticket.password}" />
+	</bean>
+	
+	<bean id="dataSourceLoyalty" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.loyalty.driverClassName}" />
+		<property name="url" value="${jdbc.loyalty.url}" />
+		<property name="username" value="${jdbc.loyalty.username}" />
+		<property name="password" value="${jdbc.loyalty.password}" />
+	</bean>
+	
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="sql-map-test-config.xml" />
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="sqlMapClientCineticket" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="sql-map-test-config.xml" />
+		<property name="dataSource" ref="dataSourceCineticket" />
+	</bean>
+	
+	<bean id="sqlMapClientLoyalty" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation" value="sql-map-test-config.xml" />
+		<property name="dataSource" ref="dataSourceLoyalty" />
+	</bean>
+
+	<bean id="propertyConfigurer" class="cl.zpricing.avant.util.PropertiesUtil">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:system.properties</value>
+				<value>classpath:mongo.properties</value>
+			</list>
+		</property>
+	</bean>
+		
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="dataLoad" class="cl.zpricing.avant.test.utils.DataLoad">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="grupoDao" class="cl.zpricing.avant.servicios.ibatis.GrupoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="areaDao" class="cl.zpricing.avant.servicios.ibatis.AreaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="priceCardDao" class="cl.zpricing.avant.servicios.hoyts.ibatis.PriceCardDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="timeSpanDao" class="cl.zpricing.avant.servicios.ibatis.TimeSpanDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+		<property name="markerManager" ref="markerManager"/>
+	</bean>
+	<bean id="funcionDao" class="cl.zpricing.avant.servicios.ibatis.FuncionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="plantillaDao" class="cl.zpricing.avant.servicios.ibatis.PlantillaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="complejoDao" class="cl.zpricing.avant.servicios.ibatis.ComplejoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="peliculaDao" class="cl.zpricing.avant.servicios.ibatis.PeliculaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="grupoPeliculaDao" class="cl.zpricing.avant.servicios.ibatis.GrupoPeliculaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="mascaraDao" class="cl.zpricing.avant.servicios.ibatis.MascaraDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="prediccionDao" class="cl.zpricing.avant.servicios.ibatis.PrediccionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="serviciosRM" class="cl.zpricing.avant.servicios.ibatis.ServiciosRevenueManagerImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="salaDao" class="cl.zpricing.avant.servicios.ibatis.SalaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="markerManager" class="cl.zpricing.avant.negocio.MarkerManagerImpl">
+		<property name="markerDao" ref="markerDao"></property>
+		<property name="serviciosRM" ref="serviciosRM" />
+	</bean>
+	<bean id="markerDao" class="cl.zpricing.avant.servicios.ibatis.MarkerDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="restrictionDao" class="cl.zpricing.avant.servicios.ibatis.RestrictionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="businessIntelligenceProcessDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="businessIntelligenceProcessLoyaltyDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessLoyaltyDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="businessIntelligenceProcessCineticketDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessCineticketDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	
+	<bean id="logProcesosManager" class="cl.zpricing.avant.negocio.sincronizador.LogProcesosManager">	
+		<property name="logProcesosDao" ref="logProcesosDao"/>
+	</bean>
+	
+	<bean id="logProcesosDao" class="cl.zpricing.avant.servicios.ibatis.LogProcesosDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="zhetaPricingServices" class="cl.zpricing.avant.webservices.ZhetaPricingServicesImpl">
+		<property name="funcionDao" ref="funcionDao" />
+		<property name="complejoDao" ref="complejoDao" />
+		<property name="peliculaDao" ref="peliculaDao" />
+	</bean>
+    
+    <bean id="cinemaScreenEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/salas.xml"/>
+    </bean>
+    <bean id="cinemaDistributorEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/distribuidor.xml"/>
+    </bean>
+    <bean id="cinemaCategoryEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/categorias.xml"/>
+    </bean>
+    <bean id="cinemaMovieEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/peliculas.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/price_cards.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardPricesEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/precios.xml"/>
+    </bean>
+    <bean id="cinemaSessionEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/funciones.xml"/>
+    </bean>
+    <bean id="cinemaTicketEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/tickets.xml"/>
+    </bean>
+    <bean id="cinemaAttendanceEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="${etl.path}/asistencia.xml"/>
+    </bean>
+    
+    
+    <bean id="etlCompleteExtractionImpl" class="cl.zpricing.avant.etl.variantes.EtlCompleteExtractionImpl"  scope="prototype">
+    	<property name="cinemaScreenEtl" ref="cinemaScreenEtl"/>
+    	<property name="cinemaDistributorEtl" ref="cinemaDistributorEtl"/>
+    	<property name="cinemaCategoryEtl" ref="cinemaCategoryEtl"/>
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaPriceCardEtl" ref="cinemaPriceCardEtl"/>
+    	<property name="cinemaPriceCardPricesEtl" ref="cinemaPriceCardPricesEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="cinemaTicketEtl" ref="cinemaTicketEtl"/>
+    	<property name="cinemaAttendanceEtl" ref="cinemaAttendanceEtl"/>
+    	<property name="groupMoviesEtl" ref="groupMoviesEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    </bean>
+    
+    <bean id="etlSessionExtraction" class="cl.zpricing.avant.etl.scriptella.EtlSessionExtractionImpl"  scope="prototype">
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    </bean>
+    
+    <bean id="groupMoviesEtl" class="cl.zpricing.avant.etl.scriptella.GroupMoviesEtlImpl">
+    	<property name="resourceEtlExecutor" value="grupo_pelicula.xml"/>
+    </bean>
+    
+    <bean id="cineticketEtlExecutor" class="cl.zpricing.avant.etl.scriptella.EtlExecutorProcess" scope="prototype">
+        <property name="etlExecutor" ref="cineticketEtl"/>
+        <property name="activated" value="${etl.cineticket.activated}"/>
+        <property name="codigo" value="cineticketEtlExecutor"/>
+    </bean>
+    <bean id="cineticketEtl" class="scriptella.driver.spring.EtlExecutorBean">
+        <property name="configLocation" value="/WEB-INF/etls/cineticket/CustomerAttendanceData.xml"/>
+    </bean>
+    
+    <bean id="processAlertFactory" class="cl.zpricing.avant.alerts.ProcessAlertFactory"/>
+    
+    <bean id="cineticketExtractionManager" class="cl.zpricing.avant.negocio.CineticketExtractionManager" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="cineticketDataExtractionJobExecutor" ref="cineticketDataExtractionJobExecutor"/>
+		<property name="cineticketCustomerDataExtractionJobExecutor" ref="cineticketCustomerDataExtractionJobExecutor"/>
+	</bean>
+	
+    <bean id="loyaltyExtractionManager" class="cl.zpricing.avant.negocio.LoyaltyExtractionManager" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loyaltyCustomerDataExtractionJobExecutor" ref="loyaltyCustomerDataExtractionJobExecutor"/>
+		<property name="loyaltyTransactionExtractionJobExecutor" ref="loyaltyTransactionExtractionJobExecutor"/>
+	</bean>
+	
+	<bean id="upsellingManager" class="cl.zpricing.avant.negocio.forecastmanager.UpsellingManager" scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="updateClientCategoryPreferences" class="cl.zpricing.avant.negocio.bi.UpdateClientCategoryPreferences" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="updateClientCinemaPreferences" class="cl.zpricing.avant.negocio.bi.UpdateClientCinemaPreferences" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="loadBusinessIntelligenceData" class="cl.zpricing.avant.negocio.bi.LoadBusinessIntelligenceData" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loadClustersjobExecutor" ref="loadClustersJobExecutor"/>
+		<property name="loadClientsjobExecutor" ref="loadClientsJobExecutor"/>
+	</bean>
+	<bean id="loadClusters" class="cl.zpricing.avant.negocio.bi.LoadClusters" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loadClustersjobExecutor" ref="loadClustersJobExecutor"/>
+	</bean>
+
+	<bean id="loadClustersJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="businessIntelligenceClusterLoadJob"/>
+	</bean>
+	<bean id="loadClientsJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="businessIntelligenceClientLoadJob"/>
+	</bean>
+	
+	<bean id="cineticketDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="cineticketDataExtractionJob"/>
+	</bean>
+	<bean id="cineticketCustomerDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="cineticketCustomerDataExtractionJob"/>
+	</bean>
+	
+	<bean id="loyaltyCustomerDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="loyaltyCustomerDataExtractionJob"/>
+	</bean>
+	<bean id="loyaltyTransactionExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="loyaltyTransactionExtractionJob"/>
+	</bean>
+	
+	
+	<bean id="lastMinuteSellingManager" class="cl.zpricing.avant.negocio.forecastmanager.LastMinuteSellingManager" scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>	
+    
+    <bean id="procesoCineticketDataExtractionManager" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Cineticket Data Extraction"/>
+		<property name="codigo" value="CineticketDataExtraction"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="cineticketExtractionManager"/>
+	</bean>
+	
+    <bean id="procesoLoyaltyDataExtractionManager" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Loyalty Data Extraction"/>
+		<property name="codigo" value="LoyaltyDataExtraction"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="loyaltyExtractionManager"/>
+	</bean>
+	
+	<bean id="processUpdateClientCategoryPreferences" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Category Preferences"/>
+		<property name="codigo" value="ProcessCategoryPreferences"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="updateClientCategoryPreferences"/>
+	</bean>
+	
+	<bean id="processUpdateClientCinemaPreferences" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Cinema Preferences"/>
+		<property name="codigo" value="ProcessCinemaPreferences"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="updateClientCinemaPreferences"/>
+	</bean>
+	
+	<bean id="processLoadClustersData" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Load Clusters"/>
+		<property name="codigo" value="ProcessLoadClusters"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="loadClusters"/>
+	</bean>
+	
+	<bean id="processLoadBusinessIntelligenceData" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process BI data Load "/>
+		<property name="codigo" value="ProcessBusinessIntelligenceDataLoad"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="loadBusinessIntelligenceData"/>
+	</bean>
+	
+	<bean id="procesoUpselling" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Upselling"/>
+		<property name="codigo" value="Upselling"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="upsellingManager"/>
+	</bean>
+	
+	<bean id="procesoLastMinuteSelling" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="LastMinuteSelling"/>
+		<property name="codigo" value="LastMinuteSelling"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="lastMinuteSellingManager"/>
+	</bean>
+</beans>

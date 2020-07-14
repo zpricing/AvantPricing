@@ -1,0 +1,501 @@
+version=5.16.6
+* Correccion en extraccion de transacciones de Cineticket para que no duplique transacciones si ya existen.
+version=5.16.5
+* Correccion en fecha desde para obtener transacciones de loyalty.
+version=5.16.4
+* Se desactivo el proceso de sugerencias de second selling personalizadas hasta que se corrija error.
+version=5.16.3
+* Correccion de sentencias de modificacion de base de datos de liquibase.
+version=5.16.2
+* Correccion de logica de extraccion de clientes y transacciones de Loyalty.
+version=5.16.1
+* Correccion de configuracion de beans de business intelligence en beans-dao.xml
+version=5.16.0
+* Logica de extraccion de datos de clientes y transacciones de Vista Loyalty.
+version=5.15.2
+* Correccion de proceso de actualizacion de peliculas de cluster.
+version=5.15.1
+* Correccion de Last Minute Selling.
+version=5.15.0
+* Refactoring de modelo de Clusters, dejando un proceso para actualizar el contenido de los clusters (peliculas) y otro para re-armar todos los clusters.
+* Cambio en la hora de ejecucion de procesos de BI para los jueves a las 3am.
+version=5.14.3
+* Optimizacion de logica de envio de datos de clientes a Campaign Management, utilizando una collection temporal para insertar todos los clientes y usando una funcion de sistema para procesar los cambios.
+version=5.14.2
+* Optimizacion de logica de envio de datos de clientes a Campaign Management.
+version=5.14.1
+* Correccion a changelog grupoPeliculaPorZonaGeografica.
+version=5.14.0
+* Implementacion de clusters por Zona Geografica para enviar a campaign management.
+* Refactoring de Job de envio de Clusters utilizando tasklets en vez de 3 jobs distintos.
+version=5.13.4
+* Se completa test de proceso de envio de clientes con tags a Campaign Management y se agrega en validacion de build.
+version=5.13.3
+* Correccion en estructura de proceso de LoadClients para no eliminar datos creados por los usuarios en campaign management.
+version=5.13.2
+* Correccion de configuracion de mapas de procesos de Business Intelligence
+version=5.13.1
+* Configuracion y activacion del proceso de carga de clientes a campaign management de Izy. 
+version=5.13.0
+* Envio de datos de clientes y tags a campaign management.
+version=5.12.2
+* Correccion en query de obtencion de availability para carga de cupos a AvantServices. Se agrega un DISTINCT para evitar duplicidad de cupos. 
+version=5.12.1
+* Correccion en query para obtener funciones para cargar cupos a AvantServices en caso cuando Price Card del cine tiene mas de un ticket reconocido como adulto.
+* Correccion a query de calculo de funciones de Upselling para que retorne mas de una opcion de upselling por funcion en caso de existir.
+version=5.12
+* Mejora algoritmo funciones UpSelling, utilizando tabla Upselling_Formatos para secuencia de upselling y prioridad de seleccion segun orden de upselling, cercania de horario y similitud de idioma.
+* Rango de precios para upselling parametrizado por formato de pelicula en AvantServices.
+version=5.11.1
+* Correccion de propiedad autowired de AvailabilityManager.
+version=5.11
+* Carga de clusters a Izy como segmentos.
+version=5.10.2
+* Correccion de query agregarPeliculasVistasClientes.
+version=5.10.1
+* Correccion de error en ejecucion de proceso de preferencias de categorias de clientes.
+* Se agrega log para procesos.
+* Correccion de duplicidad de registros de peliculas vistas y eliminacion de registros en que nombre de pelicula no se encuentra en la base de datos (recreacion de tabla).
+version=5.10
+* Proceso de actualización de clusters geograficos y por categorias de clientes.
+version=5.9
+* Correccion query actualizarPreferenciasCineClientes.
+* Proceso de actualizacion de preferencias de categorias de clientes.
+* Se agrega parametro de successResult a modelo Proceso para identificar si este finalizo de manera exitosa.
+version=5.8.1
+* Correccion de changelog de version 5.8
+version=5.8
+* Extraccion de tabla de clientes de Cineticket.
+* Implementacion de notificaciones con plugin de jquery noty en pantalla de procesos.
+version=5.7.7
+* Correccion en error de query de extraccion de data de funciones del cine.
+version=5.7.6
+* Correccion de query de obtencion de Grupos de Pelicula de estreno por zona geografica.
+version=5.7.5
+* Modificacion en logs de AvailabilityManager y RevenueManagementAvailabilityWriter.
+* Se cambio el batch size de Spring Batch para carga de cupos en ORS de 2.500 a 10.000.
+version=5.7.4
+* Correccion a extraccion de data de funciones del cine para extraer todas las funciones y no solo las con estado "Open"
+version=5.7.3
+* Se crean indices temp_cineticket_customer(comuna) ClientePeliculasVistas(cliente_id).
+version=5.7.2
+* Extraccion de todas las funciones del cine, no solo las con estado "Open". Para extraer tambien funciones que agregan para regstrar asistencia ante caidas de su sistema.
+* Captura y manejo de errores en extraccion de datos de Cineticket con Spring Batch.
+version=5.7.1
+* Creacion de tabla temp_cineticket_customer para recibir la extraccion de datos de Cineticket.
+version=5.7
+* Implementacion de extraccion de data de Cineticket con Spring Batch.
+* Logica de obtencion de peliculas de estreno por Zona_Geografica.
+* Se agrega test PeliculasEnEstrenoPorZonaGeograficaTest a build.
+version=5.6.1
+* Correccion de ruta de CustomerAttendanceData.xml en configuracion de test
+version=5.6
+* Creacion de tabla Zona_Geografica y asociacion de complejo a una zona geografica.
+* Mejora en extraccion de datos de Cineticket, se almacenan todas las transacciones y se extraen clientes.
+version=5.5.1
+* Eliminación de ratios de ajuste de forecast.
+version=5.5.0
+* Implementacion de tabs en pantalla de procesos.
+* Alertas de extraccion de data se muestran sin trace de error.
+* Update de cupos en AvantOrs no se cae si numero de transaccion no existe en estadistica.
+* Si los parametros de minimo y maximo de UpSelling no existen se lanza una excepcion.
+* Correccion de alerta de LastMinuteSelling que aunque fuera exitosa lanzaba una alerta vacia.
+version=5.4.3:
+* Correccion de cierre de conexion con base de datos de cineticket por inactividad.
+version=5.4.2:
+* Se agrego dato de ultima ejecucion exitosa para cada proceso en la pantalla de procesos.
+version=5.4.1:
+* Correccion de restriccion de peliculas de second selling solo a complejo 7 (se paso de pruebas de desarrollo).
+version=5.4.0:
+* Cambio en algoritmo de peliculas similares para Second Selling, utilizando multiples categorias.
+version=5.3.12:
+* Configuracion de ambiente de demo para Avant Services.
+version=5.3.11:
+* Correccion de configuracion de job automatico de Personalizacion de SecondSelling.
+version=5.3.10:
+* Correccion de configuracion de jobs automaticos de Personalizacion de SecondSelling y Last Minute Selling.
+* Cambio de hora de ejecucion de extracion diaria a las 00:01 y Last Minute Selling para las 00:00 de los martes.
+* Cambio de hora de ejecucion de personalizacion de sugerencias de Second Selling para las 22:00 de los miercoles. 
+version=5.3.9:
+* Ajuste a algoritmo de Last Minute Selling, que considere funciones bloqueadas.
+version=5.3.8:
+* Ajustes a Last Minute Selling segun reglas de negocio de Movistar.
+version=5.3.7:
+* Correccion de query para omitir Grupos de Peliculas asociados a peliculas categorizadas como evento.
+version=5.3.6:
+* Correccion de grupos de peliculas repetidos.
+version=5.3.5:
+* Alertas de obtencion de data externa (imdb) se juntan en 1 por ejecucion. Se baja nivel de log de obtencion de data externa.
+version=5.3.4:
+* Uso primario de id externo para Grupo de Pelicula en vez de nombre original (que queda como segunda opcion).
+* Correcciones varias en interfaz de Grupo_Pelicula (se omiten peliculas que esten marcadas como eventos, orden de de despliegue de nuevos id a viejos).
+version=5.3.3:
+* Traspaso de fechas a TimeZone UTC antes de enviar / consultar a Mongo.
+version=5.3.2:
+* Correccion de llave foranea FK_GrupoPeliculaCategoria_Categoria.
+version=5.3.1:
+* Correccion de changelog.
+version=5.3.0:
+* Extraccion de data de peliculas de OMDB en base al nombre original del grupo de peliculas.
+version=5.2.8:
+* Cambio de 2 a 3 bloques horarios para preferencias horarias de clientes.
+version=5.2.7:
+* Se elimina ejecucion de proceso de Last Minute Selling de la actualizacion diaria.
+version=5.2.6:
+* Modificaciones solicitadas por Movistar para Last Minute Selling.
+version=5.2.5:
+* Correccion a changelog.xml: id de changeset repetido.
+version=5.2.4:
+* Correccion a tabla ClientePreferenciasCine. Cambio de cliente_id a Varchar(255) y sin autoincrement.
+version=5.2.3:
+* Correccion de setencias para la modificacion de las tablas de SecondSelling.
+version=5.2.2:
+* Correccion de tablas de Second Selling, eliminacion de autoincrement en columnas.
+version=5.2.1:
+* Correccion de changelog y ajuste de task deploy-hoyts en build.xml.
+version=5.2.0:
+* Sugerencias de Second Selling personalizadas.
+version=5.1.15:
+* Correccion de actualizacion automatica de pagina de procesos.
+version=5.1.14:
+* Activacion de actualizacion automatica de pagina de procesos.
+version=5.1.13:
+* Correccion de despliegue de errores de procesos.
+version=5.1.12:
+* Rollback de version de Scriptella de 1.1 a 1.0.
+* Se dejo de utilizar UTC Date en servicio de Last Minute Selling y simplemente se formatea la fecha que viene por parametro para consultar en Mongo.
+version=5.1.11:
+* Correccion a test por Refactoring de ETL de extraccion completa.
+version=5.1.10:
+* Correccion de extraccion de data manual de complejos y despliegue de procesos en dashboard
+version=5.1.9:
+* Correccion a WebService de availability por fecha y pelicula. Se dejo de utilizar UTC Date y simplemente se formatea la fecha que viene por parametro para consultar en Mongo.
+version=5.1.8
+* Correccion de extraccion de data de Cineticket.
+version=5.1.7
+* Se incorporan funciones js de mongo.
+version=5.1.6
+* Se corrigen errores de procesos programados.
+version=5.1.5
+* Correccion de configuracion de Test.
+version=5.1.4
+* Extraccion de data de peliculas vistas y cines en los que clientes han comprado de Cineticket.
+version=5.1.3
+* Se modifica Carga de Cupos para mantener data de sessions en mongo actualizada (hora, fecha, nombre, etc).
+version=5.1.2
+* Arreglo en la configuracion de Cineticket para Hoyts.
+* Cambio en los messages para la lista de procesos.
+version=5.1.1
+* Cambio en la configuracion de la url de MongoDB.
+version=5.1.0
+* Refactoring de estructura de procesos.
+* Extraccion de data de asistencia de clientes de Cineticket.
+version=5.0.6
+* Se compatibiliza avantORS para hoyts y cinepolis.
+version=5.0.5
+* Se agrega calculo de semana y exhibicion para cada funcion.
+version=5.0.4
+* Se corrige error de configuracion de mongoDB en Avant y error de procesos programados en AvantORS.
+version=5.0.3
+* Se corrige error de configuracion de Liquibase.
+version=5.0.2
+* Se actualiza build.xml se agregan tasks de liquibase y se eliminan tasks deprecados.
+version=5.0.1
+* Se actualiza build.properties.sample y build.xml para crear directorios si no existen antes del clean.
+version=5.0.0
+* Merge con Avant ORS en un mismo proyecto.
+* Refactoring de nombres de packages.
+* Refactoring de build.xml. 
+version=4.8.27
+* Tests de carga de datos a mongo.
+version=4.8.26
+* Se modifica carga de cupos para conservar cupos ocupados.
+version=4.8.25
+* Se modifica Last Minute Selling para marcar funciones solo del mismo dia.
+version=4.8.24
+* Se agrega proceso de actualizaci�n de Estadisticas de la DB a los procesos diarios.
+version=4.8.23
+* Cambio de manejo de precios para enviar a ORS de int y double a String.
+version=4.8.22
+* Se agrega log de nuevas funciones a insertar en info y si falla update.
+version=4.8.21
+* Se habilita Full Data Extraction en Vista de Complejos.
+version=4.8.20
+* Se implementa matriz de similitud de categorias.
+version=4.8.19
+* Se corrige error en actualizacion de cupos de funciones eliminadas.
+version=4.8.18
+* Se corrige error en mapa FuncionArea.
+version=4.8.17
+* Las funciones eliminadas en vista son marcadas como eliminadas en la tabla de funciones e ignoradas por los procesos.
+version=4.8.16
+* Se corrige error en Last Minute que causaba que en ciertos casos no hubiera asignaciones de Last Minute.
+version=4.8.15
+* Se agrega columna para excluir formatos (ej: Premium) en Last Minute.
+version=4.8.14
+* Se corrige error de division por 0 en Last Minute.
+version=4.8.13
+ * Los procesos de extracci�n full ahora rescatan datos de 2 a�os en lugar de 2009-01-01.
+version=4.8.12
+ * Se crea un log separado para cada proceso.
+ * Se eliminan configuraciones y ant tasks de cinemundo.
+version=4.8.11
+ * Se modifican procesos y vistas para ignorar funciones de Eventos para RM.
+ * Se elimina forecast para el mismo d�a.
+version=4.8.10
+ * Se agregan ant tasks para re-deploy remoto.
+version=4.8.9
+ * Se habilitan procesos de UpSelling, SecondSelling y Last Minute Selling para ser ejecutados durante la extraccion de sesiones nuevas.
+version=4.8.8
+ * Se modifica algoritmo de Last Minute Selling.
+version=4.8.7
+ * Se corrige error de busqueda y botones en clasificacion de Peliculas.
+version=4.8.6
+ * Se corrige error en algoritmo de Second Selling para evitar que entregue diferentes peliculas para una misma pelicula.
+version=4.8.5
+ * Se modifica algoritmo de upselling para sugerir solo peliculas del mismo idioma.
+version=4.8.4
+ * Se modifica proceso de carga de datos para producir solo 1 alerta en caso de errores.
+ * Se agrega un boton Dimiss All a la vista de Alertas.
+version=4.8.3
+ * Se modifica carga de cupos, ahora se cargan todas las funciones.
+ * Se modifica carga de cupos, ahora se cargan dias de expiraci�n.
+version=4.8.2
+ * Se modifica l�gica de Second Selling para usar tablas especiales de Similitud.
+version=4.8.1
+ * Se agrega campo de busqueda de peliculas y filtros combinados.
+version=4.8
+ * Implementacion de Alertas de Procesos.
+version=4.7.3
+ * Se elimina dependecia de commons.
+version=4.7.2
+ * Envio de datos de censura y url de caratula a AvantOrs
+version=4.7.1
+ * Cambio de Nombre de Vista de Attendance para reportes.
+version=4.7.0
+ * Modulo de Reportes
+version=4.6.19
+ * Nuevo Logo Avant Pricing
+version=4.6.18
+ * Se corrige error en AvailabilityManager para considerar correctamente las restricciones
+ version=4.6.17
+ * Se corrige error en actualizarAsistencias
+ version=4.6.16
+ * Se corrige error en Changelog
+ version=4.6.15
+ * Se corrige error en SecondSelling, ahora una funci�n no es sugerida con varias areas.
+version=4.6.14
+ * Se corrige error en Changelog
+version=4.6.13
+ * Se corrige error en Changelog
+version=4.6.12
+ * Se corrige error en Changelog
+version=4.6.11
+ * Se corrige error en query de carga de cupos, se agregan indices para esa consulta.
+version=4.6.10
+ * Se agrega mongo.properties a la configuracion de ambiente
+version=4.6.9
+ * Ahora se guarda la fecha de funcion como UTC en mongo.
+version=4.6.8
+ * Se corrige error en RevenueManagementAvailabilityWriter ahora se guarda bien la disponibilidad cuando es 0
+version=4.6.7
+ * Se corrige error en Changelog
+version=4.6.6
+ * Se corrige error en Changelog
+version=4.6.5
+ * Se corrige error tabla Restriccion_Regla
+version=4.6.4
+ * Se corrige error en Changelog
+version=4.6.3
+ * Se corrige error que no dejaba a todas las funciones con cupos_cargados = 1 despues de correr AvailabilityManager
+version=4.6.2
+ * Se corrige error que no dejaba funciones con cupos_cargados =  1 despues de correr AvailabilityManager
+version=4.6.1
+ * Se agrega proceso expireAvailability al final de AvailabilityManager
+version=4.6.0
+ * Migracion a MongoDB
+version=4.5.0
+ * Reportes
+version=4.4.0
+ * Last Minute Selling
+version=4.3.6
+ * Se corrige error en changelog
+version=4.3.5
+ * Se corrige path de catalina en build.xml
+version=4.3.4
+ * Los rangos de tiempo de Upselling se configuran en tabla parametros
+version=4.3.3
+ * Las peliculas en cartelera ahora aparecen en orden alfabetico
+version=4.3.2
+ * Se corrigen registros de Upselling en AreasGrupoMascara
+version=4.3.1
+ * Se corrigue la re-escritura de categorias manuales por las automaticas de la etl.
+version=4.3.0
+ * Second Selling y actualizacion a Spring 3.1.3
+version=4.2.4
+ * Se pone la condicion de Price not null en etl de Precios.
+version=4.2.3
+ * Se corrige bug en FK de Upselling.
+version=4.2.2
+ * Se completa internacionalizacion.
+version=4.2.1
+ * Se agrega Footer con version.
+version=4.2.0
+ * Se agregan ambientes de Demo y Testing.
+version=4.1.4
+ * Corrigiendo integracion Liquibase
+version=4.1.3
+ * Ordenando versiones
+version=4.1.2
+ * Corregido otro error de deploy.
+version=4.1.1
+ * Corregido Error de deploy.
+version=4.1.0
+ * Integracion Liquibase.
+version=4.0.52
+ * Se mueven archivos de configuracióna dirs independientes.
+version=4.0.51
+ * Agregado system.properties al build unico.
+version=4.0.50
+ * Correcciones de servlets de Cinemundo y Cinepolis
+version=4.0.49
+ * Test rama integration
+version=4.0.48
+ * Se corrige build.properties.sample con valores de servidor CI.
+version=4.0.47
+ * Se corrigen errores en configuracion.
+version=4.0.46
+ * Correccion de configuracion de servlet
+version=4.0.45
+ * Refactoring upselling.
+version=4.0.44
+ * Integracion Continua.
+version=4.0.43
+ * Correccion de configuracion.
+version=4.0.42 
+ * Ajustes para dejar los procesos independientes.
+ * Refactoring de procesos. Se traslado la logica de sincronizacion a FactoryProcesos en vez de controller.
+version=4.0.41
+ * Se eliminan errores no necesarios de log MascarasManager y AsistenciasManager.
+version=4.0.40
+ * Modificacion nombre query obtenerMascarasAreaGruposRevenueManagement.
+version=4.0.39
+ * Los procesos de Upselling ahora se ejecutan solo 1 vez al dia.
+version=4.0.38
+ * Fix Areas Upselling.
+version=4.0.37
+ * Cupos Upselling.
+version=4.0.36
+ * Se corrige error forecast funciones nuevas.
+version=4.0.35
+ * Se corrige error en query obtenerListaPeliculasEnCartelera.
+version=4.0.34
+ * Se corrigen errores en querys de grupos de peliculas.
+version=4.0.33
+ * Se agrega lista de errores a Vista de Procesos.
+version=4.0.32
+ * Upselling.
+version=4.0.31
+ * Se elimina definicion de bean EtlManager.
+version=4.0.30
+ * Agregada Cola de Procesos.
+version=4.0.29
+ * Correccion de JOIN con Complejo en SQL de obtencion de funciones para forecast.
+version=4.0.28
+ * Correccion de SQL de obtencion de funciones para forecast.
+version=4.0.27
+ * Se agrega indice a la tabla Funcion columnas complejo_id y funcion_id_externo.
+version=4.0.26
+ * Se descomento ejecucion de cron de actualizacion de cupos a las 00:00
+version=4.0.25
+ * Correccion de SQL de funcion.xml y correccion de carga de cupos en proxy.
+version=4.0.24
+ * Cambio en sistema de asociacion de Areas y TicketTypes, via PriceCard_Area en vez de tabla Formato.
+version=4.0.23
+ * Se hace rollback de modificaciones de Forecast (Versiones: 4.0.020 - 4.0.22).
+version=4.0.22
+ * Se corrige bug de forecast cuando la asistencia proyectada es 0,  ahora el minimo es 0.1.
+version=4.0.21
+ * Se corrige bug de forecast cuando la asistencia es 0, ahora el minimo es 1.
+version=4.0.20
+ * Ahora el ratio de forecast para cada dia se calcula en base a los totales diarios de asistencias.
+version=4.0.19
+ * Agregada visibilidad a administrador de procesos
+version=4.0.18
+ * Correccion en la configuracion de ZhetaPricing-servlet.xml
+version=4.0.17
+ * Limpieza de archivos de configuracion para evitar memory leak al bajar servidor Tomcat.
+version=4.0.16
+ * Correccion de paginacion de vista de peliculas en cartelera.
+version=4.0.15
+ * Se agrega Categoria evento que esconde las peliculas de las "sin clasificar".
+ * Se agrega pantalla Peliculas en cartelera.
+version=4.0.14
+ * Correccion de bug de nullpointerexception al crear una restriccion.
+version=4.0.13
+ * Correcion de bug que cambiaba markers en 3 horas, adem�s ahora se utiliza fecha y hora de una funci�n para determinar si una funcion
+   tiene marker al momento de hacer forecast. 
+version=4.0.12
+ * Correccion de envio de datos a ORS. Se agrega actualizacion de total_capacity y expiration_days_anticipation.
+version=4.0.11
+ * Envio de nivel de RM (comenzando con 1 de Super Economico) a ORM. 
+version=4.0.10
+ * Se cambia ejecucion de procesos de GET a invocacion asincrona para evitar que refresh de pagina gatille nuevamente el proceso.
+version=4.0.9
+ * Para LoadManager se selecciona la lista de complejos activos en lugar de la lista en la tabla de parametros
+ * Para Forecast, Analisis de Asistencias y LoadManager no se consideran las funciones especiales (PC�s sin RM)
+ * Se desactiva Cron de LoadManager
+version=4.0.8
+ * Correccion de nullpointerException al enviar precios al ORS. Se valida que exista precio.
+version=4.0.7
+ * Se Agrega Boton Guardar a Vista de Peliculas Sin Clasificar.
+version=4.0.6
+ * Envio de hora de funcion a ORS al actualizar los cupos de una funcion.
+version=4.0.5
+ * Envio de datos de precios y hora de funcion a ORS al actualizar los cupos de una funcion.
+version=4.0.4
+ * Se corrige error de MAXRECURSION en query para semana Exhibicion.
+version=4.0.3
+ * Configuracion y activacion de CRON para carga de peliculas en ORS.
+version=4.0.2
+ * Se agrego envio de datos de precios y hora de funcion a ORS al cargar cupos.
+ * Se agrego ETL para cargar informacion de peliculas a ORS.
+version=4.0.1
+ * Se corrigen links rotos.
+version=4
+ * Rediseno ZPCinemas.
+version=3.2.1
+ * Correccion en el uso de Lock para ETL.
+version=3.2.1
+ * Se agrega la extraccion via ETL de la tabla Workstation de Vista.
+version=3.2
+ * Integracion de ETL de Cinestar y generalizacion via configuracion para la seleccion de ETL a utilizar.
+version=3.1.16
+ * Correccion en Forecast Map obtenerForecast para tomar en cuenta las asistencias de Forecast en lugar de las reales no ponderadas con markers.
+version=3.1.15
+ * Correccion en Forecast Map agregarAsistenciaFuncion para corregir el select de Markers cuando no existen markers.
+version=3.1.14
+ * Correccion en MascarasManager se agrega runComplejo para correr forecast para solo un complejo a la vez.
+version=3.1.13
+ * Correccion en Map mapFuncionForecast para incluir campos de Funcion necesarios para cargar Cupos.
+version=3.1.12
+ * Correccion en controller PeliculasSinClasificar para mantener parametros al guardar (page, todas).
+version=3.1.11
+ * Correccion en select obtenerListaPeliculasSinClasificar para considerar fecha_estreno con valor null.
+version=3.1.10
+ * Correccion de error de configuracion de ETL (faltaba referencia a mascarasManager).
+version=3.1.9
+ * Se corrige la concurrencia en ejecucion de ETLs
+version=3.1.8.2
+ * Se corrige error de FuncionDao en obtenerFuncionesSinAnalizar ahora se llama a getUltimaCargaCompleta
+version=3.1.8.1
+ * Se corrige error de Bean EtlManager (Mascaras)
+version=3.1.8
+ * Se agrega ETL y Forecast de Funciones Nuevas
+version=3.1.7.1
+ * Se corrige error de parseo en map Forecast.xml
+version=3.1.7
+ * Se agrega funcionalidad de Markers para ponderar de manera diferentes d�as con eventos especiales (feriados).
+version=3.1.6
+ * Se agrega un factor de desviaci�n diaria para ecualizar pronosticos para dias muy desviados.
+version=3.1.5

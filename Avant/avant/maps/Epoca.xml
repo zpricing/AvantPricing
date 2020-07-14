@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Epoca">
+
+	<select id="obtenerEpoca" parameterClass="java.lang.Integer"
+		resultClass="cl.zpricing.avant.model.Epoca">
+		SELECT epoca_id as id, descripcion
+		FROM Epoca
+		WHERE epoca_id = #value#
+	</select>
+
+	<select id="obtenerEpocas" resultClass="cl.zpricing.avant.model.Epoca">
+		SELECT epoca_id
+		as id
+		,descripcion
+		FROM Epoca	
+	</select>
+
+	<update id="actualizarEpoca" parameterClass="cl.zpricing.avant.model.Epoca">
+		UPDATE Epoca
+		SET descripcion =
+		#descripcion#
+		WHERE epoca_id= #id#
+	</update>
+
+	<insert id="agregarEpoca" parameterClass="cl.zpricing.avant.model.Epoca">
+		INSERT INTO Epoca
+		(descripcion)
+		VALUES (#descripcion#)
+  	</insert>
+  	
+  	<delete id="eliminarEpoca" parameterClass="cl.zpricing.avant.model.Epoca">
+		DELETE Epoca
+		WHERE epoca_id = #id#
+  	</delete>
+
+</sqlMap>

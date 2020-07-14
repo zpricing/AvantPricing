@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Empresa">
+	<resultMap id="resultEmpresa" class="cl.zpricing.avant.model.Empresa">
+		<result property="id" column="empresa_id" />
+		<result property="nombre" column="nombre" />
+		<result property="direccion" column="direccion" />
+		<result property="email" column="email" />
+		<result property="rptEmpresa" column="rpt_empresa_id" select="obtenerRptEmpresa"/>
+	</resultMap>
+	
+	<select id="obtenerRptEmpresaIdParaEmpresa" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+		SELECT 
+			rpt.rpt_empresa_id
+		FROM
+			Empresa e,
+			RPT_Empresa rpt
+		WHERE
+			e.rpt_empresa_id = rpt.rpt_empresa_id
+			AND e.empresa_id = #value#
+	</select>
+	
+	<select id="empresasTodas" resultMap="resultEmpresa">
+		SELECT empresa_id, nombre, direccion, email, rpt_empresa_id
+		FROM Empresa
+	</select>
+	
+	<insert id="insertEmpresa" parameterClass="cl.zpricing.avant.model.Empresa">
+		INSERT INTO
+		Empresa (nombre, direccion,email,rpt_empresa_id)
+		VALUES (#nombre#,#direccion#,#email#,#rptEmpresa.rpt_empresa_id#)
+	</insert>
+	
+	<select id="getEmpresa" resultClass="cl.zpricing.avant.model.Empresa">
+		SELECT
+		empresa_id as id,
+		nombre as nombre,
+		direccion as direccion,
+		email as email,
+		rpt_empresa_id as rpt_empresa_id
+		FROM Empresa
+		WHERE empresa_id = #value#
+	</select>
+	
+	<update id="updateEmpresa" parameterClass="cl.zpricing.avant.model.Empresa">
+		UPDATE Empresa
+		SET nombre = #nombre#, direccion=#direccion#,
+		email = #email#, rpt_empresa_id = #rptEmpresa.rpt_empresa_id#
+		WHERE empresa_id=#id#
+  	</update>
+  	
+  	<delete id="deleteEmpresa" parameterClass="int">
+		DELETE Empresa
+		WHERE empresa_id = #value#
+	</delete>
+	
+</sqlMap>

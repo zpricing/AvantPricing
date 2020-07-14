@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Reporte">
+
+	<select id="ticketPromedioPorPeriodo" parameterClass="cl.zpricing.avant.model.reports.Rango" resultClass="cl.zpricing.avant.web.chart.Valor">
+		SELECT	ISNULL(SUM(a.asistencia * c.precio) / SUM(a.asistencia), 0) as valor
+		FROM	Clase AS c INNER JOIN
+				Asistencia AS a ON c.clase_id = a.clase_id INNER JOIN
+				Funcion AS f ON a.funcion_id = f.funcion_id INNER JOIN
+				Sala AS s ON f.sala_id = s.sala_id
+		WHERE	(f.fecha &gt;= CONVERT(DATETIME, #inicio#, 102)) AND
+				(f.fecha &lt;= CONVERT(DATETIME, #fin#, 102)) AND
+				(s.complejo_id = #idComplejo#)
+	</select>
+	<select id="precioAsistenciaPorPeriodo" parameterClass="cl.zpricing.avant.model.reports.Rango" resultClass="cl.zpricing.avant.model.reports.PrecioAsistencia">
+		SELECT	c.precio as precio, SUM(a.asistencia) as asistencia
+		FROM	Clase AS c INNER JOIN
+				Asistencia AS a ON c.clase_id = a.clase_id INNER JOIN
+				Funcion AS f ON a.funcion_id = f.funcion_id INNER JOIN
+				Sala AS s ON f.sala_id = s.sala_id
+		WHERE	(f.fecha &gt;= CONVERT(DATETIME, #inicio#, 102)) AND
+				(f.fecha &lt;= CONVERT(DATETIME, #fin#, 102)) AND
+				(s.complejo_id = #idComplejo#)
+		GROUP BY c.precio
+		ORDER BY c.precio
+	</select>
+	<select id="asistenciaIngresoPorPeriodo" parameterClass="cl.zpricing.avant.model.reports.Rango" resultClass="cl.zpricing.avant.model.reports.PrecioAsistencia">
+		SELECT	ISNULL(SUM(a.asistencia * c.precio),0) as precio,
+				ISNULL(SUM(a.asistencia),0) as asistencia
+		FROM	Clase AS c INNER JOIN
+				Asistencia AS a ON c.clase_id = a.clase_id INNER JOIN
+				Funcion AS f ON a.funcion_id = f.funcion_id INNER JOIN
+				Sala AS s ON f.sala_id = s.sala_id
+		WHERE	(f.fecha &gt;= CONVERT(DATETIME, #inicio#, 102)) AND
+				(f.fecha &lt;= CONVERT(DATETIME, #fin#, 102)) AND
+				(s.complejo_id = #idComplejo#)
+	</select>
+	<select id="asistenciaIngresoPorPeriodoRM" parameterClass="cl.zpricing.avant.model.reports.Rango" resultClass="cl.zpricing.avant.model.reports.PrecioAsistencia">
+		SELECT	ISNULL(SUM(precio*asistencia),0) as precio,
+				ISNULL(SUM(asistencia),0) as asistencia
+		FROM	Agregado_Asistencia_RM
+		WHERE	precio != 0 AND
+				(fecha &gt;= CONVERT(DATETIME, #inicio#, 102)) AND
+				(fecha &lt; CONVERT(DATETIME, #fin#, 102)) AND
+				complejo_id = #idComplejo#
+	</select>
+	<select id="ingresosConfiteriaPorPeriodo" parameterClass="cl.zpricing.avant.model.reports.Rango" resultClass="java.lang.Long">
+		SELECT	ISNULL(SUM(ingreso),0)
+		FROM	Agregado_Confiteria_Diaria
+		WHERE	(fecha &gt;= CONVERT(DATETIME, #inicio#, 102)) AND
+				(fecha &lt; CONVERT(DATETIME, #fin#, 102)) AND
+				complejo_id = #idComplejo#
+	</select>
+	<select id="obtenerPrecios" resultClass="cl.zpricing.avant.web.chart.Valor">
+		SELECT		precio as valor
+		FROM		Clase
+		GROUP BY	precio
+	</select>
+	<select id="ingresosPorPeriodo" parameterClass="java.util.HashMap"  resultClass="java.lang.Double"> 
+		SELECT	SUM(Ingreso) as ingreso
+		FROM
+		(
+		SELECT	ISNULL(SUM(a.asistencia * c.precio), 0) as Ingreso
+		FROM	Clase AS c INNER JOIN
+				Asistencia AS a ON c.clase_id = a.clase_id INNER JOIN
+				Funcion AS f ON a.funcion_id = f.funcion_id INNER JOIN
+				Sala AS s ON f.sala_id = s.sala_id
+		WHERE	(f.fecha &gt;= CONVERT(DATETIME, #fecha_inicio#, 102)) AND
+				(f.fecha &lt;= CONVERT(DATETIME, #fecha_fin#, 102)) AND
+				(s.complejo_id = #complejo.id#)
+		GROUP BY fecha
+		) ingresoPorFecha
+		
+  	</select>
+	
+</sqlMap>

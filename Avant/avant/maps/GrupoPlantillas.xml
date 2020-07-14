@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="GrupoPlantillas">
+	
+	<resultMap id="GrupoPlantillasMap" class="cl.zpricing.avant.model.loadmanager.GrupoPlantillas">
+		<result property="id" column="id" />
+		<result property="descripcion" column="descripcion" />
+		<result property="complejo" column="complejo_id" 
+			select="obtenerComplejo"/>
+		<result property="fechaInicio" column="fecha_inicio" />
+		<result property="fechaFin" column="fecha_fin" />
+		<result property="timeSpan" column="timespan_id" 
+			select="obtenerTimeSpan"/>
+		<result property="plantillas" column="id" 
+			select="obtenerPlantillasGrupoPlantillas"/>
+	</resultMap>
+	
+	<select id="obtenerTodosGrupoPlantillas" resultMap="GrupoPlantillasMap">
+		SELECT id, descripcion, complejo_id, timespan_id, fecha_inicio, fecha_fin
+		FROM GrupoPlantillas
+		ORDER BY complejo_id ASC
+	</select>
+	
+	<select id="obtenerGrupoPlantillas" resultMap="GrupoPlantillasMap" parameterClass="java.lang.Integer">
+		SELECT id, descripcion, complejo_id, timespan_id, fecha_inicio, fecha_fin
+		FROM GrupoPlantillas
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerGrupoPlantillasComplejo" resultMap="GrupoPlantillasMap" parameterClass="cl.zpricing.avant.model.Complejo">
+		SELECT id, descripcion, complejo_id, timespan_id, fecha_inicio, fecha_fin
+		FROM GrupoPlantillas
+		WHERE complejo_id = #id#
+	</select>
+	
+</sqlMap>

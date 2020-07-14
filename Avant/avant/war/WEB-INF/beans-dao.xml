@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<!-- DAOs -->
+	<bean id="trabajoDao" class="cl.zpricing.avant.servicios.ibatis.TrabajoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="funcionDao" class="cl.zpricing.avant.servicios.ibatis.FuncionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="plantillaDao" class="cl.zpricing.avant.servicios.ibatis.PlantillaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="complejoDao" class="cl.zpricing.avant.servicios.ibatis.ComplejoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="mascaraDao" class="cl.zpricing.avant.servicios.ibatis.MascaraDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+
+	<bean id="menuElementDao" class="cl.zpricing.avant.servicios.ibatis.MenuElementDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="salaDao" class="cl.zpricing.avant.servicios.ibatis.SalaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="serviciosRM" class="cl.zpricing.avant.servicios.ibatis.ServiciosRevenueManagerImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="aggregateDao" class="cl.zpricing.avant.servicios.ibatis.AggregateDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+
+	<bean id="usuarioDao" class="cl.zpricing.avant.servicios.ibatis.UsuarioDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="empresaDao" class="cl.zpricing.avant.servicios.ibatis.EmpresaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="autoridadDao" class="cl.zpricing.avant.servicios.ibatis.AutoridadDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="tipoSalaDao" class="cl.zpricing.avant.servicios.ibatis.TipoSalaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="markerDao" class="cl.zpricing.avant.servicios.ibatis.MarkerDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="restrictionDao" class="cl.zpricing.avant.servicios.ibatis.RestrictionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="tipoMarkerDao" class="cl.zpricing.avant.servicios.ibatis.TipoMarkerDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="reporteDao" class="cl.zpricing.avant.servicios.ibatis.ReporteDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="peliculaDao" class="cl.zpricing.avant.servicios.ibatis.PeliculaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="categoriaDao" class="cl.zpricing.avant.servicios.ibatis.CategoriaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="epocaDao" class="cl.zpricing.avant.servicios.ibatis.EpocaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="publicoDao" class="cl.zpricing.avant.servicios.ibatis.PublicoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="tipoFuncionDao" class="cl.zpricing.avant.servicios.ibatis.TipoFuncionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="claseDao" class="cl.zpricing.avant.servicios.ibatis.ClaseDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="prediccionDao" class="cl.zpricing.avant.servicios.ibatis.PrediccionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="rolDao" class="cl.zpricing.avant.servicios.ibatis.RolDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="tipoLogDao" class="cl.zpricing.avant.servicios.ibatis.TipoLogDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+
+	<bean id="logDao" class="cl.zpricing.avant.servicios.ibatis.LogDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="historicoDao" class="cl.zpricing.avant.servicios.ibatis.HistoricoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="ventaDao" class="cl.zpricing.avant.servicios.ibatis.VentaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="areaDao" class="cl.zpricing.avant.servicios.ibatis.AreaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="grupoDao" class="cl.zpricing.avant.servicios.ibatis.GrupoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="grupoComplejoDao" class="cl.zpricing.avant.servicios.ibatis.GrupoComplejoDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="forecastDao" class="cl.zpricing.avant.servicios.ibatis.ForecastDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	
+	<bean id="logProcesosDao" class="cl.zpricing.avant.servicios.ibatis.LogProcesosDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean id="reportesDao" class="cl.zpricing.avant.servicios.ibatis.ReportesDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="grupoPeliculaDao" class="cl.zpricing.avant.servicios.ibatis.GrupoPeliculaDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean id="businessIntelligenceProcessDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="businessIntelligenceProcessLoyaltyDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessLoyaltyDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	<bean id="businessIntelligenceProcessCineticketDao" class="cl.zpricing.avant.servicios.ibatis.BusinessIntelligenceProcessCineticketDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+</beans>

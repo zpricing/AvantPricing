@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Clase">
+	
+	<resultMap class="cl.zpricing.avant.model.Clase" id="MapClase">
+		<result property="id" column="clase_id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="precio" column="precio"/>
+		<result property="esEspecial" column="especial"/>
+		<result property="markers" column="clase_id" select="obtenerMarkersClase"/>	
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.Clase" id="MapClaseNoMarkers">
+		<result property="id" column="clase_id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="precio" column="precio"/>
+		<result property="esEspecial" column="especial"/>			
+	</resultMap>
+	
+	<update id="actualizarClase" parameterClass="cl.zpricing.avant.model.Clase">
+		UPDATE Clase
+		SET
+		descripcion = #descripcion#, precio=#precio#, especial = #esEspecial#
+		WHERE clase_id = #id#
+	</update>
+
+	<insert id="agregarClase" parameterClass="cl.zpricing.avant.model.Clase">
+		INSERT INTO
+		Clase
+		(descripcion, precio, especial)
+		VALUES (#descripcion#, #precio#, #esEspecial#)
+	</insert>
+
+	<delete id="eliminarClase" parameterClass="cl.zpricing.avant.model.Clase">
+		DELETE Clase
+		WHERE
+		clase_id = #id#
+  	</delete>
+
+	<select id="obtenerListaDeClases" resultMap="MapClase">
+		SELECT clase_id
+		,descripcion, precio, especial
+		FROM Clase
+		ORDER BY precio
+			
+	</select>
+	
+	<select id="obtenerListaDeClasesDesc" resultClass="cl.zpricing.avant.model.Clase">
+		SELECT clase_id
+		as
+		id
+		,descripcion, precio, especial as esEspecial
+		FROM Clase
+		ORDER BY precio DESC
+			
+	</select>
+
+	<select id="obtenerClase" parameterClass="java.lang.Integer"
+		resultMap="MapClase">
+		SELECT clase_id, descripcion, precio, especial
+		FROM Clase
+		WHERE
+		clase_id = #value#
+	</select>
+	
+	<select id="obtenerClaseNoMarkers" parameterClass="java.lang.Integer"
+		resultMap="MapClaseNoMarkers">
+		SELECT clase_id, descripcion, precio, especial
+		FROM Clase
+		WHERE
+		clase_id = #value#
+	</select>
+	
+	<select id="obtenerClasePrecio" parameterClass="java.lang.Double"
+		resultMap="MapClase">
+		SELECT clase_id, descripcion, precio, especial
+		FROM Clase
+		WHERE
+		precio = #value#
+	</select>
+
+
+</sqlMap>

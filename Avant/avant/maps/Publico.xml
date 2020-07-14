@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Publico">
+
+	<select id="obtenerPublico" parameterClass="java.lang.Integer"
+		resultClass="cl.zpricing.avant.model.Publico">
+		SELECT publico_id as id, descripcion
+		FROM Publico
+		WHERE publico_id = #value#
+	</select>
+
+	<select id="obtenerPublicos" resultClass="cl.zpricing.avant.model.Publico">
+		SELECT publico_id
+		as id
+		,descripcion
+		FROM Publico	
+	</select>
+
+	<update id="actualizarPublico" parameterClass="cl.zpricing.avant.model.Publico">
+		UPDATE Publico
+		SET descripcion =
+		#descripcion#
+		WHERE publico_id = #id#
+	</update>
+
+	<insert id="agregarPublico" parameterClass="cl.zpricing.avant.model.Publico">
+		INSERT INTO Publico
+		(descripcion)
+		VALUES (#descripcion#)
+  	</insert>
+  	
+  	<delete id="eliminarPublico" parameterClass="cl.zpricing.avant.model.Publico">
+		DELETE Publico
+		WHERE publico_id = #id#
+  	</delete>
+
+</sqlMap>

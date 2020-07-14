@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Aggregate">
+	
+	<resultMap id="AggregateMap" class="cl.zpricing.avant.model.Aggregate">
+		<result property="fecha" column="fecha" jdbcType="DATE" />
+		<result property="pelicula_id" column="pelicula_id" />
+		<result property="complejo_id" column="complejo_id" />
+		<result property="asistencia" column="asistencia" />
+	</resultMap>
+	
+	<select id="obtenerAsistenciaDiaPeliculaComplejo" resultClass="java.lang.Integer" parameterClass="cl.zpricing.avant.model.Aggregate" >
+		SELECT asistencia AS value
+		FROM Agregado_Asistencia_Diaria
+		WHERE fecha=#fecha:DATE# AND pelicula_id=#pelicula_id# AND complejo_id=#complejo_id#
+	</select>
+	
+	<select id="obtenerAsistenciaDiaComplejo" resultClass="java.lang.Integer" parameterClass="cl.zpricing.avant.model.Aggregate" >
+		SELECT asistencia AS value
+		FROM Agregado_Asistencia_Diaria
+		WHERE fecha=#fecha:DATE# AND complejo_id=#complejo_id#
+	</select>
+	
+	<select id="obtenerIngresosConfiteriaDiarioComplejo" resultClass="java.lang.Double" parameterClass="java.util.Map" >
+		SELECT ingreso AS value
+		FROM Agregado_Confiteria_Diaria
+		WHERE fecha=#fecha:DATE# AND complejo_id=#complejoId#
+	</select>
+	
+	<select id="obtenerAsistenciaRMDiaComplejo" resultClass="java.lang.Double" parameterClass="java.util.Map">
+		SELECT ISNULL(SUM(asistencia),0) AS value
+		FROM Agregado_Asistencia_RM
+		WHERE fecha=#fecha:DATE# AND complejo_id=#complejoId#
+		GROUP BY fecha
+	</select>
+	
+	<select id="obtenerIngresosRMDiaComplejo" resultClass="java.lang.Double" parameterClass="java.util.Map">
+		SELECT ISNULL(SUM(asistencia*precio),0) AS value
+		FROM Agregado_Asistencia_RM
+		WHERE fecha=#fecha:DATE# AND complejo_id=#complejoId#
+		GROUP BY fecha
+	</select>
+	
+	<!-- Esta consulta hay que sacarla de la tabla agregada, pero hay que
+		modificar el script para que funcione como la tabla agregada RM. -->
+	<select id="obtenerIngresosDiaComplejo" parameterClass="java.util.Map" resultClass="java.lang.Double">
+		SELECT ISNULL(SUM(value),0) AS value
+		FROM
+		(
+		SELECT     SUM(Asistencia.asistencia * Clase.precio) AS value
+		FROM         Asistencia INNER JOIN
+                      Clase ON Asistencia.clase_id = Clase.clase_id INNER JOIN
+                      Funcion ON Asistencia.funcion_id = Funcion.funcion_id INNER JOIN
+                      Sala ON Funcion.sala_id = Sala.sala_id
+		WHERE     Funcion.fecha &gt;= #fecha1:DATETIME# AND Funcion.fecha &lt;= #fecha2:DATETIME# AND Sala.complejo_id=#complejoId#
+		GROUP BY Clase.precio) ingresos 
+	</select>
+	
+</sqlMap>

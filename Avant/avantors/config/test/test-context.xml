@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+	
+	<import resource="mongo-config.xml" />
+	
+	<bean id="revenueManagementDataLoad" class="cl.zpricing.unittest.dataload.RevenueManagementDataLoad"></bean>
+	
+	<bean id="dataLoad" class="cl.zpricing.unittest.dataload.DataLoad"></bean>
+
+	<bean id="expiringAvailableSlots" class="cl.zpricing.revman.tasks.impl.ExpiringAvailableSlotsImpl"></bean>
+	
+	<bean id="pingService" class="cl.zpricing.revman.tasks.impl.PingServiceImpl"></bean>
+	
+	<bean id="zhetaPricingServices" class="cl.zpricing.revman.webservices.ZhetaPricingServicesImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+</beans>

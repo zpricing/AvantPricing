@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Sala">
+	<resultMap id="result" class="cl.zpricing.avant.model.Sala">
+		<result property="id" column="sala_id"/>
+		<result property="numero" column="numero"/>
+		<result property="capacidad" column="capacidad"/>
+		<result property="tipoSala" column="tipo_sala_id" select="obtenerTipoSalaSala"/>
+		<result property="grupo" column="grupo_id" select="obtenerGrupoSala"/>
+		<result property="complejoAlCualPertenece" column="complejo_id" select="obtenerComplejoSala"/>
+		<result property="idExterno" column="sala_id_externo"/>
+		<result property="mascaras" column="complejo_id" select="obtenerMascaras"/>
+		<result property="orden" column="orden" />
+	</resultMap>
+
+	<insert id="agregarSala" parameterClass="cl.zpricing.avant.model.Sala">
+		INSERT INTO Sala
+		(capacidad, numero, grupo_id, complejo_id, sala_id_externo, orden)
+		VALUES (#capacidad#, #numero#, #grupo.id#, #complejoAlCualPertenece.id#, #idExterno#, #orden#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+
+	<update id="actualizarSala"
+	 parameterClass="cl.zpricing.avant.model.Sala">
+		UPDATE Sala
+		SET numero = #numero#, capacidad = #capacidad#,
+		tipo_sala_id = #tipoSala.id#, grupo_id = #grupo.id#, complejo_id = #complejoAlCualPertenece.id#, sala_id_externo = #idExterno#, orden = #orden#
+		WHERE sala_id=#id#
+  	</update>
+	 
+	<delete id="eliminarSala" parameterClass="java.lang.Integer">
+		DELETE Sala
+		WHERE sala_id = #value#
+  	</delete>
+  	
+  	<select id="obtenerTodas" resultMap="result">
+		SELECT sala_id, numero, capacidad, tipo_sala_id, grupo_id, complejo_id, sala_id_externo, orden
+		FROM Sala
+	</select>
+	
+	<select id="obtenerTodasByComplejo" resultMap="result" parameterClass="cl.zpricing.avant.model.Complejo">
+		SELECT sala_id, numero, capacidad, tipo_sala_id, grupo_id, complejo_id, sala_id_externo, orden
+		FROM Sala 
+		WHERE complejo_id = #id#
+		ORDER BY orden
+	</select>
+
+	<select id="obtenerSala" parameterClass="java.lang.Integer" resultMap="result">
+		SELECT sala_id, capacidad, numero, tipo_sala_id, grupo_id, grupo_id, complejo_id, sala_id_externo, orden
+		FROM Sala
+		WHERE sala_id = #value#
+  	</select>
+
+  	<select id="obtenerTipoSalaSala" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.TipoSala">
+		SELECT tipo_sala_id AS id, descripcion
+		FROM Tipo_Sala
+		WHERE tipo_sala_id = #value#
+	</select>
+	
+	<select id="obtenerComplejoSala" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Complejo">
+		SELECT complejo_id AS id, nombre, direccion, ip_servidor, complejo_id_externo
+		FROM Complejo
+		WHERE complejo_id = #value#
+	</select>
+	
+	<select id="obtenerSalaPorIdExterno" parameterClass="java.util.Map" resultMap="result">
+		SELECT sala_id, numero, capacidad, tipo_sala_id, grupo_id, complejo_id, sala_id_externo, orden
+		FROM Sala
+		WHERE complejo_id = #complejo_id#
+  		AND sala_id_externo = #sala_id_externo#
+	</select>
+
+</sqlMap>

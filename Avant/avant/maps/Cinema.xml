@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+	<sqlMap namespace="Cinema">
+		<resultMap class="cl.zpricing.avant.model.loadmanager.AreaCount" id="capacidadAreaMap">
+			<result property="areaBytNum" column="Area_bytNum"/>
+			<result property="strControl" column="SessAC_strControl"/>
+			<result property="codigoCategoriaArea" column="AreaCat_strCode"/>
+			<result property="asientosDisponibles" column="SessAC_intSeatsAvail"/>
+			<result property="asientosVendidos" column="SessAC_intSeatsSold" />
+			<result property="asientosReservados" column="SessAC_intSeatsHeld"/>
+			<result property="asientosCasa" column="SessAC_intSeatsHouse"/>
+		</resultMap>
+	
+		<select id="consultaNombreComplejo" resultClass="java.lang.String">
+			SELECT Cinema_strName
+			FROM tblCinema
+		</select>
+		<select id="consultaCapaciadadesArea" resultMap="capacidadAreaMap">
+			SELECT AreaCat_strCode, Area_bytNum, SessAC_strControl, SessAC_intSeatsAvail, SessAC_intSeatsSold, SessAC_intSeatsHeld, SessAC_intSeatsHouse
+			FROM tblSession_AreaCount 
+			WHERE Session_lngSessionId = #value#
+		</select>
+		<select id="consultaSalaFuncion" resultClass="java.lang.Integer">
+			SELECT Screen_bytNum
+			FROM tblSession
+			WHERE Session_lngSessionId = #funcion_id#
+		</select>
+		<select id="consultaOrdenesEnProceso" resultClass="java.lang.Integer">
+			SELECT count(distinct o.TransIdTemp)
+			FROM tblOrderTrack ot, tblOrderTicket o
+			WHERE ot.TransIdTemp = o.TransIdTemp
+			AND o.SessionId = #funcion_id#
+		</select>
+		<select id="consultaEstadoFuncion" resultClass="java.lang.String">
+			SELECT s.Session_strStatus
+			FROM tblSession s
+			WHERE s.Session_lngSessionId = #funcion_id#
+		</select>
+		<select id="consultaFuncion" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+			SELECT Session_lngSessionId, Session_strStatus, Screen_bytNum ,Film_strCode,Session_dtmShowing ,PGroup_strCode ,CinOperator_strCode ,Session_dtmBusinessDate
+			FROM tblSession
+			WHERE Session_lngSessionId = #funcion#
+			AND Screen_bytNum = #sala#
+			AND Session_strStatus != 'D'
+		</select>
+		<select id="consultaLayoutSala" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+			SELECT ScreenL_intId
+			FROM tblScreen_Layout
+			WHERE Screen_bytNum = #id_sala_externo#
+			AND ScreenL_strName like '%RM%'
+			AND ScreenL_strStatus = 'A'
+		</select>		
+	</sqlMap>

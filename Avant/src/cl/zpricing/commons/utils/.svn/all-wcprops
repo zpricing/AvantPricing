@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/zp/!svn/ver/220/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils
+END
+Calendario.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/zp/!svn/ver/220/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/Calendario.java
+END
+ErroresUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/ErroresUtils.java
+END
+TableManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/TableManager.java
+END
+EnvioDeCorreo.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/EnvioDeCorreo.java
+END
+IbatisMapGen.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/IbatisMapGen.java
+END
+StringUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/StringUtils.java
+END
+DateUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/zp/!svn/ver/220/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/DateUtils.java
+END
+SMTPAuthenticator.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/zp/!svn/ver/12/ZPCinemas-commons/trunk/src/cl/zpricing/commons/utils/SMTPAuthenticator.java
+END

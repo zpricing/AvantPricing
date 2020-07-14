@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="DataLoad">
+
+	<insert id="testLoadUpsellingFuncionarea" parameterClass="java.util.Map">
+		INSERT INTO upselling_funcionarea (cinema_id, session_id, session_date, movie_name, ticket_type_id, price, bfee, full_price, full_bfee, available, occupied, total) 
+		VALUES (#cinema_id#, #session_upselling_id#, NOW(), 'Test movie 3D', '0000', 1000, 200, 3000, 200, #available#, 2, 10) 
+	</insert>
+	
+	<insert id="testLoadUpsellingSessionRelation" parameterClass="java.util.Map">
+		INSERT INTO upselling_sessions (cinema_id, session_id, session_upselling_id, upselling_order)
+		VALUES (#cinema_id#, #session_id#, #session_upselling_id#, #upselling_order#)
+	</insert>
+	
+	<insert id="testLoadRevenueManagementAvailability" parameterClass="java.util.Map">
+		INSERT INTO funcionarea (cinema_id, movie_id, session_id, ticket_type_id, session_date, total, available, occupied, expiration_days_anticipation)
+		VALUES (#cinema_id#, 'Test Movie Name', #session_id#, #ticket_type_id#, NOW(), #available#, #available#, 0, 2)
+	</insert>
+	
+</sqlMap>

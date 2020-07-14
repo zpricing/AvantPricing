@@ -1,0 +1,48 @@
+/**
+ * 
+ */
+package cl.zpricing.commons.model;
+
+/**
+ * <b>Representa un IPC</b>
+ *
+ * Registro de versiones:
+ * <ul>
+ *   <li>1.0 (19-04-2010 Daniel Estévez Garay): versión inicial.</li>
+ * </ul>
+ * <P>
+ *  <B>Todos los derechos reservados por ZhetaPricing.</B>
+ * <P>
+ */
+public class IPC {
+	double valor;
+	int mes;
+	int anio;
+	int base;	
+	
+	public int getBase() {
+		return base;
+	}
+	public void setBase(int base) {
+		this.base = base;
+	}
+	public double getValor() {
+		return valor;
+	}
+	public void setValor(double valor) {
+		this.valor = valor;
+	}
+	public int getMes() {
+		return mes;
+	}
+	public void setMes(int mes) {
+		this.mes = mes;
+	}
+	public int getAnio() {
+		return anio;
+	}
+	public void setAnio(int anio) {
+		this.anio = anio;
+	}
+	
+}

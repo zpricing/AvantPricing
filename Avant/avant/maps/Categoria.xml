@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Categoria">
+
+	<select id="obtenerCategoria" parameterClass="java.lang.Integer"
+		resultClass="cl.zpricing.avant.model.Categoria">
+		SELECT categoria_id as id, descripcion
+		FROM Categoria
+		WHERE
+		categoria_id = #value#
+	</select>
+
+	<select id="obtenerCategorias" resultClass="cl.zpricing.avant.model.Categoria">
+		SELECT categoria_id
+		as id
+		,descripcion
+		FROM Categoria	
+	</select>
+
+	<update id="actualizarCategoria" parameterClass="cl.zpricing.avant.model.Categoria">
+		UPDATE Categoria
+		SET descripcion =
+		#descripcion#
+		WHERE categoria_id= #id#
+	</update>
+
+	<insert id="agregarCategoria" parameterClass="cl.zpricing.avant.model.Categoria">
+		INSERT INTO
+		Categoria
+		(descripcion)
+		VALUES (#descripcion#)
+  	</insert>
+  	
+  	<insert id="agregarCategoriaSiNoExiste" parameterClass="java.lang.String">
+		INSERT INTO Categoria (descripcion, procesable, external_source_code)
+		SELECT #value#, 1, #value#
+		WHERE NOT EXISTS (SELECT * FROM Categoria WHERE external_source_code = #value#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+
+	<delete id="eliminarCategoria" parameterClass="cl.zpricing.avant.model.Categoria">
+		DELETE Categoria
+		WHERE categoria_id = #id#
+  	</delete>
+
+</sqlMap>

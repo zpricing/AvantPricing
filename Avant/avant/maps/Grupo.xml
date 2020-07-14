@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Grupo">
+	
+	<resultMap id="result" class="cl.zpricing.avant.model.Grupo">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="orden" column="orden" />
+		<result property="complejoAlCualPertenece" column="complejo_id" select="obtenerComplejoGrupo"/>
+	</resultMap>
+
+	<select id="obtenerTodosByComplejo" resultMap="result" parameterClass="cl.zpricing.avant.model.Complejo">
+		SELECT id, descripcion, orden, complejo_id
+		FROM Grupo 
+		WHERE complejo_id = #id#
+		ORDER BY orden
+	</select>
+	
+	<select id="obtenerGrupos" resultMap="result">
+		SELECT id, descripcion, orden, complejo_id
+		FROM Grupo 
+		ORDER BY orden
+	</select>
+	
+	<select id="obtenerComplejoGrupo" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Complejo">
+		SELECT complejo_id AS id, nombre, direccion, ip_servidor, complejo_id_externo
+		FROM Complejo
+		WHERE complejo_id = #value#
+	</select>
+	
+	<select id="obtenerGrupoSala" resultMap="result"  parameterClass="java.lang.Integer">
+		SELECT id, descripcion, orden, complejo_id
+		FROM Grupo 
+		WHERE id = #value#
+	</select>
+	
+	<insert id="agregarGrupo" parameterClass="cl.zpricing.avant.model.Grupo">
+		INSERT INTO Grupo (complejo_id, descripcion, orden)
+		VALUES (#complejoAlCualPertenece.id#, #descripcion#, #orden#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+
+</sqlMap>

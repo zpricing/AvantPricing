@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="PriceCard">
+
+	<resultMap class="cl.zpricing.avant.model.loadmanager.PriceCard" id="PriceCardMap">
+		<result property="descripcion" column="price_card"/>
+		<result property="codigoExterno" column="price_card_code" />
+		<result property="mascara" column="mascara" />
+		<result property="timeSpan" column="periodo"/>
+	</resultMap>
+
+	<select id="obtenerPriceCards" parameterClass="java.util.Map" resultMap="PriceCardMap">
+		SELECT price_card, price_card_code, mascara, periodo, dias_anticipacion
+		FROM PriceCard
+		WHERE mascara = #mascara#
+		AND periodo = #timeSpan#
+		AND fecha_desde &lt;= #fecha#
+  		AND (fecha_hasta is null OR fecha_hasta >= #fecha#)
+  		AND complejo_id = #complejo#
+  		ORDER BY dias_anticipacion desc, fecha_desde desc
+	</select>
+	
+	<select id="obtenerPriceCardsConExcepciones" parameterClass="java.util.Map" resultMap="PriceCardMap">
+		SELECT pc.price_card, pc.price_card_code, pc.mascara, pc.periodo, pca.dias_anticipacion
+		FROM PriceCard pc, PriceCard_Anticipacion pca 
+		WHERE pc.codigo_anticipacion = pca.codigo_anticipacion
+		AND pc.complejo_id = pca.complejo_id
+		AND pc.periodo = pca.periodo
+		AND pca.distribuidor_id = #distribuidor#
+		AND pc.mascara = #mascara#
+		AND pc.periodo = #timeSpan#
+		AND pc.fecha_desde &lt;= #fecha#
+  		AND (pc.fecha_hasta is null OR pc.fecha_hasta >= #fecha#)
+  		AND pc.complejo_id = #complejo#
+  		ORDER BY pca.dias_anticipacion desc, pc.fecha_desde desc
+	</select>
+	
+	<select id="obtenerPriceCardsPorNombre" parameterClass="java.util.Map" resultMap="PriceCardMap">
+		SELECT price_card, price_card_code, mascara, periodo, dias_anticipacion
+		FROM PriceCard
+		WHERE price_card = #price_card#
+		AND fecha_desde &lt;= #fecha#
+  		AND (fecha_hasta is null OR fecha_hasta >= #fecha#)
+  		AND complejo_id = #complejo#
+  		ORDER BY dias_anticipacion desc, fecha_desde desc
+	</select>
+
+</sqlMap>

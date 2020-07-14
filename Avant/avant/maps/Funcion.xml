@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Funcion">
+	<resultMap id="MapFuncion" class="cl.zpricing.avant.model.Funcion">
+		<result property="id" column="funcion_id" />
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date" />
+		<result property="fechaContable" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="asistenciasDeFuncion" column="funcion_id" select="obtenerAsistenciasFuncion" />
+		<result property="peliculaAsociada" column="pelicula_id" select="obtenerPelicula" />
+		<result property="sala" column="sala_id" select="obtenerSala" />
+		<result property="tipoFuncion" column="tipo_funcion_id" select="obtenerTipoFuncion" />
+		<result property="idExterno" column="funcion_id_externo" />
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2" />
+		<result property="cargada" column="cargada" jdbcType="BIT" javaType="boolean" />
+		<result property="funcionesArea" column="funcion_id" select="obtenerFuncionesArea" />
+		<result property="mascara"  column="mascara_id" select="obtenerMascara" nullValue="0"/>
+		<result property="esNumerada" column="es_numerada"/>
+		<result property="asistenciaProyectada" column="asistencia_proyectada"/>
+		<result property="porcentajeOcupacionProyectado" column="porcentaje_ocupacion_proyectado"/>
+		<!--  result property="priceCardDescription"  column="price_card"/> -->
+		<!-- <result property="protegido" column="lock"/> -->
+	</resultMap>
+	
+	<resultMap id="mapFuncionOptimizada" class="cl.zpricing.avant.model.Funcion">
+		<result property="id" column="funcion_id" />
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date" />
+		<result property="fechaContable" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="asistenciasDeFuncion" column="funcion_id" select="obtenerAsistenciasFuncion" />
+		<result property="asistenciaProyectada" column="asistencia_proyectada" />
+		<result property="porcentajeOcupacionProyectado" column="porcentaje_ocupacion_proyectado" />
+		<result property="idExterno" column="funcion_id_externo" />
+		<result property="cargada" column="cargada" jdbcType="BIT" javaType="boolean" />
+		<result property="funcionesArea" column="funcion_id" select="obtenerFuncionesArea" />
+		<result property="mascara"  column="mascara_id" select="obtenerMascara" nullValue="0"/>
+		<result property="esNumerada" column="es_numerada"/>
+		<result property="bloqueada" column="bloqueada"/>
+				
+		<result property="peliculaAsociada.id" column="pelicula_id" />
+		<result property="peliculaAsociada.idExterno" column="pelicula_id_externo" />
+		<result property="peliculaAsociada.duracion" column="duracion" />
+		<result property="peliculaAsociada.nombre" column="nombre" />
+		<result property="peliculaAsociada.descripcion" column="descripcion" />
+		<result property="peliculaAsociada.activo" column="activo" jdbcType="BIT"/>   
+		<result property="peliculaAsociada.idCentral" column="pelicula_central_id" />
+		<result property="peliculaAsociada.gradoSimilitud" column="grado_similitud_central"/>
+		<result property="peliculaAsociada.nombreCentral" column="nombre_central"/>
+		<result property="peliculaAsociada.formatoId" column="formato_id"/>
+		
+		<result property="sala.id" column="sala_id"/>
+		<result property="sala.numero" column="numero"/>
+		<result property="sala.capacidad" column="capacidad"/>
+		<result property="sala.complejoAlCualPertenece" column="complejo_id" select="obtenerComplejoSala"/>
+		<result property="sala.idExterno" column="sala_id_externo"/>
+		<result property="sala.mascaras" column="complejo_id" select="obtenerMascaras"/>
+		<result property="sala.orden" column="orden" />
+	</resultMap>
+	
+	<resultMap id="mapFuncionForecast" class="cl.zpricing.avant.model.Funcion">
+		<result property="id" column="funcion_id" />
+		<result property="idExterno" column="funcion_id_externo" />
+		<result property="bloqueada" column="bloqueada" />
+		<result property="fecha" column="fecha" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp" />
+		<result property="fechaContable" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="exhibicion" column="exhibicion" />
+		<result property="semana" column="semana" />
+		
+		<result property="peliculaAsociada.id" column="pelicula_id" />
+		<result property="peliculaAsociada.nombre" column="nombre" />
+		<result property="peliculaAsociada.ranking.id" column="ranking_id" />
+		<result property="peliculaAsociada.rating.id" column="rating_id" />
+		<result property="peliculaAsociada.categorias" column="pelicula_id" select="obtenerCategoriasPelicula"/>
+		<result property="peliculaAsociada.idioma.id" column="idioma_id" />
+		<result property="peliculaAsociada.formatoId" column="formato_id" />
+		<result property="peliculaAsociada.formato.id" column="pel_formato_id" />
+		<result property="peliculaAsociada.distribuidor.id" column="distribuidor_id" />
+		<result property="peliculaAsociada.fechaEstreno" column="fecha_estreno" jdbcType="DATE" javaType="java.util.Date" />
+		
+		<result property="sala.id" column="sala_id"/>
+		<result property="sala.grupo.id" column="grupo_id"/>
+		<result property="sala.complejoAlCualPertenece.id" column="complejo_id"/>
+		<result property="sala.complejoAlCualPertenece.complejo_id_externo" column="complejo_id_externo"/>
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Asistencia" id="MapAsistenciaFuncion">
+		<result property="id" column="ticket_asistencia_id" />
+		<result property="asistencia" column="asistencia" />
+		<result property="clase" column="clase_id" select="obtenerClase" />
+		<result property="funcionAsociada.id" column="funcion_id" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.FuncionArea" id="MapFuncionArea">
+		<result property="area" column="area_id" select="obtenerArea"/>
+		<result property="capacidadTotal" column="total" />
+		<result property="capacidadDisponible" column="disponible" />
+		<result property="capacidadOcupada" column="ocupados" />
+		<result property="idExterno" column="ticket_id_externo" />
+		<result property="precio.valor" column="precio" />
+		<result property="precio.bookingFee" column="bfee" />
+		<result property="diasAntesExpira" column="dias_antes_expira" />
+	</resultMap>
+	
+	<resultMap id="MapSemanaExhibicion" class="java.util.HashMap">
+	  <result property="semana" column="semana" jdbcType="LONG" javaType="java.lang.Integer"/>
+	  <result property="exhibicion" column="exhibicion" jdbcType="LONG" javaType="java.lang.Integer"/>
+	</resultMap>
+	
+	<resultMap id="MapPrecio" class="cl.zpricing.avant.model.Precio">
+		<result property="valor" column="precio"/>
+		<result property="bookingFee" column="bfee"/>
+	</resultMap>
+	
+	<update id="actualizarFuncionArea" parameterClass="java.util.Map">
+		UPDATE FuncionArea 
+		SET disponible = #disponible#, total = #total#
+		WHERE funcion_id = #funcion_id#
+		AND area_id = #area_id#
+	</update>
+	
+	<update id="actualizarFuncionAreaCuposOcupados" parameterClass="java.util.Map">
+		UPDATE FuncionArea 
+		SET disponible = disponible - #ocupados#, ocupados = ocupados + #ocupados#
+		WHERE funcion_id = #funcion_id#
+		AND area_id = #area_id#
+	</update>
+
+	<insert id="agregarFuncionArea" parameterClass="java.util.Map">
+		INSERT INTO FuncionArea (funcion_id, area_id, total, disponible, ocupados)
+		VALUES (#funcion_id#, #area_id#, #total#, #disponible#, 0)
+	</insert>
+
+	<select id="obtenerFuncionesArea" parameterClass="java.lang.Integer" resultMap="MapFuncionArea">
+		SELECT fa.area_id, fa.total, fa.disponible, fa.ocupados, tc.ticket_id_externo, pct.precio, pct.bfee, agm.dias_antes_expira
+		FROM FuncionArea fa
+		JOIN Funcion f ON fa.funcion_id = f.funcion_id
+		JOIN PriceCardTicket pct ON f.price_card_id = pct.pricecard_id
+		JOIN Ticket t ON t.ticket_id = pct.ticket_id AND t.area_id = fa.area_id
+		JOIN Ticket_Complejo tc ON t.ticket_id = tc.ticket_id AND tc.complejo_id = f.complejo_id
+		JOIN Sala s ON s.sala_id = f.sala_id
+		JOIN Area_Grupo_Mascara agm ON agm.area_id = fa.area_id AND agm.grupo_id = s.grupo_id AND agm.mascara_id = f.mascara_id
+		WHERE fa.funcion_id = #value#
+		ORDER BY dias_antes_expira desc
+	</select>
+	
+	<select id="obtenerFuncionArea" parameterClass="java.util.Map" resultMap="MapFuncionArea">
+		SELECT fa.funcion_id, fa.area_id, fa.total, fa.disponible, fa.ocupados, tc.ticket_id_externo, pct.precio, pct.bfee, agm.dias_antes_expira
+		FROM FuncionArea fa
+		JOIN Funcion f ON f.funcion_id = fa.funcion_id
+		JOIN PriceCardTicket pct ON f.price_card_id = pct.pricecard_id
+		JOIN Ticket t ON t.ticket_id = pct.ticket_id AND t.area_id = fa.area_id
+		JOIN Ticket_Complejo tc ON t.ticket_id = tc.ticket_id AND tc.complejo_id = f.complejo_id
+		JOIN Sala s ON s.sala_id = f.sala_id
+		JOIN Area_Grupo_Mascara agm ON agm.area_id = fa.area_id AND agm.grupo_id = s.grupo_id AND agm.mascara_id = f.mascara_id
+		WHERE f.funcion_id = #funcion_id#
+		AND fa.area_id = #area_id#
+	</select>
+	
+	<select id="obtenerPrecioFuncionArea" parameterClass="java.util.Map" resultMap="MapPrecio">
+		SELECT pct.precio, pct.bfee
+		FROM Funcion f
+		JOIN PriceCardTicket pct ON f.price_card_id = pct.pricecard_id
+		JOIN Ticket t ON t.ticket_id = pct.ticket_id AND t.area_id = #area_id#
+		WHERE f.funcion_id = #funcion_id#
+	</select>
+
+	<select id="obtenerAsistencia" parameterClass="java.lang.Integer" resultMap="MapAsistenciaFuncion">
+		SELECT ticket_asistencia_id, funcion_id, clase_id, asistencia, cargada
+		FROM AsistenciaPorTicket
+		WHERE asistencia_id = #value#
+	</select>
+
+	<select id="obtenerFunciones" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, es_numerada, asistencia_proyectada, porcentaje_ocupacion_proyectado
+		FROM Funcion
+		WHERE fecha >= CONVERT(DATETIME,#fecha_inicio# &#44; 20)
+		AND fecha &lt;= CONVERT(DATETIME,#fecha_termino# &#44; 20)
+		ORDER BY fecha
+  	</select>
+
+	<select id="obtenerFuncionesByPeliculaDia" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, es_numerada, asistencia_proyectada, porcentaje_ocupacion_proyectado
+		FROM Funcion
+		WHERE fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND pelicula_id=#pelicula.id#
+		ORDER BY fecha
+  	</select>
+
+	<select id="obtenerFuncionesByPeliculaDiaComplejo" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.es_numerada, f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado
+		FROM Funcion f, Sala s
+		WHERE f.fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND f.fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND f.pelicula_id=#pelicula.id#
+		AND f.sala_id = s.sala_id
+		AND f.eliminada = 0
+		AND s.complejo_id = #complejo.id#
+		ORDER BY f.fecha
+  	</select>
+
+	<select id="obtenerFuncionesComplejo" parameterClass="java.util.Map" resultMap="mapFuncionOptimizada">
+		SELECT 	f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.bloqueada, f.fecha_contabilidad, f.mascara_id, f.es_numerada,
+				f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado, p.pelicula_id_externo, p.duracion, p.nombre, p.descripcion, p.activo, p.pelicula_central_id, 
+				p.grado_similitud_central, p.nombre_central, p.formato_id, s.sala_id, s.capacidad, s.numero, s.tipo_sala_id, s.complejo_id, s.sala_id_externo, s.orden
+		FROM Funcion f, Sala s, Pelicula p
+		WHERE f.fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND f.fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND f.sala_id = s.sala_id
+		AND s.complejo_id = #complejo.id#
+		AND f.pelicula_id = p.pelicula_id
+		AND f.eliminada = 0
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesPorPelicula" parameterClass="java.util.Map" resultMap="mapFuncionOptimizada">
+		SELECT 	f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.bloqueada, f.fecha_contabilidad, f.mascara_id, f.es_numerada,
+				f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado, p.pelicula_id_externo, p.duracion, p.nombre, p.descripcion, p.activo, p.pelicula_central_id, 
+				p.grado_similitud_central, p.nombre_central, p.formato_id, s.sala_id, s.capacidad, s.numero, s.tipo_sala_id, s.complejo_id, s.sala_id_externo, s.orden
+		FROM Funcion f, Sala s, Pelicula p
+		WHERE f.fecha_contabilidad = CONVERT(DATETIME,#fecha#&#44;20)
+		AND f.sala_id = s.sala_id
+		AND f.eliminada = 0
+		AND f.pelicula_id = p.pelicula_id
+		AND f.pelicula_id = #pelicula_id#
+		AND s.complejo_id = #complejo_id#
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesDiaContable" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.es_numerada, f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado
+		FROM Funcion f
+		JOIN Sala s ON f.sala_id = s.sala_id AND s.complejo_id = #complejo.id#
+		WHERE f.fecha_contabilidad = CONVERT(DATETIME,#fecha#&#44;20)
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesDiaContableNoCargadas" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.es_numerada, f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado
+		FROM Funcion f
+		JOIN Sala s ON f.sala_id = s.sala_id AND s.complejo_id = #complejo.id#
+		WHERE f.fecha_contabilidad = CONVERT(DATETIME,#fecha#&#44;20)
+		AND f.cargada = 0
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesParaForecast" parameterClass="java.util.HashMap" resultMap="mapFuncionForecast">
+		SELECT 	f.funcion_id,	
+				(
+					SELECT MIN(fecha_contabilidad)
+					FROM Funcion 
+					WHERE pelicula_id = f.pelicula_id 
+					AND complejo_id = #complejo.id#
+				) as fecha_estreno, f.fecha, f.fecha_contabilidad, f.bloqueada, f.sala_id, f.pelicula_id, f.pelicula_id as pelicula_id2, 
+				f.funcion_id_externo, p.distribuidor_id, p.nombre, p.pel_ranking_id as ranking_id, f.exhibicion, f.semana, 
+				p.pel_rating_id as rating_id, p.pel_idioma_id as idioma_id, p.pel_formato_id, p.formato_id, s.grupo_id, 
+				s.complejo_id, c.complejo_id_externo
+		FROM Funcion f
+		JOIN Sala s ON f.sala_id = s.sala_id
+		JOIN Pelicula p ON f.pelicula_id = p.pelicula_id
+		JOIN Complejo c ON c.complejo_id = s.complejo_id
+		WHERE f.complejo_id = #complejo.id#
+		AND f.fecha_contabilidad = #fecha#
+		AND f.eliminada = 0
+		AND f.estado = 'O'
+		AND f.pelicula_id NOT IN 
+		(
+			SELECT P.pelicula_id FROM Funcion F
+			JOIN Pelicula P ON F.pelicula_id = P.pelicula_id AND F.fecha_contabilidad = #fecha#
+			JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id 
+			JOIN Categoria C ON C.categoria_id = PC.categoria_id AND C.descripcion = 'Evento' 
+		)
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesNuevasParaForecast" parameterClass="java.util.HashMap" resultMap="mapFuncionForecast">
+  		SELECT 	f.funcion_id,	
+				(
+					SELECT MIN(fecha_contabilidad)
+					FROM Funcion 
+					WHERE pelicula_id = f.pelicula_id 
+					AND complejo_id = #complejo.id#
+				) as fecha_estreno, f.fecha, f.fecha_contabilidad, f.bloqueada, f.sala_id, f.pelicula_id, f.pelicula_id as pelicula_id2, 
+				f.funcion_id_externo, p.distribuidor_id, p.nombre, p.pel_ranking_id as ranking_id, f.exhibicion, f.semana,
+				p.pel_rating_id as rating_id, p.pel_idioma_id as idioma_id, p.pel_formato_id, p.formato_id, s.grupo_id, s.complejo_id, c.complejo_id_externo
+		FROM Funcion f, Sala s, Pelicula p, Complejo c
+		WHERE f.fecha_contabilidad = #fecha#
+		AND f.asistencia_proyectada IS NULL
+		AND f.bloqueada = 0
+		AND f.eliminada = 0
+		AND f.estado = 'O'
+		AND f.sala_id = s.sala_id
+		AND f.pelicula_id = p.pelicula_id
+		AND f.complejo_id = s.complejo_id
+		AND s.complejo_id = c.complejo_id
+		AND s.complejo_id = #complejo.id#
+		AND f.pelicula_id NOT IN 
+		(
+			SELECT P.pelicula_id FROM Funcion F
+			JOIN Pelicula P ON F.pelicula_id = P.pelicula_id AND F.fecha_contabilidad = #fecha#
+			JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id 
+			JOIN Categoria C ON C.categoria_id = PC.categoria_id AND C.descripcion = 'Evento' 
+		)
+		ORDER BY f.fecha
+  	</select>
+  	
+	<select id="obtenerFuncionesSinAnalizar" parameterClass="java.util.HashMap" resultMap="mapFuncionForecast">
+		<![CDATA[ 
+		SELECT 	f.funcion_id,	
+				(
+					SELECT MIN(fecha_contabilidad)
+					FROM Funcion 
+					WHERE pelicula_id = f.pelicula_id 
+					AND complejo_id = #complejo.id#
+				) as fecha_estreno, f.fecha, f.fecha_contabilidad, f.bloqueada, f.sala_id, f.pelicula_id, f.pelicula_id as pelicula_id2, 
+				f.funcion_id_externo, p.distribuidor_id, p.nombre, p.pel_ranking_id as ranking_id, f.exhibicion, f.semana,
+				p.pel_rating_id as rating_id, p.pel_idioma_id as idioma_id, p.pel_formato_id, p.formato_id, s.grupo_id, s.complejo_id, c.complejo_id_externo
+		FROM Funcion f, Sala s, Pelicula p, Complejo c
+		WHERE f.fecha_contabilidad = #fecha#
+		AND f.fecha < #fecha_ultima_carga_asistencias#
+		AND f.analizada = 0
+		AND f.eliminada = 0
+		AND f.estado = 'O'
+		AND f.sala_id = s.sala_id
+		AND f.pelicula_id = p.pelicula_id
+		AND f.complejo_id = s.complejo_id
+		AND s.complejo_id = c.complejo_id
+		AND s.complejo_id = #complejo.id#
+		AND f.pelicula_id NOT IN 
+		(
+			SELECT P.pelicula_id FROM Funcion F
+			JOIN Pelicula P ON F.pelicula_id = P.pelicula_id AND F.fecha_contabilidad = #fecha#
+			JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id 
+			JOIN Categoria C ON C.categoria_id = PC.categoria_id AND C.descripcion = 'Evento' 
+		)
+		ORDER BY f.fecha
+		]]>
+  	</select>
+  	
+  	<select id="ObtenerSemanaExhibicion" parameterClass="java.util.HashMap" resultMap="MapSemanaExhibicion">
+  		<![CDATA[ 
+  		WITH DateTable
+		AS
+		(
+			SELECT DATEADD(dd, -7, CAST(#fecha_estreno# as Date)) AS [DATE]
+			UNION ALL
+			SELECT DATEADD(dd, 1, [DATE])
+			FROM DateTable
+			WHERE DATEADD(dd, 1, [DATE]) <= CAST(#fecha# as Date)
+		)
+		SELECT TOP 1 DATEDIFF(DAY, fecha, CAST(#fecha# as Date))/7 +1 as semana, 
+		ROW_NUMBER() OVER (ORDER BY fecha) AS exhibicion
+		FROM
+		(
+			SELECT X.fecha, 
+			X.funciones, 
+			funciones_dia_previo, 
+			COALESCE(SUM(SP.funciones) OVER(PARTITION BY SP.semana), 0) as funciones_semana_previa
+			FROM
+			(	
+				SELECT dt.[DATE] as fecha, 
+				count(funcion_id) as funciones
+				FROM [DateTable] dt 
+				LEFT JOIN Funcion 
+				ON dt.[DATE] = Funcion.fecha_contabilidad 
+				AND Funcion.pelicula_id = #id_pelicula#
+				AND Funcion.complejo_id = #id_complejo#
+				GROUP BY dt.[DATE]
+			) as X
+			LEFT JOIN
+			(
+				SELECT dt.[DATE] as fecha, 
+				count(funcion_id) as funciones_dia_previo
+				FROM [DateTable] dt 
+				LEFT JOIN Funcion 
+				ON DATEADD(dd, -1, dt.[DATE]) = Funcion.fecha_contabilidad 
+				AND Funcion.pelicula_id = #id_pelicula#
+				AND Funcion.complejo_id = #id_complejo#
+				GROUP BY dt.[DATE]
+			) as DP
+			ON X.fecha = DP.fecha 
+			LEFT JOIN
+			(
+				SELECT dt.[DATE] as fecha, 
+				(SELECT DATEDIFF(DAY, MIN(dts.[DATE]), dt.[DATE])/7 FROM [DateTable] dts) as semana,
+				count(funcion_id) as funciones
+				FROM [DateTable] dt 
+				LEFT JOIN Funcion 
+				ON dt.[DATE] = Funcion.fecha_contabilidad 
+				AND Funcion.pelicula_id = #id_pelicula#
+				AND Funcion.complejo_id = #id_complejo#
+				GROUP BY dt.[DATE]
+			) AS SP
+			ON DATEADD(dd, -7, X.fecha) = SP.fecha
+		) as DATA
+		WHERE funciones > 0
+		AND funciones_dia_previo = 0
+		AND funciones_semana_previa = 0
+		ORDER by fecha DESC
+		OPTION (MAXRECURSION 10000)
+		]]>
+  	</select>
+
+  	<select id="obtenerFuncionesSalaDia" parameterClass="java.util.Map" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, es_numerada, asistencia_proyectada, porcentaje_ocupacion_proyectado
+		FROM Funcion
+		WHERE sala_id = #sala_id#
+		AND fecha_contabilidad = #fecha#
+  	</select>
+
+
+	<select id="obtenerPrimeraFuncion" resultMap="MapFuncion" parameterClass="java.util.HashMap">
+		SELECT top 1 f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.es_numerada, f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado
+		FROM Funcion f, Sala s
+		WHERE f.pelicula_id = #pelicula.id#
+		AND f.sala_id = s.sala_id
+		AND s.complejo_id = #complejo.id#
+		AND DATEPART(weekday,f.fecha) = #dia#
+		ORDER BY f.fecha   	
+  	</select>
+
+
+	<select id="obtenerAsistenciasFuncion" parameterClass="java.lang.Integer" resultMap="MapAsistenciaFuncion">
+		SELECT ticket_asistencia_id, funcion_id, clase_id, asistencia
+		FROM AsistenciaPorTicket
+		WHERE funcion_id = #value#
+	</select>
+
+	<select id="obtenerAsistenciaDiariaPorPelicula" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.AsistenciaDiaria">
+		SELECT DISTINCT 
+			p.pelicula_id as peliculaId,
+			SUM(a.asistencia) as asistenciaDiaria, 
+			convert(datetime, convert(varchar,f.fecha,110), 0) as fecha
+		FROM 
+			Asistencia a, Funcion f, Pelicula p
+		WHERE 
+			a.funcion_id = f.funcion_id
+			and f.pelicula_id =	p.pelicula_id
+			and p.pelicula_id = #value#
+		GROUP BY 
+			convert(datetime, convert(varchar,f.fecha,110), 0), p.pelicula_id
+		ORDER BY
+			convert(datetime, convert(varchar,f.fecha,110), 0)
+	</select>
+
+	<select id="obtenerAsistenciasHoraPeliculaComplejo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT DATEPART(hour,F.fecha) as 'hora',
+		cast(SUM(A.asistencia) as float)/ cast(Count(Distinct F.funcion_id) as float) as
+		'asistencias'
+
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=8
+
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		ORDER BY Fun.fecha)
+
+		GROUP BY DATEPART(hour,F.fecha)
+
+		UNION
+
+		SELECT DATEPART(hour,F.fecha) as 'hora',
+		cast(SUM(A.asistencia) as float)/ cast(Count(Distinct F.funcion_id) as float) as
+		'asistencias'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=0
+		AND DATEPART(hour,F.fecha)&lt;=3
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+1+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		ORDER BY Fun.fecha)
+
+		GROUP BY DATEPART(hour,F.fecha)
+		ORDER BY DATEPART(hour,F.fecha)
+
+	</select>
+
+	<select id="obtenerVarianzasFuncionesHora" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT DATEPART(hour,Fu.fecha) as 'hora',
+		ISNULL(VAR(CAST(Asis.asistencia as float)),0.0) as 'varianza'
+		FROM
+		Funcion Fu,
+		(SELECT F.funcion_id, SUM(A.asistencia) as 'asistencia'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=8
+
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		)
+
+		GROUP BY F.funcion_id, DATEPART(hour,F.fecha)
+
+		UNION
+
+		SELECT F.funcion_id, SUM(A.asistencia) as 'asistencia'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=0
+		AND DATEPART(hour,F.fecha)&lt;=3
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+1+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		)
+
+		GROUP BY F.funcion_id, DATEPART(hour,F.fecha)) Asis
+		WHERE Fu.funcion_id = Asis.funcion_id
+
+		GROUP BY DATEPART(hour,Fu.fecha)
+
+	</select>
+
+	<select id="obtenerFuncion" parameterClass="java.lang.Integer" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, es_numerada, asistencia_proyectada, porcentaje_ocupacion_proyectado
+		FROM Funcion
+		WHERE funcion_id= #value#  	
+  	</select>
+  	
+  	<select id="obtenerFuncionPorIdExterno" parameterClass="java.util.Map" resultMap="MapFuncion">
+		SELECT f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.es_numerada, f.asistencia_proyectada, f.porcentaje_ocupacion_proyectado
+		FROM Funcion f, Sala s, Complejo c
+		WHERE s.complejo_id = c.complejo_id
+		AND f.sala_id = s.sala_id 
+		AND c.complejo_id = #complejo_id#
+		AND funcion_id_externo= #id_externo#
+  	</select>
+  	
+  	<select id="obtenerDia" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Dia">
+		SELECT *
+		FROM Fun_Dia
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerHora" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Hora">
+		SELECT *
+		FROM Fun_Hora
+		WHERE id = #value#
+	</select>
+
+	<insert id="agregarAsistencia" parameterClass="cl.zpricing.avant.model.Asistencia">
+		INSERT 
+		INTO Asistencia (funcion_id,clase_id,asistencia)
+		VALUES (#funcionAsociada.id#, #clase.id#, #asistencia#)
+	</insert>
+
+	<update id="setCuposCargados" parameterClass="java.util.Map">
+		UPDATE Funcion
+		SET cupos_cargados = #estado#
+		WHERE funcion_id = #funcion_id#
+	</update>
+	
+	<update id="setCuposCargadosFuncionesFuturas">
+		UPDATE Funcion
+		SET cupos_cargados = 1
+		WHERE funcion_id IN
+			(SELECT f.funcion_id
+			FROM Funcion f
+			JOIN Complejo c ON c.complejo_id = f.complejo_id
+			JOIN Pelicula p ON p.pelicula_id = f.pelicula_id
+			JOIN Pelicula_Complejo pc ON pc.complejo_id = c.complejo_id AND pc.pelicula_id = f.pelicula_id 
+			JOIN Mascara M ON M.id = f.mascara_id
+			LEFT JOIN Area a ON a.descripcion = 'Adulto'
+			LEFT JOIN Ticket t ON t.area_id = a.id
+			LEFT JOIN PriceCardTicket pct ON pct.pricecard_id = f.price_card_id AND pct.ticket_id = t.ticket_id
+			WHERE f.fecha >= GETDATE()
+			AND f.cupos_cargados = 0)
+	</update>
+	<!--
+		En este update elimino el tipo funcion hasta que sea implementado
+	-->
+	<update id="actualizarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET fecha = #fecha#, sala_id = #sala.id#, pelicula_id = #peliculaAsociada.id#, cargada = #cargada#, 
+		mascara_id = #mascara.id#, cupos_cargados =#cuposCargados#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarFuncionSinMascara" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET fecha = #fecha#, sala_id = #sala.id#, pelicula_id = #peliculaAsociada.id#, cargada = #cargada#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarSemanaExhibicion" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion SET semana = #semana#, exhibicion = #exhibicion# WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarAsistenciaProyectada" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET asistencia_proyectada = #asistenciaProyectada#, porcentaje_ocupacion_proyectado = #porcentajeOcupacionProyectado#,
+		mascara_id = #mascara.id#,
+		cupos_cargados = #cuposCargados#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarAsistenciaProyectadaSinMascara" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET asistencia_proyectada = #asistenciaProyectada#, porcentaje_ocupacion_proyectado = #porcentajeOcupacionProyectado#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarAnalizada" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET analizada = #analizada#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarBloqueada" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET bloqueada = #bloqueada#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="copiaMascaraAFuncionesFuturas" parameterClass="java.util.Map">
+		UPDATE Funcion
+		SET mascara_id = #mascara_id#,
+		cupos_cargados = 0
+		WHERE fecha_contabilidad > #fecha_contable#
+		AND CONVERT(TIME, fecha, 108) = #hora#
+		AND sala_id = #sala_id#
+		AND pelicula_id = #pelicula_id#
+	</update>
+	
+	<insert id="actualizarFuncionesUpselling" parameterClass="java.util.Map">
+		<![CDATA[ 
+		INSERT INTO Upselling_Sessions (funcion_id, funcion_upselling_id, upselling_orden)
+		SELECT funcion_id, funcion_upselling_id, orden
+		FROM 	
+			(SELECT DISTINCT F.funcion_id, F.fecha, PF.descripcion as descripcion_formato, US.funcion_id as funcion_upselling_id, US.fecha as fecha_funcion_upselling, USPF.descripcion, SSI.similitud, ROW_NUMBER() OVER (PARTITION BY F.funcion_id ORDER BY USPF.upselling_orden, SSI.similitud desc, ABS(DATEDIFF(MINUTE,F.fecha,US.fecha))) as orden
+			FROM Funcion F 
+			LEFT JOIN Pelicula P ON F.pelicula_id = P.pelicula_id
+			LEFT JOIN Pel_Formato PF ON P.pel_formato_id = PF.id
+			LEFT JOIN Upselling_Formatos PFU ON PFU.formato_id = P.pel_formato_id
+			LEFT JOIN (	SELECT *
+						FROM (	SELECT f.funcion_id, f.fecha, f.complejo_id, f.pelicula_id, f.eliminada, f.estado, ROW_NUMBER() OVER (PARTITION BY funcion_id order by agm.capacidad) as rownumber
+								FROM Funcion f
+								JOIN Sala s ON s.sala_id = f.sala_id
+								JOIN Area_Grupo_Mascara agm 
+									ON agm.grupo_id = s.grupo_id
+									AND agm.mascara_id = f.mascara_id
+									AND agm.capacidad > 0
+								WHERE f.fecha >= GETDATE()
+							) X
+						WHERE rownumber = 1
+					) as US
+				ON US.fecha >= DATEADD(minute, -#pre_time#, F.fecha)
+				AND US.fecha <= DATEADD(minute, #post_time#, F.fecha)
+				AND F.complejo_id = US.complejo_id
+			LEFT JOIN Pelicula USP ON US.pelicula_id = USP.pelicula_id
+			LEFT JOIN Pel_Formato USPF ON USP.pel_formato_id = USPF.id
+			LEFT JOIN Complejo USC ON US.complejo_id = USC.complejo_id
+			JOIN Second_Selling_Idiomas SSI ON SSI.idioma_id_1 = P.pel_idioma_id AND SSI.idioma_id_2 = USP.pel_idioma_id
+			WHERE F.fecha >= GETDATE()
+			AND P.grupo_pelicula_id = USP.grupo_pelicula_id
+			AND F.funcion_id <> US.funcion_id
+			AND F.eliminada = 0 AND F.estado = 'O'
+			AND US.eliminada = 0 AND US.estado = 'O'
+			AND PFU.formato_upselling_id = USPF.id
+			) as X
+		ORDER BY funcion_id, orden 
+  		]]>
+  	</insert>
+  	
+  	<delete id="cleanFuncionesUpselling">
+  		DELETE FROM Upselling_Sessions
+  	</delete>
+	
+	<insert id="actualizarCuposUpselling">
+		<![CDATA[ 
+		INSERT INTO FuncionArea (funcion_id, area_id, disponible, total, ocupados)
+		SELECT * FROM 
+		(
+			SELECT DISTINCT F.funcion_id, A.id as area_id, AGM.capacidad as disponible, AGM.capacidad as total, 0 as ocupados
+			FROM Funcion F
+			JOIN Upselling_Sessions UFA ON UFA.funcion_upselling_id = F.funcion_id AND F.eliminada = 0
+			JOIN Sala S ON F.sala_id = S.sala_id
+			JOIN Area_Grupo_Mascara AGM ON AGM.grupo_id = S.grupo_id AND AGM.mascara_id = F.mascara_id
+			JOIN Area A ON AGM.area_id = A.id AND A.descripcion = 'Upselling'
+		) UPSN
+		WHERE NOT EXISTS (SELECT * FROM FuncionArea fa WHERE UPSN.funcion_id = fa.funcion_id AND UPSN.area_id = fa.area_id)
+  		]]>
+  	</insert>
+  	
+	<insert id="agregarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		INSERT 
+		INTO Funcion (fecha, sala_id, pelicula_id, tipo_funcion_id, cargada)
+		VALUES (#fecha#, #sala.id#, #peliculaAsociada.id#, #tipoFuncion.id#, #cargada#)
+	</insert>
+
+	<delete id="eliminarAsistencias" parameterClass="cl.zpricing.avant.model.Funcion">
+		DELETE
+		Asistencia
+		WHERE funcion_id = #id#
+  	</delete>
+
+	<delete id="eliminarAsistencia" parameterClass="cl.zpricing.avant.model.Asistencia">
+		DELETE Asistencia
+		WHERE asistencia_id = #id#
+  	</delete>
+
+	<delete id="eliminarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		DELETE Funcion
+		WHERE
+		funcion_id = #id#
+  	</delete>
+
+	<delete id="eliminarFuncionId" parameterClass="java.lang.Integer">
+		DELETE Funcion
+		WHERE funcion_id = #value#
+  	</delete>
+  	
+  	<update id="actualizarMascaraYBloquear" parameterClass="java.util.Map">
+		UPDATE Funcion
+		SET mascara_id = #mascara_id#,
+		bloqueada = 1
+		WHERE funcion_id = #funcion_id#
+	</update>
+</sqlMap>

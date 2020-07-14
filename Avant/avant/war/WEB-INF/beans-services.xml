@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	
+	<bean id="logProcesosManager" class="cl.zpricing.avant.negocio.sincronizador.LogProcesosManager">	
+		<property name="logProcesosDao" ref="logProcesosDao"/>
+	</bean>
+	
+	<bean id="factoryProcesos" class="cl.zpricing.avant.util.FactoryProcesos">
+		<property name="procesos">
+			<map key-type="java.lang.String">
+				<entry key="ImportData" value-ref="procesoCompleteCinemaExtractionData"/>
+				<entry key="ImportNewSessions" value-ref="procesoImportNewSessionsFromCinema"/>
+				<entry key="AttendanceAnalysis" value-ref="procesoAnalisisAsistencias"/>
+				<entry key="ForecastAnalysis" value-ref="procesoForecastAndOptimization"/>
+				<entry key="ForecastAnalysisNewSessions" value-ref="procesoForecastAndOptimizationNewSessions"/>
+				<entry key="ImportNewSessions" value-ref="procesoImportNewSessionsFromCinema"/>
+				<entry key="BookingLimits" value-ref="procesoLoadBookingLimits"/>
+				<entry key="Upselling" value-ref="procesoUpselling"/>
+				<entry key="SecondSelling" value-ref="procesoSecondSelling"/>
+				<entry key="LastMinuteSelling" value-ref="procesoLastMinuteSelling"/>
+				<entry key="CineticketDataExtraction" value-ref="procesoCineticketDataExtractionManager"/>
+				<entry key="LoyaltyDataExtraction" value-ref="procesoLoyaltyDataExtractionManager"/>
+				<entry key="SecondSellingPersonalizedSuggestions" value-ref="procesoSecondSellingPersonalizedManager"/>
+				<entry key="MovieExternalDataSource" value-ref="procesoMovieExternalDataSource"/>
+				<entry key="ProcessCinemaPreferences" value-ref="procesoActualizarPreferenciasCineClientes"/>
+				<entry key="ProcessCategoryPreferences" value-ref="processUpdateClientCategoryPreferences"/>
+				<entry key="ProcessUpdateClustersMovies" value-ref="processUpdateClustersMovies"/>
+				<entry key="ProcessUpdateBusinessIntelligenceData" value-ref="processUpdateBusinessIntelligenceData"/>
+			</map>
+		</property>
+		<property name="procesosActualizacionDiaria" ref="procesosActualizacionDiaria"/>
+		<property name="procesosActualizacionNuevasFunciones" ref="procesosActualizacionNuevasFunciones"/>
+		<property name="procesosExtraerDataUsuarios" ref="procesosExtraerDataUsuarios"/>
+		<property name="procesosSecondSellingPersonalizedSuggestions" ref="procesosSecondSellingPersonalizedSuggestions"/>
+		<property name="procesosLastMinuteSelling" ref="procesosLastMinuteSelling"/>
+		<property name="logProcesosDao" ref="logProcesosDao"/>
+	</bean>
+	
+	<bean id="procesosActualizacionDiaria" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	            <value>ImportData</value>
+	            <value>AttendanceAnalysis</value>
+	            <value>MovieExternalDataSource</value>
+	            <value>ForecastAnalysis</value>
+	            <value>Upselling</value>
+	            <value>SecondSelling</value>
+	            <value>BookingLimits</value>
+	        </list>
+	    </constructor-arg>
+	</bean>
+	
+	<bean id="procesosActualizacionNuevasFunciones" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	            <value>ImportNewSessions</value>
+	            <value>ForecastAnalysisNewSessions</value>
+	            <value>Upselling</value>
+	            <value>SecondSelling</value>
+	            <value>BookingLimits</value>
+	        </list>
+	    </constructor-arg>
+	</bean>
+	
+	<bean id="procesosExtraerDataUsuarios" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	            <value>CineticketDataExtraction</value>
+	            <value>LoyaltyDataExtraction</value>
+	        </list>
+	    </constructor-arg>
+	</bean>
+	
+	<bean id="procesosSecondSellingPersonalizedSuggestions" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	        	<value>ProcessCinemaPreferences</value>
+	        	<value>ProcessCategoryPreferences</value>
+	        	<value>ProcessUpdateBusinessIntelligenceData</value>
+	        </list>
+	    </constructor-arg>
+	</bean>
+	
+	<bean id="procesosLastMinuteSelling" class="java.util.ArrayList">
+	    <constructor-arg>
+	        <list>
+	            <value>LastMinuteSelling</value>
+	            <value>BookingLimits</value>
+	        </list>
+	    </constructor-arg>
+	</bean>
+	
+	<bean id="procesoCompleteCinemaExtractionData" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Import Cinema Data"/>
+		<property name="codigo" value="ImportData"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="etlCompleteExtractionImpl"/>
+	</bean>
+	
+	<bean id="procesoCinemaExtractionData" class="cl.zpricing.avant.negocio.sincronizador.ProcesoCinemaExtraction">
+		<property name="nombre" value="Cinema Data Extraction"/>
+		<property name="codigo" value="CinemaExtraction"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="obtenerProceso" bean="etlCinemaExtractionImpl"/>
+	</bean>
+	
+	<bean id="procesoImportNewSessionsFromCinema" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Import New Sessions"/>
+		<property name="codigo" value="ImportNewSessions"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="etlSessionExtractionImpl"/>
+	</bean>
+	
+	<bean id="procesoAnalisisAsistencias" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Attendance Analysis"/>
+		<property name="codigo" value="AttendanceAnalysis"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="asistenciasManager"/>
+	</bean>
+	
+	<bean id="procesoForecastAndOptimization" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Forecast and Optimization Analysis"/>
+		<property name="codigo" value="ForecastAnalysis"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="mascarasManager"/>
+	</bean>
+	
+	<bean id="procesoForecastAndOptimizationNewSessions" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Forecast and Optimization new Sessions Analysis"/>
+		<property name="codigo" value="ForecastAnalysisNewSessions"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="mascarasManagerFuncionesNuevas"/>
+	</bean>
+	
+	<bean id="procesoLoadBookingLimits" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Load Booking Limits"/>
+		<property name="codigo" value="BookingLimits"/>
+		<property name="type" value="data_load"/>
+		<lookup-method name="ejecutarProceso" bean="availabilityManager"/>
+	</bean>
+	
+	<bean id="procesoUpselling" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Upselling"/>
+		<property name="codigo" value="Upselling"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="upsellingManager"/>
+	</bean>
+	
+	<bean id="procesoSecondSelling" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="SecondSelling"/>
+		<property name="codigo" value="SecondSelling"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="secondSellingManager"/>
+	</bean>
+	
+	<bean id="procesoLastMinuteSelling" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="LastMinuteSelling"/>
+		<property name="codigo" value="LastMinuteSelling"/>
+		<property name="type" value="system"/>
+		<lookup-method name="ejecutarProceso" bean="lastMinuteSellingManager"/>
+	</bean>
+	
+	<bean id="procesoSecondSellingPersonalizedManager" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Second Selling Personalized Suggestions"/>
+		<property name="codigo" value="SecondSellingPersonalizedSuggestions"/>
+		<property name="type" value="data_load"/>
+		<lookup-method name="ejecutarProceso" bean="secondSellingPersonalizedManager"/>
+	</bean>
+	
+	<bean id="procesoMovieExternalDataSource" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Movie External Data Source"/>
+		<property name="codigo" value="MovieExternalDataSource"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="movieExternalDataSource"/>
+	</bean>
+	
+	<bean id="procesoCineticketDataExtractionManager" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Cineticket Data Extraction"/>
+		<property name="codigo" value="CineticketDataExtraction"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="cineticketExtractionManager"/>
+	</bean>
+	<bean id="cineticketExtractionManager" class="cl.zpricing.avant.negocio.CineticketExtractionManager" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="cineticketDataExtractionJobExecutor" ref="cineticketDataExtractionJobExecutor"/>
+		<property name="cineticketCustomerDataExtractionJobExecutor" ref="cineticketCustomerDataExtractionJobExecutor"/>
+	</bean>
+	<bean id="cineticketDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="cineticketDataExtractionJob"/>
+	</bean>
+	<bean id="cineticketCustomerDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="cineticketCustomerDataExtractionJob"/>
+	</bean>
+	
+	<bean id="procesoLoyaltyDataExtractionManager" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Loyalty Data Extraction"/>
+		<property name="codigo" value="LoyaltyDataExtraction"/>
+		<property name="type" value="data_extraction"/>
+		<lookup-method name="ejecutarProceso" bean="loyaltyExtractionManager"/>
+	</bean>
+	<bean id="loyaltyExtractionManager" class="cl.zpricing.avant.negocio.LoyaltyExtractionManager" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loyaltyCustomerDataExtractionJobExecutor" ref="loyaltyCustomerDataExtractionJobExecutor"/>
+		<property name="loyaltyTransactionExtractionJobExecutor" ref="loyaltyTransactionExtractionJobExecutor"/>
+	</bean>
+	<bean id="loyaltyCustomerDataExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="loyaltyCustomerDataExtractionJob"/>
+	</bean>
+	<bean id="loyaltyTransactionExtractionJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="loyaltyTransactionExtractionJob"/>
+	</bean>
+	
+	<bean id="procesoActualizarPreferenciasCineClientes" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Cinema Preferences"/>
+		<property name="codigo" value="ProcessCinemaPreferences"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="actualizarPreferenciasCineClientes"/>
+	</bean>
+	
+	<bean id="processUpdateClientCategoryPreferences" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Category Preferences"/>
+		<property name="codigo" value="ProcessCategoryPreferences"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="updateClientCategoryPreferences"/>
+	</bean>
+	
+	<bean id="processUpdateClustersMovies" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process Update Clusters Movies"/>
+		<property name="codigo" value="ProcessUpdateClustersMovies"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="updateClustersMovies"/>
+	</bean>
+	
+	<bean id="processUpdateBusinessIntelligenceData" class="cl.zpricing.avant.negocio.sincronizador.MetaProceso">
+		<property name="nombre" value="Process BI Data"/>
+		<property name="codigo" value="ProcessUpdateBusinessIntelligenceData"/>
+		<property name="type" value="business_intelligence"/>
+		<lookup-method name="ejecutarProceso" bean="updateBusinessIntelligenceData"/>
+	</bean>
+	
+	<bean id="asistenciasManager" class="cl.zpricing.avant.negocio.forecastmanager.AsistenciasManager" scope="prototype">
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="peliculaDao" ref="peliculaDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="forecastDao" ref="forecastDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="empresaDao" ref="empresaDao"/>
+		<property name="reportesDao" ref="reportesDao"/>
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="mascarasManager" class="cl.zpricing.avant.negocio.forecastmanager.MascarasManager"  scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="peliculaDao" ref="peliculaDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="forecastDao" ref="forecastDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="empresaDao" ref="empresaDao"/>
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="soloFuncionesNuevas" value="false"/>
+	</bean>
+	
+	<bean id="mascarasManagerFuncionesNuevas" class="cl.zpricing.avant.negocio.forecastmanager.MascarasManager"  scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="peliculaDao" ref="peliculaDao"/>
+		<property name="complejoDao" ref="complejoDao"/>
+		<property name="forecastDao" ref="forecastDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="empresaDao" ref="empresaDao"/>
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="soloFuncionesNuevas" value="true"/>
+	</bean>
+	
+	<bean id="availabilityManager" class="cl.zpricing.avant.negocio.forecastmanager.AvailabilityManager"  scope="prototype">	
+		<property name="jobLauncher" ref="jobLauncher"/>
+ 		<property name="job" ref="revenueManagementAvailabilityJob"/>
+ 		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="availabilityManagerSoloFuncionesNoCargadas" class="cl.zpricing.avant.negocio.forecastmanager.AvailabilityManager"  scope="prototype">	
+		<property name="jobLauncher" ref="jobLauncher"/>
+ 		<property name="job" ref="revenueManagementAvailabilityJob"/>
+ 		<property name="processAlertFactory" ref="processAlertFactory"/>
+ 		<property name="soloFuncionesNoCargadas" value="true"/>
+	</bean>
+	
+	<bean id="secondSellingPersonalizedManager" class="cl.zpricing.avant.negocio.forecastmanager.SecondSellingPersonalizedManager"  scope="prototype">	
+		<property name="jobLauncher" ref="jobLauncher"/>
+ 		<property name="job" ref="secondSellingPersonalizedSuggestionsJob"/>
+ 		<property name="processAlertFactory" ref="processAlertFactory"/>
+ 		<property name="funcionDao" ref="funcionDao"/>
+	</bean>
+	
+	<bean id="upsellingManager" class="cl.zpricing.avant.negocio.forecastmanager.UpsellingManager" scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="secondSellingManager" class="cl.zpricing.avant.negocio.forecastmanager.SecondSellingManager" scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="lastMinuteSellingManager" class="cl.zpricing.avant.negocio.forecastmanager.LastMinuteSellingManager" scope="prototype">	
+		<property name="funcionDao" ref="funcionDao"/>
+		<property name="serviciosRM" ref="serviciosRM" />
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="movieExternalDataSource" class="cl.zpricing.avant.negocio.datasource.OpenMovieDatabaseImpl" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="processAlertFactory" class="cl.zpricing.avant.alerts.ProcessAlertFactory"/>
+	
+	
+	
+	<bean id="actualizarPreferenciasCineClientes" class="cl.zpricing.avant.negocio.bi.UpdateClientCinemaPreferences" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="updateClientCategoryPreferences" class="cl.zpricing.avant.negocio.bi.UpdateClientCategoryPreferences" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+	</bean>
+	
+	<bean id="updateClustersMovies" class="cl.zpricing.avant.negocio.bi.LoadClusters" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loadClustersjobExecutor" ref="loadClustersJobExecutor"/>
+	</bean>
+	<bean id="updateBusinessIntelligenceData" class="cl.zpricing.avant.negocio.bi.LoadBusinessIntelligenceData" scope="prototype">
+		<property name="processAlertFactory" ref="processAlertFactory"/>
+		<property name="loadClustersjobExecutor" ref="loadClustersJobExecutor"/>
+		<property name="loadClientsjobExecutor" ref="loadClientsJobExecutor"/>
+	</bean>
+	
+	<bean id="loadClustersJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="businessIntelligenceClusterLoadJob"/>
+	</bean>
+	<bean id="loadClientsJobExecutor" class="cl.zpricing.avant.util.JobExecutor">
+		<property name="job" ref="businessIntelligenceClientLoadJob"/>
+	</bean>
+</beans>

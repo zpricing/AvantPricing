@@ -1,0 +1,19 @@
+.DS_Store
+
+# Compiled source #
+###################
+**/*.class
+bin/*
+
+
+# Local Configuration Files #
+###################
+.classpath
+.project
+.settings
+*.war
+.DS_Store
+build.properties
+war/WEB-INF/classes/jdbc.properties
+war/WEB-INF/classes/log4j.properties
+war/WEB-INF/classes/system.properties

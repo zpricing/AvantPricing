@@ -1,0 +1,38 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de peliculas.
+    </description>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="zpcinemas-ors" driver="mysql"/> 
+    
+    <script id="create_movie_database_temp" connection-id="zpcinemas-ors">
+    	DROP TABLE IF EXISTS movies_temp;
+    	CREATE TABLE movies_temp (movie_code varchar(50), cinema_code varchar(50), movie_name varchar(255));
+    </script>
+    
+    <query id="select_movies_info" connection-id="zpcinemas">
+		SELECT c.complejo_id_externo, pc.pelicula_complejo_id_externo, p.nombre
+		FROM Pelicula_Complejo pc
+		JOIN Pelicula p ON p.pelicula_id = pc.pelicula_id
+		JOIN Complejo c ON c.complejo_id = pc.complejo_id
+		JOIN Funcion f ON f.pelicula_id = p.pelicula_id AND f.fecha >= GETDATE()
+		GROUP BY c.complejo_id_externo, pc.pelicula_complejo_id_externo, p.nombre
+		     
+       	<script id="insert_movies_temp" connection-id="zpcinemas-ors">
+       		INSERT INTO movies_temp (cinema_code, movie_code, movie_name) VALUES (?complejo_id_externo, ?pelicula_complejo_id_externo, ?nombre)
+		</script>
+    </query>
+    
+    <script id="insert_movies" connection-id="zpcinemas-ors">
+    	INSERT movies (movie_code, movie_name, cinema_code)
+		SELECT mt.movie_code, mt.movie_name, mt.cinema_code
+		FROM movies_temp mt
+		WHERE NOT EXISTS (SELECT * FROM movies m WHERE m.movie_code = mt.movie_code AND m.cinema_code = mt.cinema_code)
+	</script>
+	
+	<script id="drop_movies_temp" connection-id="zpcinemas-ors">
+		DROP TABLE movies_temp;
+	</script>
+</etl>

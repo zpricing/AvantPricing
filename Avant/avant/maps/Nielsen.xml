@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Nielsen">
+<resultMap class="cl.zpricing.avant.model.RptComplejo" id="RptComplejo">
+	<result property="nombre" column="nombre"></result>
+	<result property="rptComplejoId" column="rpt_complejo_id"/>
+	<result property="fechaDesde" column="fecha_desde"/>
+	<result property="cantidadSalas" column="cantidad_salas"/>
+	<result property="rptEmpresa" column="rpt_empresa_id" select="obtenerRptEmpresa"/>
+	<result property="ciudad" column="ciudad"/>
+	<result property="rm" column="rm"/>
+</resultMap> 
+
+<resultMap class="cl.zpricing.avant.model.RptEmpresa" id="RptEmpresa">
+	<result property="nombre" column="nombre"></result>
+	<result property="rptEmpresaId" column="rpt_empresa_id"></result>
+	<result property="codigo_nielsen" column="codigo_nielsen"></result>
+</resultMap>
+
+<resultMap class="cl.zpricing.avant.model.reports.SemanaNielsen" id="SemanaNielsen">
+	<result property="fechaInicio" column="fecha_inicio"/>
+	<result property="cantidadComplejos" column="cantidadComplejos"/>
+	<result property="weekOfYear" column = "Week_Of_Year"/>
+</resultMap>
+
+
+
+<select id="obtenerRptComplejo" parameterClass="java.lang.Integer" resultMap="RptComplejo">
+	SELECT TOP 1
+		rpt_complejo_id,
+		nombre,
+		fecha_desde,
+		cantidad_salas,
+		rpt_empresa_id,
+		ciudad,
+		rm
+	FROM
+		RPT_Complejo
+	WHERE
+		rpt_complejo_id = #value#
+	ORDER BY
+		fecha_desde DESC
+</select>
+
+<select id="obtenerRptEmpresa" parameterClass="java.lang.Integer" resultMap="RptEmpresa">	
+	SELECT
+		rpt_empresa_id,
+		nombre,
+		codigo_nielsen
+	FROM
+		RPT_Empresa
+	WHERE	
+		rpt_empresa_id = #value#
+</select>
+
+<select id="obtenerRptComplejoTodos" resultMap="RptComplejo">
+	SELECT
+		rpt_complejo_id,
+		nombre,
+		fecha_desde,
+		cantidad_salas,
+		rpt_empresa_id,
+		ciudad,
+		CAST(rm as integer) rm
+	FROM
+		RPT_Complejo
+	ORDER BY
+		rpt_complejo_id
+</select>
+
+<select id="obtenerRptEmpresaTodos" resultMap="RptEmpresa">
+	SELECT
+		rpt_empresa_id,
+		nombre,
+		codigo_nielsen
+	FROM
+		RPT_Empresa
+	ORDER BY
+		rpt_empresa_id
+</select>
+
+
+<select id="obtenerAsistenciaHistoricaPorComplejo" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+	SELECT
+		SUM(asistencia)
+	FROM
+		AsistenciaHistorica
+	WHERE
+		complejo_id = #value#
+	GROUP BY
+		complejo_id
+</select>
+
+<select id="obtenerRecaudacionHistoricaPorComplejo" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+	SELECT
+		SUM(recaudacion)
+	FROM
+		RecaudacionHistorica
+	WHERE
+		complejo_id = #value#
+	GROUP BY
+		complejo_id
+</select>
+	
+<select id="obtenerAsistenciaHistoricaPorComplejoDesdeFecha" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+	SELECT
+		SUM(asistencia)
+	FROM
+		AsistenciaHistorica
+	WHERE
+		complejo_id = #complejo_id#
+		AND fecha_inicio &gt;= CONVERT(DATETIME, #fecha_inicio#, 102)
+	GROUP BY
+		complejo_id
+</select>
+
+<select id="obtenerRecaudacionHistoricaPorComplejoDesdeFecha" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+	SELECT
+		SUM(recaudacion)
+	FROM
+		RecaudacionHistorica
+	WHERE
+		complejo_id = #complejo_id#
+		AND fecha_inicio &gt;= CONVERT(DATETIME, #fecha_inicio#, 102)
+	GROUP BY
+		complejo_id
+</select>
+
+<select id="obtenerAsistenciaHistoricaPorComplejoEntreFechas" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+	SELECT
+		SUM(asistencia)
+	FROM
+		AsistenciaHistorica
+	WHERE
+		complejo_id = #complejo_id#
+		AND fecha_inicio &gt;= CONVERT(DATETIME, #fecha_inicio#, 102)
+		AND fecha_fin &lt;= CONVERT(DATETIME, #fecha_fin#, 102)
+	GROUP BY
+		complejo_id
+</select>
+
+<select id="obtenerRecaudacionHistoricaPorComplejoEntreFechas" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+	SELECT
+		SUM(recaudacion)
+	FROM
+		RecaudacionHistorica
+	WHERE
+		complejo_id = #complejo_id#
+		AND fecha_inicio &gt;= CONVERT(DATETIME, #fecha_inicio#, 102)
+		AND fecha_fin &lt;= CONVERT(DATETIME, #fecha_fin#, 102)
+	GROUP BY
+		complejo_id
+</select>
+
+<update id="actualizarNombreRptEmpresa" parameterClass="cl.zpricing.avant.model.RptEmpresa">
+	UPDATE RPT_Empresa
+	SET nombre = #nombre#
+	WHERE rpt_empresa_id = #rptEmpresaId#
+</update>
+
+<delete id="eliminarRptEmpresa" parameterClass="cl.zpricing.avant.model.RptEmpresa">
+	DELETE FROM RPT_Empresa
+	WHERE rpt_empresa_id = #rptEmpresaId#
+</delete>
+
+<update id ="editarCantidadSalasComplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	UPDATE RPT_Complejo
+	SET cantidad_salas = CAST(#cantidadSalas# AS integer)
+	WHERE rpt_complejo_id = CAST(#rptComplejoId# as integer)
+	AND fecha_desde = CAST(#fechaDesde# as datetime)
+</update>
+<update id ="editarCiudadComplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	UPDATE RPT_Complejo
+	SET ciudad  = CAST(#ciudad# AS varchar)
+	WHERE rpt_complejo_id = CAST(#rptComplejoId# as integer)
+	AND fecha_desde = CAST(#fechaDesde# as datetime)
+</update>
+
+<update id ="editarNombreComplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	UPDATE RPT_Complejo
+	SET nombre = CAST(#nombre# AS varchar) 
+	WHERE rpt_complejo_id = CAST(#rptComplejoId# as integer)
+	AND fecha_desde = CAST(#fechaDesde# as datetime)
+	
+</update>
+
+<update id="editarIdComplejo" parameterClass="java.util.HashMap">
+	UPDATE RPT_Complejo
+	SET rpt_complejo_id = CAST(#newId# as integer)
+	WHERE rpt_complejo_id = CAST(#oldId# as integer)
+	AND fecha_desde = CAST (#fechaDesde# as datetime) 
+
+</update>
+
+<update id="editarEmpresaComplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	UPDATE RPT_Complejo
+	SET rpt_empresa_id = CAST(#rptEmpresaId# as integer)
+	WHERE rpt_complejo_id = CAST(#rptComplejoId# as integer)
+	AND fecha_desde = CAST (#fechaDesde# as datetime) 
+</update>
+
+<update id="editarRmComplejo" parameterClass="java.util.HashMap">
+	UPDATE RPT_Complejo
+	SET rm = #rm#
+	WHERE rpt_complejo_id = CAST(#rptComplejoId# as integer)
+	AND fecha_desde = CAST (#fechaDesde# as datetime) 
+</update>
+
+<delete id="eliminarRptComplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	DELETE FROM RPT_Complejo
+	WHERE rpt_complejo_id = #rptComplejoId#
+	AND fecha_desde = CAST(#fechaDesde# as datetime)
+</delete>
+
+<insert id="agregarRptcomplejo" parameterClass="cl.zpricing.avant.model.RptComplejo">
+	INSERT INTO RPT_Complejo
+	(rpt_complejo_id, nombre, fecha_desde, cantidad_salas, rpt_empresa_id, ciudad, rm)
+	VALUES
+	(#rptComplejoId#,
+	#nombre#,
+	CAST(#fechaDesde# as datetime),
+	#cantidadSalas#,
+	#rptEmpresa.rpt_empresa_id#,
+	#ciudad#,
+	#rm#)
+</insert>
+
+<select id="obtenerRptComplejoIdMasAlto" resultClass="java.lang.Integer">
+	SELECT TOP 1 rpt_complejo_id
+	FROM RPT_Complejo
+	ORDER BY rpt_complejo_id DESC
+</select>
+
+<select id="obtenerSemanasNielsen" resultMap="SemanaNielsen">
+	SELECT 
+		ah.fecha_inicio,
+ 		COUNT(ah.complejo_id) cantidadComplejos, 
+ 		t.Week_Of_Year, 
+ 		t.Year_Name
+	FROM
+		AsistenciaHistorica ah, 
+		TiempoCine t
+	WHERE
+		ah.fecha_inicio = t.PK_Date
+	GROUP BY
+		fecha_inicio, 
+		t.Week_Of_Year, 
+		t.Year_Name
+</select>
+
+<delete id="eliminarSemanaNielsen" parameterClass="java.util.Date">
+	BEGIN TRANSACTION
+	DELETE FROM AsistenciaHistorica WHERE fecha_inicio = #value#;
+	DELETE FROM RecaudacionHistorica WHERE fecha_inicio = #value#;
+	COMMIT TRANSACTION
+</delete>
+
+
+</sqlMap>

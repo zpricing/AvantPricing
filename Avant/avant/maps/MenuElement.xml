@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+<sqlMap namespace="MenuElement">
+	
+	<resultMap id="menuElementMap" class="cl.zpricing.avant.model.MenuElement">
+		<result property="id_menu_element" column="id_menu_element" />
+		<result property="rol" column="rol_id" select="obtenerRol"/>
+		<result property="title" column="title" />
+		<result property="link" column="link" />
+		<result property="parent" column="parent" />
+	</resultMap>
+	
+	<select id="menuElementTodos" resultMap="menuElementMap">
+		SELECT id_menu_element, rol_id,title,link,parent
+		FROM Menu_admin
+		ORDER BY title
+	</select>
+	
+	<insert id="agregarMenuElement" parameterClass="cl.zpricing.avant.model.MenuElement">
+		INSERT INTO
+		Menu_admin (rol_id, title,link,parent)
+		VALUES (#rol.id#,#title#,#link#,#parent#)
+	</insert>
+	
+	<select id="obtenerMenuElement" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.MenuElement">
+		SELECT
+		id_menu_element, rol_id, title,link,parent
+		FROM Menu_admin
+		WHERE id_menu_element = #value#
+	</select>
+	
+	<delete id="eliminarMenuElement" parameterClass="cl.zpricing.avant.model.MenuElement">
+		DELETE Menu_admin
+		WHERE id_menu_element = #id_menu_element#
+  	</delete>
+  	
+	<update id="updateMenuElement" parameterClass="cl.zpricing.avant.model.MenuElement">
+		UPDATE Menu_admin
+		SET rol_id = #rol.id#, title = #title#, link = #link#, parent=#parent#
+		WHERE id_menu_element = #id_menu_element#
+  	</update>
+  	
+</sqlMap>

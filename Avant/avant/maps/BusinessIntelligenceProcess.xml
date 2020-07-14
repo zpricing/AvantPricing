@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BusinessIntelligenceProcess">
+    <delete id="cleanPreferenciasCineClientes">
+		DELETE FROM ClientePreferenciasCine
+	</delete>
+	<delete id="cleanClientCategoryPreferences">
+		DELETE FROM ClientePreferenciasCategoria
+	</delete>
+	
+	<insert id="actualizarPreferenciasCineClientes" parameterClass="java.util.Map">
+		INSERT ClientePreferenciasCine (cliente_id, complejo_id, factor_preferencia, asistencia)
+		SELECT cli.cliente_id, c.complejo_id, Y.factor, Y.contador
+		FROM
+			(SELECT email, codigo_cine, SUM(power(factor_tiempo, #factor_ajuste#)) as factor, COUNT(*) as contador
+			FROM
+				(SELECT email, codigo_cine, fecha_compra, GETDATE() as fecha_hoy, CASE WHEN DATEDIFF(day, fecha_compra, GETDATE()) > 0 THEN 1.0 / DATEDIFF(day, fecha_compra, GETDATE()) ELSE 1 END as factor_tiempo
+				FROM ClienteTransaccion
+				WHERE codigo_cine is not null
+				) as X
+			GROUP BY email, codigo_cine) as Y
+		JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = Y.codigo_cine COLLATE DATABASE_DEFAULT
+		JOIN Cliente cli ON Y.email COLLATE DATABASE_DEFAULT = cli.email COLLATE DATABASE_DEFAULT
+		WHERE c.activo = 1
+		ORDER BY factor desc 
+	</insert>
+	
+	<update id="updateCategoriesAttendanceWeight">
+		UPDATE Categoria
+		SET Categoria.attendance_weight = W.ratio
+		FROM
+			(SELECT X.categoria_id, asistencia_por_categoria / (asistencia_total * 1.0) as ratio
+			FROM
+				(SELECT gpc.categoria_id, c.descripcion, SUM(at.asistencia) as asistencia_por_categoria
+				FROM AsistenciaPorTicket at
+				JOIN Funcion f ON f.funcion_id = at.funcion_id
+				JOIN Pelicula p ON p.pelicula_id = f.pelicula_id
+				JOIN GrupoPeliculaCategoria gpc ON gpc.grupo_pelicula_id = p.grupo_pelicula_id
+				JOIN Categoria c ON c.categoria_id = gpc.categoria_id
+				GROUP BY gpc.categoria_id, c.descripcion
+				) as X,
+				(SELECT SUM(asistencia) as asistencia_total
+				FROM AsistenciaPorTicket
+				) as Y) as W
+		WHERE Categoria.categoria_id = W.categoria_id
+	</update>
+	
+	<insert id="insertClientCategoryPreferences" parameterClass="java.util.Map">
+		<![CDATA[ 
+		INSERT INTO ClientePreferenciasCategoria (cliente_id, categoria_id, orden)
+		SELECT R.cliente_id, R.categoria_id, R.rownumber
+		FROM	
+			(SELECT Q.cliente_id, Q.categoria_id, Q.descripcion, ROW_NUMBER() OVER (PARTITION BY Q.cliente_id ORDER BY Q.ratio_ajustado desc) as rownumber
+			FROM	
+				(SELECT Y.cliente_id, Y.categoria_id, Y.descripcion, Y.contador / (POWER(Y.attendance_weight, #adjustment_factor#) * 1.0) as ratio_ajustado
+				FROM	
+					(SELECT X.cliente_id, X.categoria_id, X.descripcion, COUNT(*) as contador, X.attendance_weight
+					FROM
+						(SELECT distinct cpv.cliente_id, gp.id, gp.nombre, gpc.categoria_id, c.descripcion, c.attendance_weight
+						FROM ClientePeliculasVistas cpv
+						JOIN Pelicula p ON cpv.pelicula_id = p.pelicula_id
+						JOIN Grupo_Pelicula gp ON gp.id = p.grupo_pelicula_id
+						JOIN GrupoPeliculaCategoria gpc ON gpc.grupo_pelicula_id = p.grupo_pelicula_id
+						JOIN Categoria c ON gpc.categoria_id = c.categoria_id
+						WHERE cpv.pelicula_id IS NOT NULL
+						AND c.attendance_weight > #minium_weight_to_consider#
+						) as X
+					GROUP BY X.cliente_id, X.categoria_id, X.descripcion, X.attendance_weight
+					) as Y
+				) as Q
+			) as R
+		WHERE R.rownumber < 4
+		 ]]>
+	</insert>
+</sqlMap>

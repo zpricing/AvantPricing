@@ -1,0 +1,26 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        This example produces a HTML report
+        based on the Categories table from the Northwind.mdb
+    </description>
+    
+    <connection id="vista" driver="spring" url="dataSourceIn"/>
+    <connection id="zpcinemas" driver="spring" url="dataSource"/>
+    
+    <connection id="vista_test" driver="mssql"/> 
+    
+    <query connection-id="vista_test">
+        SELECT Cinema_strCode, Cinema_strBranchNo, Cinema_strName FROM tblCinema
+        
+        <query connection-id="zpcinemas">
+        	SELECT direccion  from Complejo WHERE complejo_id_externo = ?Cinema_strBranchNo
+        	
+        	<script connection-id="zpcinemas">
+				INSERT INTO etl_test (code, branchNo, name) values (?direccion, ?Cinema_strBranchNo, ?Cinema_strName)
+			</script>
+        </query>
+        
+        
+    </query>
+</etl>

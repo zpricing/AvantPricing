@@ -1,0 +1,86 @@
+2.3.7
+* Compatibilizacion de versiones de Hoyts y Cinepolis. Tests de WebServices SOAP.
+2.3.6
+* Se agrega seteo de originalMovieName a task de stats additional data.
+2.3.5
+* Se eliminan tests repetidos.
+2.3.4
+* Correccion de tests.
+2.3.3
+* Se agregan datos de la seleccion del cliente a stats de second selling.
+2.3.2
+* Se cambia el seteo del nombre de la pelicula original en statistic del WS al task de datos adicionales.
+2.3.1
+* Se crea task para agregar data a registros de statistic. Se agrega sessionTime para los registros que tengan un sessionId.
+2.3.0
+* Se cambia uso de Double por BigDecimal y los webservices reciben valores de precio con 4 decimales.
+2.2.22
+* Se agrega campo "eliminada" a las consultas de funciones.
+2.2.21
+* Se elimina la condicion para evitar funciones que comienzen en menos de una hora en sugerencias de Last Minute.
+2.2.20
+* Se modifican Test para utilizar los types de consultas de ZhetaPricingServices.
+2.2.19
+* Se modifican sugerencias de UpSelling para devolver los cupos totales-ocupados.
+* Se modifican sugerencias de Upselling para devolver sugerencias solo dentro de un rango parametrico.
+2.2.18
+* Se agregan datos de caratula y rating de pelicula a respuesta de last minute selling.
+2.2.17
+* Se elimina Trigger de Last Minute.
+2.2.16
+* Se corrige error en Test de Stats de Last Minute. 
+2.2.15
+* Se agrega condicion para evitar funciones que comienzen en menos de una hora en sugerencias de Last Minute.
+2.2.14
+* Se modifican Sugerencias de Last Minute para devolver los cupos totales-ocupados.
+* Se modifica nombre de war para cinepolis por AvantServices
+2.2.13
+* Se agregan tasks de Rollback a build.xml
+2.2.12
+* Modificacion de WebService REST de Second Selling para recibir parameotros para estadistica de precio y cantidad de entradas.
+2.2.11
+2.2.10
+* Se agrega proceso de Expiracion de Cupos Last Minute.
+2.2.9
+* Se agregan parametros para registrar en las stats de second selling y up selling.
+2.2.8
+* Correccion precio Second Selling.
+2.2.7
+* Correcci—n para que servicio de Second Selling no ofrezca funciones pasadas.
+2.2.6
+* Compatibilidad para versiones anteriores de metodo updateRevenueManagementAvailability
+2.2.5
+* Estandarizacion de nombres de metodos publicos y parametros de entrada y salida.
+2.2.4
+* Se corrige error en mongo-config.xml
+2.2.3
+* Se modifica variable estatica de de mongo.host y mongo.dbnane en mongo-config.xml
+2.2.2
+* Se elimina dependencia de commons en build.xml
+2.2.1:
+* Continous Integration
+2.2.0:
+* Implementacion de WebServices REST en formatos XML y JSON.
+* Publicacion de LastMinuteSellingSuggestions
+2.1.0: 
+* Registro de estadisticas de consultas y compras de servicios RM.
+* Modificacion de build.xml y creacion de carpeta config con la configuracion para cada ambiente.
+2.0.7: Ajustes en respuesta de WebServices de Upselling y Secondselling.
+2.0.6: Se corrige error en expire.js
+2.0.5: Se agrega archivo expire.js con funcion de expiracion de cupos.
+2.0.4: 
+* Se agregaron parametros cantidad de entradas y precio de ticket a servicio de consulta de Upselling.
+* Se agrego parametro userId a servicio de consulta de second selling.
+* Limpieza de archivo de configuracion de log4j.
+2.0.3: Correccion de servicio de Ping.
+2.0.2: Correccion de consulta por fecha. Uso de timezone UTC.
+2.0.1: Correccion de cancelTransaction (no estaba descontando los cupos ocupados). Actualizacion de Test. Limpieza de codigo.
+2.0.0: Actualizacion a Spring 3.1.3 y uso de mongoDB
+1.3.6: Refactoring Upselling.
+1.3.5: Funcionalidad de agotar cupos.
+1.3.4: Servicios Upselling.
+1.3.3: Se desactiva la actualizacion de cupos.
+1.3.2: Cambio en expiracion de cupos. Se implementa expiracion via SQL.
+1.3.1: Activacion de task de expiracion de cupos.
+1.3: Version b‡sica de WebService Cross-selling suggestion. Retorna funciones de una pelicula al azar.
+1.2: Conexion a monitor de servicios.

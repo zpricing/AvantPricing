@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TestDataLoad">
+
+	<insert id="testLoadPriceCard" parameterClass="java.lang.Integer">
+		INSERT INTO PriceCard (price_card_code, descripcion, complejo_id, estado) VALUES ('TEST', 'PriceCard TEST', #value#, 'A') 
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="testLoadTicket" parameterClass="java.util.Map">
+		INSERT INTO Ticket (descripcion, area_id)
+		VALUES (#descripcion#, #area_id#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="testLoadTicketComplejo" parameterClass="java.util.Map">
+		INSERT INTO Ticket_Complejo (descripcion, ticket_id_externo, complejo_id, ticket_id)
+		VALUES (#descripcion#, #ticket_id_externo#, #complejo_id#, #ticket_id#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>	
+	
+	<insert id="testLoadPriceCardTicket" parameterClass="java.util.Map">
+		INSERT INTO PriceCardTicket (pricecard_id, ticket_id, precio, bfee)
+		VALUES (#pricecard_id#, #ticket_id#, #precio#, 0)
+	</insert>
+	
+	<insert id="testLoadAreaGrupoMascara" parameterClass="java.util.Map">
+		INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+		VALUES (#area_id#, #grupo_id#, #mascara_id#, #capacidad#, #dias_antes_expira#) 
+	</insert>
+	
+	<insert id="testLoadFuncion" parameterClass="java.util.Map">
+		INSERT INTO Funcion (pelicula_id, sala_id, complejo_id, fecha, fecha_contabilidad, price_card_id, mascara_id)
+		VALUES (#funcion.peliculaAsociada.id#, #funcion.sala.id#, #funcion.sala.complejoAlCualPertenece.id#, #funcion.fecha#, #funcion.fechaContable#, #price_card_id#, #funcion.mascara.id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+</sqlMap>

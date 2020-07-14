@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TipoSala">
+	<resultMap id="resultTipoSala" class="cl.zpricing.avant.model.TipoSala">
+		<result property="id" column="tipo_sala_id"/>
+		<result property="descripcion" column="descripcion"/>
+	</resultMap>
+  	
+  	<select id="tipoSalaTodas" resultMap="resultTipoSala">
+		SELECT tipo_sala_id, descripcion
+		FROM Tipo_Sala
+	</select>
+
+</sqlMap>

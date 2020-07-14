@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+	
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:mongo.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<import resource="cfx.xml" />
+	<import resource="mongo-config.xml" />
+	
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="pingTrigger" />
+				<ref bean="expiringCapacityTrigger" />
+				<ref bean="statsAdditionalDataTrigger" />
+				<ref bean="cleanSessionCollectionTrigger" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="pingTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="ping" />
+		<property name="cronExpression" value="0 0/5 * * * ?" />
+	</bean>
+	<bean id="expiringCapacityTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="expiringCapacity" />
+		<property name="cronExpression" value="0 0 0 * * ?" />
+	</bean>
+	<bean id="statsAdditionalDataTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="statsAdditionalDataScheduler" />
+		<property name="cronExpression" value="0 30 0 * * ?" />
+	</bean>
+	<bean id="cleanSessionCollectionTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+		<property name="jobDetail" ref="cleanSessionCollectionScheduler" />
+		<property name="cronExpression" value="0 0 4 ? * TUE" />
+	</bean>
+	
+	<bean id="ping" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	  	<property name="targetObject" ref="pingService" />
+	  	<property name="targetMethod" value="sendPing" />
+	</bean>
+	
+	<bean id="expiringCapacity" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="expiringAvailableSlots" />
+		<property name="targetMethod" value="execute" />
+	</bean>
+	
+	<bean id="statsAdditionalDataScheduler" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="statsAdditionalData" />
+		<property name="targetMethod" value="execute" />
+	</bean>
+	
+	<bean id="cleanSessionCollectionScheduler" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="cleanSessionCollection" />
+		<property name="targetMethod" value="execute" />
+	</bean>
+	
+	
+	<bean id="pingService" class="cl.zpricing.avantors.tasks.impl.PingServiceImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+	<bean id="expiringAvailableSlots" class="cl.zpricing.avantors.tasks.impl.ExpiringAvailableSlotsImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+	<bean id="statsAdditionalData" class="cl.zpricing.avantors.tasks.impl.StatsAdditionalDataImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+	<bean id="cleanSessionCollection" class="cl.zpricing.avantors.tasks.impl.CleanSessionCollectionImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+	<bean id="zhetaPricingServices" class="cl.zpricing.revman.webservices.ZhetaPricingServicesImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+	
+	<bean id="ZhetaPricingServicesImpl" class="cl.zpricing.revman.webservices.ZhetaPricingServicesImpl">
+		<property name="mongoOperation" ref="mongoTemplate" />
+	</bean>
+</beans>

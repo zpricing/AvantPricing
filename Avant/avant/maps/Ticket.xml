@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Ticket">
+	<resultMap id="ticketMap" class="cl.zpricing.avant.model.Ticket">
+		<result property="id" column="ticket_id"/>
+		<result property="codigoExterno" column="ticket_id_externo"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="ticketRevenue" column="ticket_rm" jdbcType="INT" javaType="boolean"/>
+		<result property="ticketWeb" column="ticket_web" jdbcType="INT" javaType="boolean"/>
+	</resultMap>
+	
+	<select id="obtenerTicket" parameterClass="java.lang.Integer" resultMap="ticketMap">
+		SELECT ticket_id, descripcion, ticket_id_externo, ticket_rm, ticket_web
+		FROM Ticket
+		WHERE ticket_id = #value#
+	</select>
+</sqlMap>

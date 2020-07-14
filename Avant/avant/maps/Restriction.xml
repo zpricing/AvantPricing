@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Restriction">
+	<resultMap id="restriction" class="cl.zpricing.avant.model.restriccion.Restriction">
+		<result property="id" column="restriccion_id"/>
+		<result property="descripcion" column="descripcion"/>
+	</resultMap>
+
+	<resultMap id="rule" class="cl.zpricing.avant.model.restriccion.Rule">
+		<discriminator javaType="string" column="tipo">
+			<subMap value="default" resultMap="priceRule"/>
+			<subMap value="pelicula" resultMap="priceRuleWithExpirationDate"/>
+		</discriminator> 	
+	</resultMap>
+
+	<resultMap id="priceRule" class="cl.zpricing.avant.model.restriccion.PriceRule" extends="rule"> 
+  		<result property="precioMinimo" column="precio_minimo"/>
+  		<result property="dias" column="dias"/>
+  		<result property="horaDesde" column="hora_desde" typeHandler="cl.zpricing.avant.servicios.ibatis.typeHandlers.HourTypeHandler"/>
+	</resultMap>
+	
+	<resultMap id="priceRuleWithExpirationDate" class="cl.zpricing.avant.model.restriccion.PriceRuleWithExpirationDate" extends="priceRule"> 
+  		<result property="expirationDate" column="fecha_hasta" jdbcType="DATE" javaType="java.util.Date"/>
+	</resultMap>
+	
+	<resultMap id="restrictionMovie" class="cl.zpricing.avant.model.restriccion.dto.RestrictionMovie">
+		<result property="pelicula" column="pelicula_id" select="obtenerPelicula" />
+  		<result property="fechaHasta" column="fecha_hasta" jdbcType="DATE" javaType="java.util.Date"/>
+  		<result property="restriccion.id" column="restriccion_id"/>
+		<result property="restriccion.descripcion" column="descripcion"/>
+	</resultMap>
+	
+	<select id="obtenerRestricciones" resultMap="restriction">
+		SELECT r.restriccion_id, r.descripcion, r.tipo
+		FROM Restriccion r
+	</select>
+	
+	<select id="obtenerRestriccion" resultMap="restriction" parameterClass="java.lang.Integer">
+		SELECT r.restriccion_id, r.descripcion, r.tipo
+		FROM Restriccion r
+		WHERE r.restriccion_id = #value#
+	</select>
+	
+	<select id="obtenerReglas" parameterClass="java.util.Map" resultMap="rule">
+		SELECT r.tipo, rr.*, rp.fecha_hasta
+		FROM Restriccion r
+		LEFT JOIN Restriccion_Regla rr ON r.restriccion_id = rr.restriccion_id
+		LEFT JOIN Restriccion_Pelicula rp ON rp.restriccion_id = r.restriccion_id AND rp.pelicula_id = #pelicula_id#
+		WHERE r.restriccion_id = #restriccion_id#
+		AND (rr.complejos like '%;$complejo_id$;%' OR rr.complejos like '%;*;%')
+	</select>
+	
+	<select id="obtenerRestriccionesFuncion" parameterClass="java.util.Map" resultMap="restriction">
+		SELECT r.restriccion_id, r.descripcion, r.tipo
+		FROM Restriccion r, Restriccion_Pelicula rp
+		WHERE r.restriccion_id = rp.restriccion_id
+		AND rp.pelicula_id = #pelicula_id#
+		UNION
+		SELECT r.restriccion_id, r.descripcion, r.tipo
+		FROM Restriccion r, Restriccion_Sala rs
+		WHERE r.restriccion_id = rs.restriccion_id
+		AND rs.sala_id = #sala_id#
+		UNION
+		SELECT r.restriccion_id, r.descripcion, r.tipo
+		FROM Restriccion r, Restriccion_Distribuidor rd
+		WHERE r.restriccion_id = rd.restriccion_id
+		AND rd.distribuidor_id = #distribuidor_id#
+	</select>
+	
+	<select id="obtenerTodosRestriction" parameterClass="java.util.Map" resultMap="restriction">
+		SELECT *
+		FROM Restriccion
+	</select>
+	
+	<insert id="asignarRestriccionPelicula" parameterClass="java.util.Map">
+		INSERT INTO Restriccion_Pelicula (restriccion_id, pelicula_id, fecha_hasta)
+		VALUES (#restriccion_id#, #pelicula_id#, #fecha_hasta#)
+	</insert>
+	
+	<select id="obtenerRestriccionesPelicula" resultMap="restrictionMovie">
+		SELECT rp.pelicula_id,  rp.fecha_hasta, r.restriccion_id, r.descripcion
+		FROM Restriccion r, Restriccion_Pelicula rp
+		WHERE r.restriccion_id = rp.restriccion_id
+		ORDER BY rp.fecha_hasta DESC
+	</select>
+	
+	<delete id="eliminarRestriccionPelicula" parameterClass="java.util.Map">
+		DELETE FROM Restriccion_Pelicula WHERE restriccion_id = #restriccion_id# AND pelicula_id = #pelicula_id#
+	</delete>
+	
+</sqlMap>

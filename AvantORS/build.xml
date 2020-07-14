@@ -1,0 +1,284 @@
+<?xml version="1.0"?>
+<project name="AvantServices" basedir="." default="deploy">
+	<property name="config.dir" value="config"/>
+  	<property file="build.properties"/>
+  	<property name="src.dir" value="src"/>
+  	<property name="web.dir" value="war"/>
+  	<property name="build.dir" value="${web.dir}/WEB-INF/classes"/>
+	<property name="src-test.dir" value="tests"/>
+	<property name="config.dir" value="config"/>
+  	<property name="build-test.dir" value="${web.dir}/WEB-INF/classes-test"/>
+	<property name="config-test.dir" value="config/test"/>
+	<property name="lib-test.dir" value="libtest"/>
+  	<!-- Nombre de la applicacion -->
+  	<property name="name" value="ZPCinemasWStest"/>
+  	<!-- URL Servidor remoto -->
+  	<property name="tomcat.remote.url" value="http://192.168.100.195:8080/manager" />
+  	<!-- Usuario y password de admin remoto -->
+  	<property name="tomcat.remote.username" value="admin" />
+  	<property name="tomcat.remote.password" value="admin" />
+  
+  	<path id="master-classpath">
+    	<fileset dir="${web.dir}/WEB-INF/lib">
+      		<include name="*.jar"/>
+    		<include name="test/*.jar"/>
+    	</fileset>
+  	
+    	<!-- We need the servlet API classes: -->
+    	<!-- * for Tomcat 5/6 use servlet-api.jar -->
+    	<!-- * for other app servers - check the docs -->
+    	<fileset dir="${appserver.lib}">
+      		<include name="servlet*.jar"/>
+    	</fileset>
+  		
+  		<pathelement path="${build-test.dir}"/>
+    	<pathelement path="${build.dir}"/>
+  	</path>
+	
+  	<target name="usage">
+    	<echo message=""/>
+    	<echo message="${name} build file"/>
+    	<echo message="-----------------------------------"/>
+    	<echo message=""/>
+    	<echo message="Available targets are:"/>
+    	<echo message=""/>
+    	<echo message="build --> Build the application"/>
+    	<echo message="deploy --> Deploy application as directory with devel config"/>
+    	<echo message="deploywar-hoyts --> Deploy application as a WAR file for hoyts"/>
+  		<echo message="deploywar-cinepolis --> Deploy application as a WAR file for cinepolis"/>
+    	<echo message="install --> Install application in Tomcat"/>
+    	<echo message="reload --> Reload application in Tomcat"/>
+    	<echo message="start --> Start Tomcat application"/>
+    	<echo message="stop --> Stop Tomcat application"/>
+    	<echo message="list --> List Tomcat applications"/>
+    	<echo message=""/>
+  	</target>
+	
+	<target name="clean" description="Clean output directories">
+		<delete>
+			<fileset dir="${build.dir}">
+				<include name="**/*.class" />
+	      	</fileset>
+	    </delete>
+	</target>
+	
+	<target name="clean-config" description="Clean properties files from output directories">
+		<delete>
+			<fileset dir="${build.dir}">
+				<include name="*.properties" />
+	      	</fileset>
+	    </delete>
+	</target>
+	
+  	<target name="build" depends="clean-config" description="Compile main source tree java files">
+    	<mkdir dir="${build.dir}"/>
+    	<javac destdir="${build.dir}" source="1.5" target="1.5" debug="true" deprecation="false" optimize="false" failonerror="true">
+      		<src path="${src.dir}"/>
+      		<classpath refid="master-classpath"/>
+    	</javac>
+  		<javac destdir="${build-test.dir}" source="1.5" target="1.5" debug="true" deprecation="false" optimize="false" failonerror="true">
+			<src path="${src-test.dir}"/>
+			<classpath refid="master-classpath"/>
+		</javac>
+  	</target>
+  	<target name="test" depends="build">
+		<junit fork="no" haltonfailure="yes">
+	  		<classpath refid="test-classpath" />
+	  		<formatter type="brief" usefile="false" />
+	  		<test name="cl.zpricing.revman.webservices.ZhetaPricingServicesTest" />
+			<test name="cl.zpricing.revman.webservices.StatisticsTest" />
+	  	</junit>
+	</target>
+	
+	<path id="test-classpath">
+  		<fileset dir="${web.dir}/WEB-INF/lib"/>
+
+  		<pathelement path="${build-test.dir}"/>
+  		<pathelement path="${config-test.dir}"/>
+  		<pathelement path="${build.dir}"/>
+  	</path>
+	
+	<target name="test-webservices" depends="deploywarlocal-devel">
+		<junit fork="no" haltonfailure="yes">
+	  		<classpath refid="test-classpath" />
+	  		<formatter type="brief" usefile="false" />
+			<test name="cl.zpricing.revman.webservices.ServicesTest" />
+	  	</junit>
+	</target>
+	
+	<target name="configure-hoyts" description="Copies hoyts configuration files">
+		<echo message="copying hoyts configuration files"/>
+		<copy overwrite="true" file="${config.dir}/hoyts/log4j.properties" tofile="${web.dir}/WEB-INF/classes/log4j.properties"/>
+		<copy overwrite="true" file="${config.dir}/hoyts/messages_es.properties" tofile="${web.dir}/WEB-INF/classes/messages_es.properties"/>
+		<copy overwrite="true" file="${config.dir}/hoyts/mongo.properties" tofile="${web.dir}/WEB-INF/classes/mongo.properties"/>
+	</target>
+	<target name="configure-cinepolis" description="Copies hoyts configuration files">
+		<echo message="copying cinepolis configuration files"/>
+		<copy overwrite="true" file="${config.dir}/cinepolis/log4j.properties" tofile="${web.dir}/WEB-INF/classes/log4j.properties"/>
+		<copy overwrite="true" file="${config.dir}/cinepolis/messages_es.properties" tofile="${web.dir}/WEB-INF/classes/messages_es.properties"/>
+		<copy overwrite="true" file="${config.dir}/cinepolis/mongo.properties" tofile="${web.dir}/WEB-INF/classes/mongo.properties"/>
+	</target>
+	<target name="configure-devel" description="Copies hoyts configuration files">
+		<echo message="copying devel configuration files"/>
+		<copy overwrite="true" file="${config.dir}/devel/log4j.properties" tofile="${web.dir}/WEB-INF/classes/log4j.properties"/>
+		<copy overwrite="true" file="${config.dir}/devel/messages_es.properties" tofile="${web.dir}/WEB-INF/classes/messages_es.properties"/>
+		<copy overwrite="true" file="${config.dir}/devel/mongo.properties" tofile="${web.dir}/WEB-INF/classes/mongo.properties"/>
+	</target>
+	
+	<target name="deploy" depends="build,configure-devel" description="Deploy application">
+		<copy todir="${deploy.path}/${name}" preservelastmodified="true">
+  			<fileset dir="${web.dir}">
+				<include name="**/*.*"/>
+  			</fileset>
+  		</copy>
+  	</target>
+	
+	<target name="deploywar-devel" depends="build,deploy" description="Deploy application as a WAR file">
+		<war destfile="${hoyts.app.name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*"/>
+				<include name="**/version"/>
+				<include name="**/changes.txt"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+		</war>
+	</target>
+	
+	<target name="deploywar-hoyts" depends="test,configure-hoyts" description="Deploy application as a WAR file">
+		<war destfile="${hoyts.app.name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*"/>
+				<include name="**/version"/>
+				<include name="**/changes.txt"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+		</war>
+	</target>
+	<target name="deploywar-cinepolis" depends="build,configure-cinepolis" description="Deploy application as a WAR file">
+		<war destfile="${hoyts.app.name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+			<fileset dir="${web.dir}">
+				<include name="**/*.*"/>
+				<include name="**/version"/>
+				<include name="**/changes.txt"/>
+				<exclude name="WEB-INF/classes-test/**/*.*"/>
+			</fileset>
+		</war>
+	</target>
+	
+	<target name="deploywarlocal-devel" depends="deploywar-devel" description="Install application to local server">
+		<echo message="${local.tomcat.remote.url}" />
+		<echo message="${local.app.name}.war" />
+		<deploy url="${local.tomcat.remote.url}" username="${local.tomcat.remote.username}"
+					password="${local.tomcat.remote.password}"
+					path="/${local.app.name}"
+					update="true"
+					war="file:${local.app.name}.war" />
+	</target>
+	
+	<target name="deploywarremote-hoyts" depends="deploywar-hoyts" description="Install application to remote server">
+		<echo message="${hoyts.tomcat.remote.url}" />
+		<echo message="${hoyts.app.name}.war" />
+		<deploy url="${hoyts.tomcat.remote.url}" username="${hoyts.tomcat.remote.username}"
+					password="${hoyts.tomcat.remote.password}"
+					path="/${hoyts.app.name}"
+					update="true"
+					war="file:${hoyts.app.name}.war" />
+	</target>
+	
+	<target name="re-deploywarremote-hoyts" description="Install application to remote server">
+		<echo message="${hoyts.tomcat.remote.url}" />
+		<echo message="${hoyts.app.name}.war" />
+		<deploy url="${hoyts.tomcat.remote.url}" username="${hoyts.tomcat.remote.username}"
+					password="${hoyts.tomcat.remote.password}"
+					path="/${hoyts.app.name}"
+					update="true"
+					war="file:${hoyts.app.name}.war" />
+	</target>
+	
+	<target name="deploywarremote-cinepolis" depends="deploywar-cinepolis" description="Install application to remote server">
+		<echo message="${cinepolis.tomcat.remote.url}" />
+		<echo message="${cinepolis.app.name}.war" />
+		<deploy url="${cinepolis.tomcat.remote.url}" username="${cinepolis.tomcat.remote.username}"
+					password="${cinepolis.tomcat.remote.password}"
+					path="/${cinepolis.app.name}"
+					update="true"
+					war="file:${cinepolis.app.name}.war" />
+	</target>
+	
+	<target name="re-deploywarremote-cinepolis" depends="deploywar-cinepolis" description="Install application to remote server">
+		<echo message="${cinepolis.tomcat.remote.url}" />
+		<echo message="${cinepolis.app.name}.war" />
+		<deploy url="${cinepolis.tomcat.remote.url}" username="${cinepolis.tomcat.remote.username}"
+					password="${cinepolis.tomcat.remote.password}"
+					path="/${cinepolis.app.name}"
+					update="true"
+					war="file:${cinepolis.app.name}.war" />
+	</target>
+  
+  <!-- ============================================================== -->
+  <!-- Tomcat tasks - remove these if you don't have Tomcat installed -->
+  <!-- ============================================================== -->
+  <path id="catalina-ant-classpath">
+    <!-- We need the Catalina jars for Tomcat -->
+    <!-- * for other app servers - check the docs -->
+    <fileset dir="${appserver.lib}">
+      <include name="catalina-ant.jar"/>
+    </fileset>
+  </path>
+  <taskdef name="install" classname="org.apache.catalina.ant.InstallTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  <taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  <taskdef name="list" classname="org.apache.catalina.ant.ListTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  <taskdef name="start" classname="org.apache.catalina.ant.StartTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  <taskdef name="stop" classname="org.apache.catalina.ant.StopTask">
+    <classpath refid="catalina-ant-classpath"/>
+  </taskdef>
+  
+  <target name="install" description="Install application in Tomcat">
+    <install url="${tomcat.manager.url}"
+        username="${tomcat.manager.username}"
+        password="${tomcat.manager.password}"
+        path="/${name}"
+        war="${name}"/>
+  </target>
+  <target name="reload" description="Reload application in Tomcat">
+    <reload url="${tomcat.manager.url}"
+        username="${tomcat.manager.username}"
+        password="${tomcat.manager.password}"
+        path="/${name}"/>
+  </target>
+  <target name="reloadremote" description="Reload application in Tomcat">
+      <reload url="${tomcat.remote.url}"
+          username="${tomcat.remote.username}"
+          password="${tomcat.remote.password}"
+          path="/${name}"/>
+    </target>
+  <target name="start" description="Start Tomcat application">
+    <start url="${tomcat.manager.url}"
+        username="${tomcat.manager.username}"
+        password="${tomcat.manager.password}"
+        path="/${name}"/>
+  </target>
+  <target name="stop" description="Stop Tomcat application">
+    <stop url="${tomcat.manager.url}"
+        username="${tomcat.manager.username}"
+        password="${tomcat.manager.password}"
+        path="/${name}"/>
+  </target>
+  <target name="list" description="List Tomcat applications">
+    <list url="${tomcat.manager.url}"
+        username="${tomcat.manager.username}"
+        password="${tomcat.manager.password}"/>
+  </target>
+  <!-- End Tomcat tasks -->
+</project>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Layout">
+
+	<resultMap class="cl.zpricing.avant.model.loadmanager.Layout" id="LayoutMap">
+		<result property="id" column="layout_id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="idExterno" column="layout_id_externo" />
+		<result property="esRM" column="es_rm" />
+		<result property="areas" column="layout_id" select="obtenerLayoutAreas" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.loadmanager.LayoutPorCategoria" id="LayoutAgrupadosMap">
+		<result property="id" column="layout_id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="idExterno" column="layout_id_externo" />
+		<result property="esRM" column="es_rm" />
+		<result property="layoutAreaPorCategoria" column="layout_id" select="obtenerLayoutAreasPorCategoria" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.loadmanager.LayoutArea" id="AreaLayoutMap">
+		<result property="tNum" column="area_bytNum"/>
+		<result property="descripcion" column="area_strShortDesc"/>
+		<result property="numSeatsTot" column="area_intNumSeatsTot"/>
+		<result property="numSeatsHouse" column="area_intNumSeatsHouse"/>
+		<result property="numSeatsSpecial" column="area_intNumSeatsSpecial"/>
+		<result property="areaId" column="id"/>
+		<result property="catStrCode" column="id_externo"/>
+		<result property="complejoId" column="complejo_id"/>
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.loadmanager.LayoutAreaPorCategoria" id="AreaLayoutPorCategoriaMap">
+		<result property="strAreaCategory" column="id_externo"/>
+		<result property="asientosTotales" column="intNumSeatsTot"/>
+		<result property="asientosHouseSeats" column="intNumSeatsHouse"/>
+		<result property="asientosSpecialSeats" column="intNumSeatsSpecial"/>
+	</resultMap>
+	
+	<select id="obtenerLayoutPorId" parameterClass="java.lang.Integer" resultMap="LayoutMap">
+		SELECT l.layout_id, l.descripcion, l.sala_id, l.es_rm, l.layout_id_externo
+		FROM Layout l
+		WHERE l.layout_id = #value#
+	</select>
+
+	<select id="obtenerLayoutPorAnticipacion" resultMap="LayoutMap">
+		SELECT layout_id, descripcion, sala_id, es_rm, layout_id_externo
+		FROM Layout
+		WHERE sala_id = #sala_id#
+		AND dias_anticipacion &lt; #anticipacion#
+		AND es_rm = 1
+	</select>
+	
+	<select id="obtenerTodosLayouts" parameterClass="java.util.Map" resultMap="LayoutMap">
+		SELECT layout_id, descripcion, sala_id, es_rm, layout_id_externo
+		FROM Layout
+	</select>
+	
+	<select id="obtenerLayoutsSala" parameterClass="java.util.Map" resultMap="LayoutMap">
+		SELECT layout_id, descripcion, sala_id, es_rm, layout_id_externo
+		FROM Layout
+		WHERE sala_id = #sala_id#
+	</select>
+	
+	<select id="obtenerTodosLayoutsPorComplejo" parameterClass="java.lang.Integer" resultMap="LayoutMap">
+		SELECT l.layout_id, l.descripcion, l.sala_id, l.es_rm, l.layout_id_externo
+		FROM Layout l, Sala s
+		WHERE s.complejo_id = #value#
+		AND s.sala_id = l.sala_id
+	</select>
+	
+	<select id="obtenerTodosLayoutsPorSala" parameterClass="java.lang.Integer" resultMap="LayoutMap">
+		SELECT l.layout_id, l.descripcion, l.sala_id, l.es_rm, l.layout_id_externo
+		FROM Layout l
+		WHERE l.sala_id = #value#
+		AND l.tipo = 'RM'
+	</select>
+	
+	<select id="obtenerLayoutAreas" parameterClass="java.lang.Integer" resultMap="AreaLayoutMap">
+		SELECT a.id, a.id_externo, la.area_bytNum, la.area_strShortDesc, la.area_intNumSeatsTot, la.area_intNumSeatsHouse, la.area_intNumSeatsSpecial, la.complejo_id
+		FROM Layout_Area la, Area a
+		WHERE la.area_id = a.id
+		AND la.layout_id = #value#
+		<!--  AND a.tipo = 'RM' -->
+		ORDER BY la.area_bytNum
+	</select>
+	
+	<!--  select id="obtenerAreaFisica" parameterClass="java.util.Map" resultMap="AreaMap">
+		SELECT a.id, a.descripcion, a.descripcion_corta, a.id_externo, a.dias_antes_expira, a.tipo, 0 as capacidad
+		FROM Area a, Layout_AreaFisica af
+		WHERE af.area_id = a.id
+		AND af.sala_id = #sala_id#
+		AND area_bytNum = #area_bytNum#
+	</select-->
+	
+	<select id="obtenerTodosLayoutsPorSalaPorCategoria" parameterClass="java.lang.Integer" resultMap="LayoutAgrupadosMap">
+		SELECT l.layout_id, l.descripcion, l.sala_id, l.es_rm, l.layout_id_externo
+		FROM Layout l
+		WHERE l.sala_id = #value#
+		AND l.tipo = 'RM'
+	</select>
+	
+	<select id="obtenerLayoutAreasPorCategoria" parameterClass="java.lang.Integer" resultMap="AreaLayoutPorCategoriaMap">
+		SELECT a.id_externo, sum(la.area_intNumSeatsTot) intNumSeatsTot, sum(la.area_intNumSeatsHouse) intNumSeatsHouse, sum(la.area_intNumSeatsSpecial) intNumSeatsSpecial
+		FROM Layout_Area la, Area a
+		WHERE la.area_id = a.id
+		AND la.layout_id = #value#
+		<!--  AND a.tipo = 'RM' -->
+		GROUP BY a.id_externo
+	</select>
+	
+</sqlMap>

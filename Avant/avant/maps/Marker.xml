@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Marker">
+	<resultMap id="resultMarker" class="cl.zpricing.avant.model.Marker">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="fecha" column="fecha" jdbcType="DATE"/>
+		<result property="fechaHasta" column="fecha_hasta" jdbcType="DATE" />
+		<result property="tipoMarker" column="tipo_marker_id" select="obtenerTipoMarkerMarker"/>
+		<result property="usuario" column="usuario_id" select="getUsuario"/>
+		<result property="pelicula" column="pelicula_id" select="obtenerPelicula"/>
+		<result property="complejo" column="complejo_id" select="obtenerComplejo"/>
+		<result property="clase" column="clase_id" select="obtenerClase" />
+	</resultMap>
+	
+	<resultMap id="MapClaseMarker" class="cl.zpricing.avant.model.Marker">
+		<result property="id" column="id"/>
+		<result property="complejo" column="complejo_id" select="obtenerComplejo" />
+		<result property="clase" column="clase_id" select="obtenerClase" />
+		<result property="tipoMarker" column="tipo_marker_id" select="obtenerTipoMarkerMarker"/>
+	</resultMap>
+	
+	<resultMap id="MarkersDescripcion" class="cl.zpricing.avant.model.Marker">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="fechaHasta" column="fecha_hasta" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="tipoMarker" column="tipo_marker_id" select="obtenerTipoMarkerMarker"/>
+		<result property="clase" column="clase_id" select="obtenerClaseNoMarkers"/>
+		<result property="complejo" column="complejo_id" select="obtenerComplejoNoMarkers"/>
+		<result property="pelicula" column="pelicula_id" select="obtenerPeliculaNoMarkers"/>
+		
+	</resultMap>
+	
+	<resultMap id="resultNMarker" class="cl.zpricing.avant.model.Marker">
+		<result property="id" column="id"/>
+		<result property="fecha" column="fecha_desde" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp" />
+		<result property="fechaHasta" column="fecha_hasta" jdbcType="TIMESTAMP" javaType="java.sql.Timestamp" />
+		<result property="tipoMarker" column="id_tipo_nmarker" select="obtenerTipoNMarker"/>
+		<result property="complejos" column="id" select="obtenerComplejosNMarker"/>
+	</resultMap>
+	
+	<select id="obtenerMarkersClase" resultMap="MarkersDescripcion">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE clase_id =#value#
+	</select>
+	
+	<select id="obtenerMarkersPelicula" resultMap="MarkersDescripcion">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE pelicula_id =#value#
+	</select>
+	
+	<select id="obtenerMarkersComplejo" resultMap="MarkersDescripcion">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE complejo_id =#value#
+	</select>
+	
+	<select id="obtenerMarkersFecha2" resultMap="MarkersDescripcion" parameterClass="java.util.Date">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE #value# BETWEEN fecha AND fecha_hasta OR (fecha = #value# AND fecha_hasta is NULL)
+	</select>
+	
+	
+	
+	<select id="obtenerMarkersFechaPeliculaComplejo" resultMap="MarkersDescripcion" parameterClass="java.util.HashMap">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE ((#fecha# BETWEEN fecha AND fecha_hasta) OR (fecha = #fecha# AND fecha_hasta is NULL))
+		AND (complejo_id = #complejo.id# OR complejo_id is NULL)
+		AND (pelicula_id = #pelicula.id# OR pelicula_id is NULL)
+	</select>
+	
+	<select id="obtenerMarkersFechaComplejo" resultMap="MarkersDescripcion" parameterClass="java.util.HashMap">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE ((#fecha# BETWEEN fecha AND fecha_hasta) OR (fecha = #fecha# AND fecha_hasta is NULL))
+		AND (complejo_id = #complejo.id# OR complejo_id is NULL)
+	</select>
+	
+	<select id="obtenerMarkersFechaPeliculaComplejoClase" resultMap="MarkersDescripcion" parameterClass="java.util.HashMap">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE ((#fecha# BETWEEN fecha AND fecha_hasta) OR (fecha = #fecha# AND fecha_hasta is NULL))
+		AND (complejo_id = #complejo.id# OR complejo_id is NULL)
+		AND (pelicula_id = #pelicula.id# OR pelicula_id is NULL)
+		AND (clase_id = #clase.id#  OR clase_id is NULL)
+	</select>
+	
+	
+	<select id="obtenerTipoMarkerMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.TipoMarker">
+		SELECT tipo_marker_id as id, descripcion as descripcion, codigo, color
+		FROM Tipo_Marker
+		WHERE tipo_marker_id = #value#
+	</select>
+	
+	
+	<!-- 
+	<select id="obtenerUsuarioMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Usuario">
+		SELECT
+		usuario_id,
+		password,
+		usuario,
+		nombre,
+		email,
+		rol_id
+		FROM Usuario
+		WHERE usuario_id = #value#
+	</select>
+
+	<select id="obtenerPeliculaMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Pelicula">
+		SELECT
+		pelicula_id,
+		nombre,
+		descripcion,
+		duracion
+		FROM Pelicula
+		WHERE pelicula_id = #value#
+	</select>
+	
+	<select id="obtenerSalaMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Sala">
+		SELECT
+		sala_id,
+		complejo_id,
+		capacidad,
+		numero,
+		tipo_sala_id,
+		sala_id_externo
+		FROM Sala
+		WHERE sala_id = #value#
+	</select>
+	
+	<select id="obtenerComplejoMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Complejo">
+		SELECT
+		complejo_id,
+		nombre,
+		empresa_id,
+		direccion,
+		ip_servidor,
+		complejo_id_externo
+		FROM Complejo
+		WHERE complejo_id = #value#
+	</select>
+	-->
+	
+	<select id="obtenerClaseMarkers" resultMap="MapClaseMarker">
+		SELECT id, complejo_id, clase_id, tipo_marker_id
+		FROM Marker
+		WHERE clase_id is not NULL
+	</select>
+	
+	<select id="listaMarkerTodos" resultMap="resultMarker">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, usuario_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+	</select>
+		
+	<select id="obtenerMarkersFecha" resultMap="resultMarker" parameterClass="java.util.Date">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, usuario_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE #value# BETWEEN fecha AND fecha_hasta OR (fecha = #value# AND fecha_hasta is NULL)
+	</select>
+	
+	<select id="obtenerMarkersEntreFechas" resultMap="resultMarker" parameterClass="java.util.Map">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id, usuario_id, pelicula_id, complejo_id, clase_id
+		FROM Marker
+		WHERE #inicio# BETWEEN fecha AND fecha_hasta 
+		OR #fin# BETWEEN fecha AND fecha_hasta
+		OR (fecha BETWEEN #inicio# AND #fin# AND fecha_hasta is NULL)
+	</select>
+	
+	<insert id="agregarMarker" parameterClass="cl.zpricing.avant.model.Marker">
+		INSERT INTO Marker
+		(descripcion, fecha, fecha_hasta, tipo_marker_id,  usuario_id, pelicula_id, complejo_id, clase_id)
+		VALUES (#descripcion:VARCHAR#, #fecha:DATE#, #fechaHasta:DATE#, #tipoMarker.id:DECIMAL#, #usuario.id:DECIMAL#,#pelicula.id:DECIMAL#, #complejo.id:DECIMAL#, #clase.id:DECIMAL#)
+  	</insert>
+	
+	 <delete id="deleteMarker" parameterClass="int">
+		DELETE Marker
+		WHERE id = #value#
+	</delete>
+	
+	<select id="obtenerMarker" resultMap="resultMarker" parameterClass="java.lang.Integer">
+		SELECT id, descripcion, fecha, fecha_hasta, tipo_marker_id,  usuario_id, pelicula_id, complejo_id,clase_id
+		FROM Marker
+		WHERE id=#id#
+	</select>
+	
+	<update id="actualizarMarker" parameterClass="cl.zpricing.avant.model.Marker">
+		UPDATE Marker
+		SET descripcion = #descripcion#, fecha=#fecha:DATE#, tipo_marker_id = #tipoMarker.id#,
+		fecha_hasta=#fechaHasta:DATE# , usuario_id=#usuario.id:DECIMAL#, pelicula_id=#pelicula.id:DECIMAL#, complejo_id=#complejo.id:DECIMAL#, clase_id=#clase.id:DECIMAL#
+		WHERE id=#id#
+	</update>
+	
+	<select id="listaNMarkerTodos" resultMap="resultNMarker">
+		SELECT id, id_tipo_nmarker, fecha_desde, fecha_hasta FROM NMarker
+	</select>
+	
+	<select id="obtenerTipoNMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.TipoMarker">
+		SELECT id, descripcion, ponderador
+		FROM Tipo_NMarker
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerComplejosNMarker" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Complejo">
+		SELECT complejo_id as id
+		FROM Complejo_Marker
+		WHERE marker_id = #value#
+	</select>
+	
+	<select id="listaTipoNMarkersTodos" resultClass="cl.zpricing.avant.model.TipoMarker">
+		SELECT id, descripcion, ponderador
+		FROM Tipo_NMarker
+	</select>
+	
+	<delete id="eliminarNMarkers">
+		DELETE NMarker
+  	</delete>
+  	
+  	<delete id="eliminarComplejosNMarkers" parameterClass="java.lang.Integer">
+		DELETE Complejo_Marker
+  	</delete>
+	
+	<insert id="agregarNMarker" parameterClass="cl.zpricing.avant.model.Marker">
+		INSERT INTO NMarker
+		(id_tipo_nmarker, fecha_desde, fecha_hasta)
+		VALUES (#tipoMarker.id#, #fecha#, #fechaHasta#)
+  		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+  	
+  	<insert id="agregaRelacionComplejosNMarkers" parameterClass="java.util.HashMap">
+		INSERT INTO
+		Complejo_Marker
+		(marker_id, complejo_id)
+		VALUES
+		(#marker_id#, #complejo_id#)
+	</insert>
+</sqlMap>

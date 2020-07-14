@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Complejo">
+	<resultMap id="resultGrupoComplejo" class="cl.zpricing.avant.model.GrupoComplejo">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="empresa" column="empresa_id" select="obtenerEmpresaComplejo"/>
+		<result property="padre" column="padre_id" select="obtenerGrupoComplejo"/>
+		<result property="orden" column="orden"/>
+	</resultMap>
+	
+	<select id="obtenerGrupoComplejo" resultMap="resultGrupoComplejo">
+		SELECT id, descripcion, empresa_id, padre_id, orden
+		FROM Grupo_Complejo
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerTodosByEmpresa" resultMap="resultGrupoComplejo" parameterClass="cl.zpricing.avant.model.Empresa">
+		SELECT id, descripcion, empresa_id, padre_id, orden
+		FROM Grupo_Complejo
+		WHERE padre_id = 0
+		AND empresa_id = #id#
+	</select>
+	
+	<select id="obtenerGruposComplejos" resultMap="resultGrupoComplejo">
+		SELECT id, descripcion, empresa_id, padre_id, orden
+		FROM Grupo_Complejo
+		WHERE padre_id = 0
+		ORDER BY orden
+	</select>
+	
+	<select id="obtenerGruposByPadre" resultMap="resultGrupoComplejo" parameterClass="cl.zpricing.avant.model.GrupoComplejo">
+		SELECT id, descripcion, empresa_id, padre_id, orden
+		FROM Grupo_Complejo
+		WHERE padre_id = #id#
+		ORDER BY orden
+	</select>
+	
+	<insert id="agregarGrupoComplejo" parameterClass="cl.zpricing.avant.model.GrupoComplejo">
+		BEGIN TRANSACTION
+			INSERT INTO
+			Grupo_Complejo (padre_id, empresa_id, descripcion, orden)
+			VALUES (#padre.id#, #empresa.id#, #descripcion#, #orden#);
+		COMMIT TRANSACTION
+	</insert>
+	
+	<update id="actualizarGrupoComplejo" parameterClass="cl.zpricing.avant.model.GrupoComplejo">
+		BEGIN TRANSACTION
+		UPDATE Grupo_Complejo
+		SET descripcion = #descripcion#
+		WHERE id = #id#;
+		COMMIT TRANSACTION
+  	</update>
+	
+	<delete id="eliminarGrupoComplejo" parameterClass="cl.zpricing.avant.model.GrupoComplejo">
+		DELETE Grupo_Complejo
+		WHERE id = #id#
+  	</delete>	
+</sqlMap>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"  
+		xmlns:beans="http://www.springframework.org/schema/beans"  
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+		xsi:schemaLocation="http://www.springframework.org/schema/beans  
+			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/security  
+			http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+                        
+	<global-method-security secured-annotations="enabled">
+		<!-- AspectJ pointcut expression that locates our "post" method and applies security that way
+		<protect-pointcut expression="execution(* bigbank.*Service.post*(..))" access="ROLE_TELLER"/>
+		-->
+	</global-method-security>
+
+	<!-- Aquí se configura la seguridad de las paginas -->
+    <http auto-config="true" access-denied-page="/403.htm">
+    
+<!--
+    Uncomment to enable X509 client authentication support
+        <x509 /> 
+-->
+
+        <!-- All of this is unnecessary if auto-config="true"
+        <form-login />
+        <anonymous />
+        <http-basic />
+        <logout />
+        <remember-me /> -->
+
+        <!-- Uncomment to limit the number of sessions a user can have
+        <concurrent-session-control max-sessions="1" exception-if-maximum-exceeded="true"/>
+		-->		
+    </http>
+
+    <!--
+    Usernames/Passwords are
+        rod/koala
+    -->
+    
+    <!--
+    <authentication-provider>
+        <password-encoder hash="md5"/>
+        <user-service>
+			<user name="rod" password="a564de63c2d0da68cf47586ee05984d7" authorities="ROLE_SUPERVISOR, ROLE_USER, ROLE_TELLER" />
+		</user-service>
+	</authentication-provider>
+	-->
+	
+	<!-- Aquí se pone de donde se obtienen los datos de usuario
+	Tambien se configura si el password va encriptado y como lo hace
+	Para ver como se guarda ver UsuarioDaoImpl-->
+	<authentication-provider user-service-ref='myUserDetailsService'>
+		<password-encoder hash="sha">
+			<salt-source user-property="username"/>
+		</password-encoder>
+	</authentication-provider>
+
+	
+	<!-- Configuracion detallada de los datos de usuario
+	Consultas definidas para hacer calzar el esquema de datos de Zheta pricing
+	con lo que pide por defecto Spring Security -->
+	<beans:bean id="myUserDetailsService" class="org.springframework.security.userdetails.jdbc.JdbcDaoImpl">
+		<beans:property name="dataSource" ref="dataSource"/>
+		<beans:property name="usersByUsernameQuery">
+			<beans:value>
+				SELECT 	
+					usuario AS username, 
+					password, 1 AS enabled
+				FROM 
+					Usuario 
+				WHERE 
+					usuario = ?
+			</beans:value>
+		</beans:property>
+		<beans:property name="authoritiesByUsernameQuery">
+			<beans:value>
+				SELECT
+					Usuario.usuario AS username, 
+					Autoridad.autoridad AS authority 
+				FROM 
+					Usuario,
+					Rol,
+					Autoridad 
+				WHERE 
+						Usuario.rol_id = Rol.rol_id 
+					AND Autoridad.rol_id = Rol.rol_id 
+					AND Usuario.usuario = ?
+			</beans:value>
+		</beans:property>
+<!--		<beans:property name="enableGroups" value="true"></beans:property>-->
+<!--		<beans:property name="enableAuthorities" value="false"></beans:property>-->
+		<beans:property name="groupAuthoritiesByUsernameQuery">
+			<beans:value>
+				SELECT
+					Rol.rol_id AS id,
+					Rol.Nombre as group_name,
+					Autoridad.autoridad as authority
+				FROM
+					Usuario,
+					Rol,
+					Autoridad
+				WHERE
+						Usuario.rol_id = Rol.rol_id
+					AND	Usuario.usuario = ?
+					AND Autoridad.rol_id = Rol.rol_id
+					
+			</beans:value>
+		</beans:property>
+	</beans:bean>
+		
+</beans:beans>

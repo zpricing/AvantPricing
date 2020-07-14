@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<sqlMap resource="maps/Aggregate.xml" />
+	<sqlMap resource="maps/Area.xml" />
+	<sqlMap resource="maps/Autoridad.xml" />
+	<sqlMap resource="maps/BusinessIntelligenceClients.xml" />
+	<sqlMap resource="maps/BusinessIntelligenceClusters.xml" />
+	<sqlMap resource="maps/BusinessIntelligenceProcess.xml" />
+	<sqlMap resource="maps/BusinessIntelligenceProcessFromCineticket.xml" />
+	<sqlMap resource="maps/BusinessIntelligenceProcessFromLoyalty.xml" />	
+	<sqlMap resource="maps/Categoria.xml" />
+	<sqlMap resource="maps/Clase.xml" />
+	<sqlMap resource="maps/Complejo.xml" />
+	<sqlMap resource="maps/Empresa.xml" />
+	<sqlMap resource="maps/Epoca.xml" />
+	<sqlMap resource="maps/Forecast.xml" />
+	<sqlMap resource="maps/Funcion.xml" />
+	<sqlMap resource="maps/FuncionArea.xml" />
+	<sqlMap resource="maps/Grupo.xml" />
+	<sqlMap resource="maps/GrupoComplejo.xml" />
+	<sqlMap resource="maps/GrupoPelicula.xml" />
+	<sqlMap resource="maps/GrupoPlantillas.xml" />
+	<sqlMap resource="maps/Layout.xml" />
+	<sqlMap resource="maps/LogProcesos.xml" />
+	
+	<sqlMap resource="maps/Log.xml" />
+	<sqlMap resource="maps/Marker.xml" />
+	<sqlMap resource="maps/Mascara.xml" />
+	<sqlMap resource="maps/MenuElement.xml" />
+	<sqlMap resource="maps/Nielsen.xml" />
+	<sqlMap resource="maps/Parametro.xml" />
+	<sqlMap resource="maps/Pelicula.xml" />
+	<sqlMap resource="maps/Plantilla.xml" />
+	<sqlMap resource="maps/Prediccion.xml" />
+	<sqlMap resource="maps/PriceCard.xml" />
+	<sqlMap resource="maps/Publico.xml" />
+	<sqlMap resource="maps/Reporte.xml" />
+	<sqlMap resource="maps/Restriction.xml" />
+	<sqlMap resource="maps/Rol.xml" />
+	<sqlMap resource="maps/Sala.xml" />
+	<sqlMap resource="maps/Ticket.xml" />
+	<sqlMap resource="maps/TimeSpan.xml" />
+	<sqlMap resource="maps/TipoFuncion.xml" />
+	<sqlMap resource="maps/TipoLog.xml" />
+	<sqlMap resource="maps/TipoMarker.xml" />
+	<sqlMap resource="maps/TipoSala.xml" />
+	<sqlMap resource="maps/Trabajo.xml" />
+	<sqlMap resource="maps/Transaccion.xml" />
+	<sqlMap resource="maps/Usuario.xml" />
+	<sqlMap resource="maps/Venta.xml" />
+	<sqlMap resource="maps/SecondSelling.xml" />
+	<sqlMap resource="maps/LastMinuteSelling.xml" />
+	<sqlMap resource="maps/Reportes.xml" />
+</sqlMapConfig>

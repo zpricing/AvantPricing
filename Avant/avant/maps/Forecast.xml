@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Forecast">
+	<resultMap id="ForecastMap" class="cl.zpricing.avant.model.Forecast">
+		<result property="asistenciaProyectada" column="asistenciaProyectada"/>
+		<result property="porcentajeOcupacionProyectado" column="porcentajeOcupacionProyectado"/>
+		<result property="mascara" column="mascara_id" select="obtenerMascara"/>
+	</resultMap>
+	
+	<select id="obtenerForecastId" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT id FROM forecast 
+		WHERE 	ranking_id = #ranking_id#
+		AND		rating_id = #rating_id#
+		AND		categoria_id = #categoria_id#
+		AND		dia_id = #dia_id#
+		AND		hora_id = #hora_id#
+		AND		idioma_id = #idioma_id#
+		AND		formato_id = #formato_id#
+		AND		grupo_id = #grupo_id#
+		AND		semana = #semana#
+		AND		exhibicion = #exhibicion#
+	</select>
+	
+	<select id="obtenerForecast" parameterClass="java.util.Map" resultMap="ForecastMap">
+		<![CDATA[ 
+		SELECT
+			asistenciaProyectada,
+			porcentajeOcupacionProyectado,
+			(
+				SELECT mascara_id 
+				FROM
+				(
+					SELECT TOP 1 mascara_id, porcentaje_minimo 
+					FROM Area_Grupo_Mascara 
+					WHERE porcentaje_minimo <= porcentajeOcupacionProyectado 
+					AND grupo_id = #grupo_id#
+					ORDER BY porcentaje_minimo DESC
+				) as Z
+			) as mascara_id
+		FROM
+		(
+			SELECT
+				CASE WHEN ROUND(asistenciaProyectadaConMarkers, 0) < capacidadSala 
+				THEN ROUND(asistenciaProyectadaConMarkers, 0)
+				ELSE capacidadSala
+				END as asistenciaProyectada,
+				
+				CASE WHEN ROUND(asistenciaProyectadaConMarkers, 0) < capacidadSala 
+				THEN (ROUND(asistenciaProyectadaConMarkers, 0) * 100.0 / capacidadSala)
+				ELSE 100
+				END as porcentajeOcupacionProyectado
+			FROM
+			(
+				SELECT 
+					asistenciaProyectada * 
+					(
+						SELECT (1 + COALESCE(SUM(ponderador), 0)) as ponderador
+						FROM Tipo_NMarker T
+						JOIN NMarker M ON T.id = M.id_tipo_nmarker
+						JOIN Complejo_Marker C ON M.id = C.marker_id
+						WHERE C.complejo_id = #complejo_id#
+						AND M.fecha_desde <= #fecha_hora#
+						AND M.fecha_hasta >= #fecha_hora#
+					) as asistenciaProyectadaConMarkers, 
+					capacidadSala
+				FROM
+				(
+					SELECT TOP 1 SUM(asistenciaProyectada)OVER() as asistenciaProyectada, capacidadSala
+					FROM
+					(
+						SELECT (asistenciaProyectada * puntaje / SUM(puntaje)OVER()) as asistenciaProyectada, capacidadSala
+						FROM
+						(
+							SELECT TOP 20
+							F.forecast as asistenciaProyectada, capacidadSala, X.puntaje
+							FROM 
+							(
+								SELECT 
+								SRan.id_ranking_2 as ranking_id, SRat.id_rating_2 as rating_id, SC.id_categoria_2 as categoria_id, SDH.id_dia_2 as dia_id, 
+								SDH.id_hora_2 as hora_id, SF.id_formato_2 as formato_id, SI.id_idioma_2 as idioma_id, SG.id_grupo_2 as grupo_id, SS.semana_2 as semana,
+								(SRan.similitud + SRat.similitud + SC.similitud + SDH.similitud + SF.similitud + SI.similitud + SG.similitud + SS.similitud) as puntaje, 
+								S.capacidad as capacidadSala
+								FROM 
+								Similitud_Ranking as SRan
+								JOIN
+								Similitud_Rating as SRat ON SRan.id_complejo = SRat.id_complejo AND SRat.id_rating_1 = #rating_id#
+								JOIN 
+								Similitud_Categoria as SC ON SRat.id_complejo = SC.id_complejo AND SC.id_categoria_1 = #categoria_id#
+								JOIN 
+								Similitud_DiaHora as SDH ON SC.id_complejo = SDH.id_complejo AND SDH.id_dia_1 = #dia# AND SDH.id_hora_1 = #hora#
+								JOIN
+								Similitud_Formato as SF ON SDH.id_complejo = SF.id_complejo AND SF.id_formato_1 = #formato_id#
+								JOIN 
+								Similitud_Idioma as SI ON SF.id_complejo = SI.id_complejo AND SI.id_idioma_1 = #idioma_id#
+								JOIN 
+								Similitud_Grupo as SG ON SI.id_complejo = SG.id_complejo AND SG.id_grupo_1 = #grupo_id#
+								JOIN 
+								Similitud_Semana as SS ON SG.id_complejo = SS.id_complejo AND SS.semana_1 = #semana#
+								JOIN 
+								Sala as S ON SG.id_complejo = S.complejo_id AND S.sala_id = #sala_id#
+								WHERE SRan.id_complejo = #complejo_id#
+								AND SRan.id_ranking_1 = #ranking_id#
+								GROUP BY SRan.id_ranking_2, SRat.id_rating_2, SC.id_categoria_2, SDH.id_dia_2, SDH.id_hora_2, SF.id_formato_2, SI.id_idioma_2, 
+								SG.id_grupo_2, SS.semana_2, S.capacidad, SRan.similitud, SRat.similitud, SC.similitud, SDH.similitud, SF.similitud, SI.similitud, SG.similitud, SS.similitud
+								
+							) as X
+							LEFT JOIN Forecast F
+							ON 
+							(
+								F.ranking_id = X.ranking_id
+								AND F.rating_id = X.rating_id
+								AND F.categoria_id = X.categoria_id
+								AND F.dia_id = X.dia_id
+								AND F.hora_id = X.hora_id
+								AND F.formato_id = X.formato_id
+								AND F.grupo_id = X.grupo_id
+								AND F.idioma_id = X.idioma_id
+								AND F.semana = X.semana
+							)
+							WHERE F.complejo_id = #complejo_id#
+							AND F.coef_var < 0.5
+							AND F.exhibicion = #exhibicion#
+							ORDER BY puntaje DESC
+						) as Y
+					) as Z
+				) as W
+			) as V
+		) as U
+		]]>
+	</select>
+	
+	<insert id="agregarAsistenciaFuncion" parameterClass="java.util.Map">
+		<![CDATA[ 
+		INSERT INTO Forecast_Asistencias 
+		(complejo_id, funcion_id, ranking_id, rating_id, categoria_id, dia_id, hora_id, idioma_id, formato_id, grupo_id, semana, exhibicion, asistencia)
+		VALUES
+		(#complejo_id#, #funcion_id#, #ranking_id#, #rating_id#, #categoria_id#, #dia_id#, #hora_id#, #idioma_id#, #formato_id#, #grupo_id#, #semana#, #exhibicion#, 
+		#asistencia_total# / (
+					SELECT (1 + COALESCE(SUM(ponderador), 0)) as ponderador
+					FROM Tipo_NMarker T
+					JOIN NMarker M ON T.id = M.id_tipo_nmarker
+					JOIN Complejo_Marker C ON M.id = C.marker_id
+					WHERE C.complejo_id = #complejo_id#
+					AND M.fecha_desde <= #fecha#
+					AND M.fecha_hasta >= #fecha#
+			)
+		)
+		]]>
+	</insert>
+	
+	<delete id="eliminarForecast" parameterClass="java.lang.Integer">
+		DELETE Forecast
+		WHERE complejo_id = #value#
+  	</delete>
+  	
+	<delete id="eliminarSimilitudCategoria" parameterClass="java.lang.Integer">
+		DELETE Similitud_Categoria
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudFormato" parameterClass="java.lang.Integer">
+		DELETE Similitud_Formato
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudDiaHora" parameterClass="java.lang.Integer">
+		DELETE Similitud_DiaHora
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudGrupo" parameterClass="java.lang.Integer">
+		DELETE Similitud_Grupo
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudIdioma" parameterClass="java.lang.Integer">
+		DELETE Similitud_Idioma
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudRanking" parameterClass="java.lang.Integer">
+		DELETE Similitud_Ranking
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudRating" parameterClass="java.lang.Integer">
+		DELETE Similitud_Rating
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<delete id="eliminarSimilitudSemana" parameterClass="java.lang.Integer">
+		DELETE Similitud_Semana
+		WHERE id_complejo = #value#
+  	</delete>
+  	
+  	<insert id="actualizarForecast" parameterClass="java.lang.Integer">
+		<![CDATA[
+		INSERT INTO Forecast
+		SELECT complejo_id
+		      ,ranking_id
+		      ,rating_id
+		      ,categoria_id
+		      ,dia_id
+		      ,hora_id
+		      ,idioma_id
+		      ,formato_id
+		      ,grupo_id
+		      ,semana
+		      ,exhibicion
+		      ,COALESCE(AVG(asistencia),0) as forecast
+		      ,COALESCE(COUNT(asistencia),0) as count
+		      ,COALESCE(STDEV(asistencia),0) as stdev
+		      ,COALESCE(
+		      	CASE WHEN AVG(asistencia) <> 0 
+		      	THEN 
+		      		STDEV(asistencia)/AVG(asistencia) 
+		      	ELSE 
+		      		0 
+		      	END
+		      , 0) as coef_var
+		  FROM Forecast_Asistencias
+		  WHERE complejo_id = #value#
+		  GROUP BY complejo_id
+		      ,ranking_id
+		      ,rating_id
+		      ,categoria_id
+		      ,dia_id
+		      ,hora_id
+		      ,idioma_id
+		      ,formato_id
+		      ,grupo_id
+		      ,semana
+		      ,exhibicion
+		]]>
+	</insert>
+  	
+  	<insert id="actualizarSimilitudCategoria" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Categoria
+		SELECT #value# as id_complejo, id_categoria_1, id_categoria_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.categoria_id as id_categoria_1, C2.categoria_id as id_categoria_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Categoria C1 LEFT JOIN
+					(SELECT categoria_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY categoria_id) AP1
+					ON (C1.categoria_id = AP1.categoria_id),
+					Categoria C2 LEFT JOIN
+					(SELECT categoria_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY categoria_id) AP2
+					ON (C2.categoria_id = AP2.categoria_id)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudFormato" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Formato
+		SELECT #value# as id_complejo, id_formato_1, id_formato_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.id as id_formato_1, C2.id as id_formato_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Pel_Formato C1 LEFT JOIN
+					(SELECT formato_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY formato_id) AP1
+					ON (C1.id = AP1.formato_id),
+					Pel_Formato C2 LEFT JOIN
+					(SELECT formato_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY formato_id) AP2
+					ON (C2.id = AP2.formato_id)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudGrupo" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Grupo
+		SELECT #value# as id_complejo, id_grupo_1, id_grupo_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.id as id_grupo_1, C2.id as id_grupo_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Grupo C1 LEFT JOIN
+					(SELECT grupo_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY grupo_id) AP1
+					ON (C1.id = AP1.grupo_id),
+					Grupo C2 LEFT JOIN
+					(SELECT grupo_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY grupo_id) AP2
+					ON (C2.id = AP2.grupo_id)
+			WHERE	C1.complejo_id = #value#
+			AND 	C2.complejo_id = #value#
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudIdioma" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Idioma
+		SELECT #value# as id_complejo, id_idioma_1, id_idioma_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.id as id_idioma_1, C2.id as id_idioma_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Pel_Idioma C1 LEFT JOIN
+					(SELECT idioma_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY idioma_id) AP1
+					ON (C1.id = AP1.idioma_id),
+					Pel_Idioma C2 LEFT JOIN
+					(SELECT idioma_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1  GROUP BY idioma_id) AP2
+					ON (C2.id = AP2.idioma_id)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudRanking" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Ranking
+		SELECT #value# as id_complejo, id_ranking_1, id_ranking_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.id as id_ranking_1, C2.id as id_ranking_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Pel_Ranking C1 LEFT JOIN
+					(SELECT ranking_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY ranking_id) AP1
+					ON (C1.id = AP1.ranking_id),
+					Pel_Ranking C2 LEFT JOIN
+					(SELECT ranking_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY ranking_id) AP2
+					ON (C2.id = AP2.ranking_id)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudRating" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		INSERT INTO Similitud_Rating
+		SELECT #value# as id_complejo, id_rating_1, id_rating_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.id as id_rating_1, C2.id as id_rating_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	Pel_Rating C1 LEFT JOIN
+					(SELECT rating_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY rating_id) AP1
+					ON (C1.id = AP1.rating_id),
+					Pel_Rating C2 LEFT JOIN
+					(SELECT rating_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY rating_id) AP2
+					ON (C2.id = AP2.rating_id)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudSemana" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		WITH Semanas
+		AS
+		(
+			SELECT 1 AS semana
+			UNION ALL
+			SELECT semana + 1
+			FROM Semanas
+			WHERE semana < 100
+		)
+		INSERT INTO Similitud_Semana
+		SELECT #value# as id_complejo, semana_1, semana_2, 
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1, 0) 
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.semana as semana_1, C2.semana as semana_2, 
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	(SELECT semana FROM Semanas) C1 LEFT JOIN
+					(SELECT semana, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY semana) AP1
+					ON (C1.semana = AP1.semana),
+					(SELECT semana FROM Semanas) C2 LEFT JOIN
+					(SELECT semana, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY semana) AP2
+					ON (C2.semana = AP2.semana)
+			) as X 
+		]]>
+	</insert>
+	
+	<insert id="actualizarSimilitudDiaHora" parameterClass="java.lang.Integer">
+		<![CDATA[ 
+		WITH Dias
+		AS
+		(
+			SELECT 1 AS dia
+			UNION ALL
+			SELECT dia + 1
+			FROM Dias
+			WHERE dia < 7
+		),
+		Horas
+		AS
+		(
+			SELECT 0 AS hora
+			UNION ALL
+			SELECT hora + 1
+			FROM Horas
+			WHERE hora < 23
+		)
+		INSERT INTO Similitud_DiaHora
+		SELECT #value# as id_complejo, id_dia_1, id_hora_1, id_dia_2, id_hora_2,
+		COALESCE(
+			CASE WHEN asistencia_promedio1 < asistencia_promedio2 
+				THEN CONVERT(FLOAT,asistencia_promedio1)/NULLIF(asistencia_promedio2, 0) 
+			ELSE 
+				CONVERT(FLOAT,asistencia_promedio2)/NULLIF(asistencia_promedio1 , 0)
+			END, 
+			0
+		) as similitud
+		FROM
+			(
+			SELECT 	C1.dia as id_dia_1, C1.hora as id_hora_1, C2.dia as id_dia_2, C2.hora as id_hora_2,
+					AP1.asistencia_promedio as asistencia_promedio1, AP2.asistencia_promedio as asistencia_promedio2
+			FROM 	(SELECT dia, hora FROM Dias, Horas) C1 LEFT JOIN
+					(SELECT dia_id, hora_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY dia_id, hora_id) AP1
+					ON C1.dia = AP1.dia_id AND C1.hora = AP1.hora_id,
+					(SELECT dia, hora FROM Dias, Horas) C2 LEFT JOIN
+					(SELECT dia_id, hora_id, SUM(forecast)/SUM(count) as asistencia_promedio FROM Forecast WHERE complejo_id = #value# AND exhibicion = 1 GROUP BY dia_id, hora_id) AP2
+					ON C2.dia = AP2.dia_id AND C2.hora = AP2.hora_id
+			) as X 
+		]]>
+	</insert>
+	
+	<update id="actualizarEstadisticas">
+		EXEC sp_updatestats
+	</update>
+</sqlMap>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+	<sqlMap resource="Area.xml" />
+	<sqlMap resource="Clase.xml" />
+	<sqlMap resource="Complejo.xml" />
+	<sqlMap resource="Empresa.xml" />
+	<sqlMap resource="Nielsen.xml" />
+	<sqlMap resource="LogProcesos.xml" />
+	<sqlMap resource="Funcion.xml" />
+	<sqlMap resource="FuncionArea.xml" />
+	<sqlMap resource="Grupo.xml" />
+	<sqlMap resource="Marker.xml" />
+	<sqlMap resource="Mascara.xml" />
+	<sqlMap resource="Parametro.xml" />
+	<sqlMap resource="Pelicula.xml" />
+	<sqlMap resource="Restriction.xml" />
+	<sqlMap resource="Sala.xml" />
+	<sqlMap resource="TimeSpan.xml" />
+	<sqlMap resource="TipoFuncion.xml" />
+	<sqlMap resource="maps/TestDataLoad.xml" />
+</sqlMapConfig>

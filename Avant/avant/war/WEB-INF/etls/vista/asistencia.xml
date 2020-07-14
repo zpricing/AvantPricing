@@ -1,0 +1,121 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de asistencia.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script connection-id="zpcinemas">
+    	IF OBJECT_ID('workstation_temp', 'U') IS NOT NULL DROP TABLE workstation_temp 
+    	CREATE TABLE workstation_temp (code varchar(50), name varchar(50), cinema_code varchar(50));
+    
+   		IF OBJECT_ID('asistencia_temp', 'U') IS NOT NULL DROP TABLE asistencia_temp 
+    	CREATE TABLE asistencia_temp (cinema_code varchar(50), session_code varchar(50), ticket_code varchar(50), workstation_code varchar(50), date_bought datetime, attendance int, revenue money);
+    	
+    	IF OBJECT_ID('asistencia_ticket_temp', 'U') IS NOT NULL DROP TABLE asistencia_ticket_temp 
+    	CREATE TABLE asistencia_ticket_temp (cinema_code varchar(50), session_code varchar(50), ticket_code varchar(50), date_bought datetime, attendance int, revenue money);
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT w.Workstation_strCode, w.Workstation_strName, co.CinOperator_strCode
+    	FROM tblCinema_Operator co, tblWorkstation w
+    	
+    	<script connection-id="zpcinemas">
+    		INSERT INTO workstation_temp (code, name, cinema_code)
+    		VALUES (?Workstation_strCode, ?Workstation_strName, ?CinOperator_strCode)
+    	</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO workstation (nombre, codigo_externo, complejo_id)
+    	SELECT wt.name, wt.code, c.complejo_id
+    	FROM workstation_temp wt
+    	JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = wt.cinema_code COLLATE DATABASE_DEFAULT
+    	WHERE NOT EXISTS (SELECT * FROM workstation w WHERE w.codigo_externo COLLATE DATABASE_DEFAULT = wt.code COLLATE DATABASE_DEFAULT AND w.complejo_id = c.complejo_id)
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT  tt.CinOperator_strCode as cinema_code, tt.Session_lngSessionId as session_code, tt.Price_strCode as ticket_code, tt.Workstation_strCode, CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, tt.TransT_dtmDateTime))) as fecha_compra, SUM(tt.TransT_intNoOfSeats) as asistencia, SUM(sign(tt.TransT_intNoOfSeats) * tt.TransT_curValueEach) as revenue
+		FROM tblTrans_Ticket tt
+		JOIN tblSession s ON tt.Session_lngSessionId = s.Session_lngSessionId
+		WHERE  (('false' = ?full_data_extraction AND s.Session_dtmShowing >= DATEADD(day, -7, GETDATE())) OR ('true' = ?full_data_extraction AND  s.Session_dtmShowing >= DATEADD(year, -2, GETDATE()) ))
+		GROUP BY tt.Session_lngSessionId, tt.CinOperator_strCode, tt.Price_strCode, CONVERT(DATETIME, FLOOR(CONVERT(FLOAT, tt.TransT_dtmDateTime))),  tt.Workstation_strCode
+		
+       	<script connection-id="zpcinemas">
+       		INSERT INTO asistencia_temp (cinema_code, session_code, ticket_code, workstation_code, date_bought, attendance, revenue) 
+       		VALUES (?cinema_code, ?session_code, ?ticket_code , ?Workstation_strCode, ?fecha_compra, ?asistencia, ?revenue)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO asistencia_ticket_temp (cinema_code, session_code, ticket_code, date_bought, attendance, revenue)
+    	SELECT cinema_code, session_code, ticket_code, date_bought, SUM(attendance), SUM(revenue)
+    	FROM asistencia_temp
+    	GROUP BY cinema_code, session_code, ticket_code, date_bought
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	<!-- Agregar asistencia por Ticket -->
+    	INSERT INTO AsistenciaPorTicket (funcion_id, ticket_id, fecha_compra, asistencia, revenue)
+    	SELECT f.funcion_id, tc.ticket_id, at.date_bought, at.attendance, at.revenue
+		FROM asistencia_ticket_temp at
+		JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = at.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Funcion f ON f.funcion_id_externo  = at.session_code AND f.complejo_id = c.complejo_id
+		JOIN Ticket_Complejo tc ON tc.ticket_id_externo  = at.ticket_code  AND tc.complejo_id = c.complejo_id
+		WHERE NOT EXISTS (SELECT * FROM AsistenciaPorTicket a WHERE a.funcion_id = f.funcion_id AND a.ticket_id = tc.ticket_id AND a.fecha_compra = at.date_bought)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	<!-- Actualizar asistencia por Ticket -->
+    	UPDATE AsistenciaPorTicket
+    	SET
+    		asistencia = asistencia_ticket_temp.attendance,
+    		revenue = asistencia_ticket_temp.revenue
+    	FROM
+			asistencia_ticket_temp
+		JOIN Complejo ON Complejo.complejo_id_externo COLLATE DATABASE_DEFAULT = asistencia_ticket_temp.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Funcion ON Funcion.funcion_id_externo  = asistencia_ticket_temp.session_code AND Funcion.complejo_id = Complejo.complejo_id
+		JOIN Ticket_Complejo ON Ticket_Complejo.ticket_id_externo  = asistencia_ticket_temp.ticket_code  AND Ticket_Complejo.complejo_id = Complejo.complejo_id
+		WHERE (AsistenciaPorTicket.funcion_id = Funcion.funcion_id AND AsistenciaPorTicket.ticket_id = Ticket_Complejo.ticket_id AND AsistenciaPorTicket.fecha_compra = asistencia_ticket_temp.date_bought)
+		AND (AsistenciaPorTicket.asistencia != asistencia_ticket_temp.attendance OR AsistenciaPorTicket.revenue != asistencia_ticket_temp.revenue)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	<!-- Agregar asistencia por canal de venta -->
+    	INSERT INTO AsistenciaPorCanal (funcion_id, ticket_id, workstation_code, fecha_compra, asistencia, revenue)
+    	SELECT f.funcion_id, tc.ticket_id, at.workstation_code, at.date_bought, at.attendance, at.revenue
+		FROM asistencia_temp at
+		JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = at.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Funcion f ON f.funcion_id_externo  = at.session_code AND f.complejo_id = c.complejo_id
+		JOIN Ticket_Complejo tc ON tc.ticket_id_externo  = at.ticket_code  AND tc.complejo_id = c.complejo_id
+		WHERE NOT EXISTS (SELECT * FROM AsistenciaPorCanal a WHERE a.funcion_id = f.funcion_id AND a.ticket_id = tc.ticket_id AND a.fecha_compra = at.date_bought AND a.workstation_code COLLATE DATABASE_DEFAULT = at.workstation_code COLLATE DATABASE_DEFAULT)
+    </script>
+    
+    <script connection-id="zpcinemas">
+    	<!-- Actualizar asistencia por canal de venta -->
+    	UPDATE AsistenciaPorCanal
+    	SET
+    		asistencia = asistencia_temp.attendance,
+    		revenue = asistencia_temp.revenue
+    	FROM
+			asistencia_temp
+		JOIN Complejo ON Complejo.complejo_id_externo COLLATE DATABASE_DEFAULT = asistencia_temp.cinema_code COLLATE DATABASE_DEFAULT
+		JOIN Funcion ON Funcion.funcion_id_externo  = asistencia_temp.session_code AND Funcion.complejo_id = Complejo.complejo_id
+		JOIN Ticket_Complejo ON Ticket_Complejo.ticket_id_externo  = asistencia_temp.ticket_code  AND Ticket_Complejo.complejo_id = Complejo.complejo_id
+		WHERE (AsistenciaPorCanal.funcion_id = Funcion.funcion_id AND AsistenciaPorCanal.ticket_id = Ticket_Complejo.ticket_id AND AsistenciaPorCanal.fecha_compra = asistencia_temp.date_bought AND AsistenciaPorCanal.workstation_code COLLATE DATABASE_DEFAULT = asistencia_temp.workstation_code COLLATE DATABASE_DEFAULT)
+		AND (AsistenciaPorCanal.asistencia != asistencia_temp.attendance OR AsistenciaPorCanal.revenue != asistencia_temp.revenue)
+    </script>
+    
+    
+    <script connection-id="zpcinemas">
+    	DROP TABLE workstation_temp
+    	DROP TABLE asistencia_temp
+    	DROP TABLE asistencia_ticket_temp
+    </script>
+</etl>

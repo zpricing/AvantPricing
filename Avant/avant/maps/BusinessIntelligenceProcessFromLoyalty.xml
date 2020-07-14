@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="BusinessIntelligenceProcessFromLoyalty">
+	<delete id="limpiarTablaTempLoyaltyCustomer">
+		DELETE FROM temp_loyalty_customer
+	</delete>
+	<delete id="limpiarTablaTempLoyaltyTransaction">
+		DELETE FROM temp_loyalty_transaction
+	</delete>
+	
+	<insert id="insertarCustomerLoyalty" parameterClass="java.util.Map">
+		INSERT INTO temp_loyalty_customer (rut, email, comuna, nombre, apellido, fecha_nacimiento, direccion, celular, sexo, cinema_code, ocupacion, nivel_educacional, n_miembros_hogar, created_at, updated_at)
+   		VALUES (#rut#, 
+   				#email#, 
+   				#comuna,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#nombre,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#apellido,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#fecha_nacimiento,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#, 
+   				#direccion,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#fono_celular,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#sexo,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#codigo_cine,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#ocupacion,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#nivel_educacional,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#n_miembros_hogar,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#created_at,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#,
+   				#updated_at,javaType=java.lang.Object,jdbcType=DATE,nullValue=null#)
+	</insert>
+	
+	<select id="obtenerUltimaFechaModificacionClienteLoyalty" resultClass="java.util.Date">
+		SELECT MAX(updated_at)
+		FROM temp_loyalty_customer
+	</select>
+	
+	<select id="obtenerUltimaFechaTransaccionLoyalty" resultClass="java.util.Date">
+		SELECT MAX(fecha_compra)
+		FROM temp_loyalty_transaction
+	</select>
+	
+	<insert id="agregarComunasLoyalty">
+		INSERT Zona_Geografica_Comuna (nombre, zona_geografica_id)
+		SELECT distinct comuna, 1
+		FROM temp_loyalty_customer temp
+		WHERE temp.comuna IS NOT NULL AND NOT EXISTS (SELECT * FROM Zona_Geografica_Comuna c WHERE c.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT)
+  	</insert>
+  	
+	<update id="actualizarDataClienteLoyalty">
+	    UPDATE Cliente
+    	SET ocupacion = T.ocupacion,
+    		nivel_educacional = T.nivel_educacional,
+    		n_miembros_hogar = T.n_miembros_hogar,
+    		fecha_nacimiento = T.fecha_nacimiento,
+    		updated_at = GETDATE()
+    	FROM
+	    	(SELECT *
+			FROM
+				(SELECT c.cliente_id, 
+					com.comuna_id,
+					CASE WHEN c.ocupacion != temp.ocupacion AND temp.ocupacion is not null THEN temp.ocupacion ELSE c.ocupacion END as ocupacion,
+					CASE WHEN c.nivel_educacional != temp.nivel_educacional AND temp.nivel_educacional is not null THEN temp.nivel_educacional ELSE c.nivel_educacional END as nivel_educacional,
+					CASE WHEN c.n_miembros_hogar != temp.n_miembros_hogar AND temp.n_miembros_hogar is not null THEN temp.n_miembros_hogar ELSE c.n_miembros_hogar END as n_miembros_hogar,
+					CASE WHEN c.fecha_nacimiento != temp.fecha_nacimiento AND temp.fecha_nacimiento is not null THEN temp.fecha_nacimiento ELSE c.fecha_nacimiento END as fecha_nacimiento
+				FROM Cliente c
+				JOIN temp_loyalty_customer temp ON c.email = temp.email
+				
+				JOIN Zona_Geografica_Comuna com ON (temp.comuna IS NULL AND com.nombre = 'N/A') OR com.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+				
+				) as X
+			WHERE EXISTS (SELECT * FROM Cliente c WHERE c.cliente_id = X.cliente_id AND (X.ocupacion != c.ocupacion OR X.nivel_educacional != c.nivel_educacional OR X.n_miembros_hogar != c.n_miembros_hogar OR X.comuna_id != c.comuna_id OR X.fecha_nacimiento != c.fecha_nacimiento))
+			) as T
+		WHERE Cliente.cliente_id = T.cliente_id
+
+	</update>
+	
+	<insert id="agregarClientesNuevosLoyalty">
+		INSERT Cliente (rut, email, nombre, apellido_paterno, fecha_nacimiento, comuna_id, ocupacion, nivel_educacional, n_miembros_hogar, created_at, updated_at)
+		SELECT DISTINCT temp.rut, temp.email, temp.nombre, temp.apellido, temp.fecha_nacimiento, com.comuna_id, ocupacion, nivel_educacional, n_miembros_hogar, temp.created_at, temp.updated_at
+		FROM temp_loyalty_customer temp
+		JOIN Zona_Geografica_Comuna com ON (temp.comuna IS NULL AND com.nombre = 'N/A') OR com.nombre COLLATE DATABASE_DEFAULT = temp.comuna COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM Cliente c WHERE c.email COLLATE DATABASE_DEFAULT = temp.email COLLATE DATABASE_DEFAULT)
+	</insert>
+	
+	<insert id="agregarOrigenLoyalty">
+	    INSERT ClienteOrigen (cliente_id, origen)
+	    SELECT distinct c.cliente_id, 'loyalty'
+	    FROM Cliente c
+	    JOIN temp_loyalty_customer temp ON c.email =  temp.email
+	    WHERE NOT EXISTS (SELECT * FROM ClienteOrigen co WHERE co.cliente_id = c.cliente_id AND origen = 'loyalty')
+	</insert>
+	
+	<insert id="insertarTransaccionesLoyalty" parameterClass="java.util.Map">
+		INSERT INTO temp_loyalty_transaction (rut, email, pelicula_codigo, pelicula_nombre, cinema_code, funcion, cantidad, total, funcion_dia, funcion_hora, fecha_compra)
+   		VALUES (#rut#, 
+   				#email#, 
+   				#movie_code,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#movie_name,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#,
+   				#cinema_code,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#session_time,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#, 
+   				#quantity#, 
+   				#total_amount_paid#, 
+   				#session_day#, 
+   				#session_hour#, 
+   				#bought_time,javaType=java.lang.Object,jdbcType=BINARY,nullValue=null#)
+	</insert>
+	
+	<insert id="agregarTransaccionesLoyalty">
+		INSERT ClienteTransaccion (rut, email, funcion, cantidad_entradas, total_pagado, codigo_cine, dia, hora, fecha_compra, nombre_pelicula)
+		SELECT *
+		FROM
+			(SELECT distinct rut, email, funcion, cantidad, total, cinema_code, funcion_dia, funcion_hora, fecha_compra,
+				CASE WHEN pelicula_nombre like 'Unknown movie:%' THEN p.nombre ELSE pelicula_nombre COLLATE DATABASE_DEFAULT END as pelicula_nombre
+			FROM temp_loyalty_transaction temp
+			LEFT OUTER JOIN Complejo c ON c.complejo_id_externo COLLATE DATABASE_DEFAULT = cinema_code COLLATE DATABASE_DEFAULT
+			LEFT OUTER JOIN Pelicula_Complejo pc ON pc.complejo_id = c.complejo_id AND pc.pelicula_complejo_id_externo = pelicula_codigo
+			LEFT OUTER JOIN Pelicula p ON p.pelicula_id = pc.pelicula_id
+			) as X
+		WHERE NOT EXISTS (SELECT * FROM ClienteTransaccion ct WHERE ct.rut = X.rut AND ct.funcion = X.funcion AND ct.nombre_pelicula = X.pelicula_nombre AND ct.codigo_cine = X.cinema_code)
+  	</insert>
+  	
+	<update id="actualizarComportamientoAsistenciaClientesLoyalty">
+		UPDATE ClienteComportamientoAsistencia
+		SET asistencia = asistencia + temp.compras
+		FROM (SELECT email, funcion_dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT email, funcion_dia, CASE WHEN funcion_hora >= 19 THEN 2 WHEN funcion_hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_loyalty_transaction) as X
+			GROUP BY email, funcion_dia, bloque_horario
+			) as temp
+			JOIN Cliente ON temp.email COLLATE DATABASE_DEFAULT = Cliente.email COLLATE DATABASE_DEFAULT
+		WHERE ClienteComportamientoAsistencia.cliente_id = Cliente.cliente_id
+		AND ClienteComportamientoAsistencia.dia_semana = temp.funcion_dia
+		AND ClienteComportamientoAsistencia.bloque_horario = temp.bloque_horario
+	</update>
+	
+	<insert id="agregarComportamientoAsistencieClientesLoyalty">
+		INSERT ClienteComportamientoAsistencia (cliente_id, dia_semana, bloque_horario, asistencia)
+		SELECT c.cliente_id, temp.funcion_dia, temp.bloque_horario, temp.compras
+		FROM (
+			SELECT email, funcion_dia, bloque_horario, count(*) as compras
+			FROM 
+				(SELECT email, funcion_dia, CASE WHEN funcion_hora >= 19 THEN 2 WHEN funcion_hora &lt; 15 THEN 0 ELSE 1 END as bloque_horario
+				FROM temp_loyalty_transaction) as X
+			GROUP BY email, funcion_dia, bloque_horario
+			) as temp
+		JOIN Cliente c ON temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClienteComportamientoAsistencia cca 
+							WHERE cca.cliente_id = c.cliente_id
+							AND cca.dia_semana = temp.funcion_dia
+							AND cca.bloque_horario = temp.bloque_horario)
+	</insert>
+	
+	<insert id="agregarPeliculasVistasClientesLoyalty">
+		INSERT ClientePeliculasVistas (cliente_id, pelicula_nombre, pelicula_id)
+		SELECT DISTINCT c.cliente_id, temp.pelicula_nombre, p.pelicula_id
+		FROM temp_loyalty_transaction temp
+		JOIN Cliente c ON temp.email COLLATE DATABASE_DEFAULT = c.email COLLATE DATABASE_DEFAULT
+		JOIN Pelicula p ON p.nombre COLLATE DATABASE_DEFAULT = temp.pelicula_nombre COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM ClientePeliculasVistas cpa 
+							WHERE cpa.cliente_id = c.cliente_id
+							AND cpa.pelicula_nombre COLLATE DATABASE_DEFAULT = temp.pelicula_nombre COLLATE DATABASE_DEFAULT)
+	</insert>
+	
+</sqlMap>

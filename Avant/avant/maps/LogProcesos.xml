@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="LogProcesos">
+	<resultMap id="logProcesos" class="cl.zpricing.avant.negocio.sincronizador.LogProcesos">
+		<result property="id" column="id"/>
+		<result property="nombreProceso" column="nombre_proceso"/>
+		<result property="estado" column="estado"/>
+		<result property="estadoSubetapa" column="estado_subetapa"/>
+		<result property="error" column="error"/>
+		<result property="inicio" column="inicio" />
+		<result property="ultimoCambio" column="ultimoCambio" />
+		<result property="ultimaEjecucionExitosa" column="ultima_ejecucion_exitosa" />
+		<result property="tieneError" column="error_boolean" />
+		<result property="errores" column="nombre_proceso" select="obtenerErrores"/>
+	</resultMap>
+	
+	<select id="obtenerProceso" resultMap="logProcesos" parameterClass="java.lang.String">			
+		SELECT TOP 1 l.id, l.nombre_proceso, l.estado, l.estado_subetapa, l.error, l.inicio, l.ultimoCambio, l.error_boolean,
+		(SELECT TOP 1 inicio FROM Log_Procesos WHERE nombre_proceso like #value# AND estado = 'Finished' AND error_boolean = 'false' ORDER BY ultimoCambio DESC) as ultima_ejecucion_exitosa
+		FROM Log_Procesos l	
+		WHERE l.nombre_proceso = #value#
+		ORDER BY l.ultimoCambio DESC		
+	</select>
+	
+	<select id="obtenerErrores" resultClass="java.lang.String" parameterClass="java.lang.String">			
+		SELECT l.error
+		FROM Log_Procesos l	
+		WHERE l.nombre_proceso = #value# AND DATALENGTH(l.error) > 0 AND l.inicio = 
+			(SELECT TOP 1 p.inicio 
+			FROM  Log_Procesos p
+			WHERE p.nombre_proceso = #value#
+			ORDER BY p.inicio DESC)
+		ORDER BY l.inicio DESC	
+	</select>
+	
+	<!-- DAO Generico -->
+	
+	<select id="obtenerTodosLogProcesos" resultMap="logProcesos">
+		SELECT lp.id, lp.nombre_proceso, lp.estado, lp.estado_subetapa, lp.error, lp.inicio, lp.ultimoCambio, lp.error_boolean, X.ultima_ejecucion_exitosa as ultima_ejecucion_exitosa
+		FROM Log_Procesos lp
+		JOIN 
+			(SELECT X.*, l_exitoso.ultima_ejecucion_exitosa
+			FROM (SELECT l.nombre_proceso, MAX(ultimoCambio) as ultima_ejecucion
+			FROM Log_Procesos l
+			GROUP BY l.nombre_proceso
+			) as X
+			LEFT OUTER JOIN (SELECT nombre_proceso, max(inicio) as ultima_ejecucion_exitosa
+				FROM Log_Procesos 
+				WHERE estado = 'Finished' 
+				AND error_boolean = 'false'
+				GROUP BY nombre_proceso
+				) as l_exitoso ON l_exitoso.nombre_proceso = X.nombre_proceso
+			) as X ON lp.nombre_proceso = X.nombre_proceso AND lp.ultimoCambio = X.ultima_ejecucion
+	</select>
+	
+	<select id="obtenerLogProcesos" resultMap="logProcesos" parameterClass="java.lang.Integer">
+		SELECT l.id, l.nombre_proceso, l.estado, l.estado_subetapa, l.error, l.inicio, l.ultimoCambio, l.error_boolean
+		FROM Log_Procesos l
+		WHERE l.id = #value#
+	</select>
+	
+	<insert id="insertarLogProcesos" parameterClass="cl.zpricing.avant.negocio.sincronizador.LogProcesos">
+		INSERT INTO Log_Procesos
+		(nombre_proceso, estado, inicio, estado_subetapa, error, ultimoCambio, error_boolean)
+		VALUES (#nombreProceso#, #estado#, #inicio#, #estadoSubetapa#, #error#, #ultimoCambio#, #tieneError#)
+	</insert>
+	
+</sqlMap>

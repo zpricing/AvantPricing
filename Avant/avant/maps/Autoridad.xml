@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Autoridad">
+	<insert id="agregarAutoridad" 
+	parameterClass="cl.zpricing.avant.model.Autoridad">
+		INSERT INTO Autoridad
+		(autoridad, rol_id)
+		VALUES (#autoridad#, #rolId#)
+  	</insert>
+
+	<delete id="eliminarAutoridad" parameterClass="java.lang.Integer">
+		DELETE Autoridad
+		WHERE autoridad_id = #value#
+  	</delete>
+
+  	<select id="obtenerAutoridades" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Autoridad">
+		SELECT autoridad_id as id, autoridad, rol_id as rolId
+		FROM Autoridad
+		WHERE rol_id = #value#
+	</select>
+
+	<select id="obtenerRolAutoridad" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Rol">
+		SELECT
+		rol_id as id,
+		Nombre as rol,
+		descripcion as descripcion
+		FROM Rol
+		WHERE rol_id = #value#
+	</select>
+</sqlMap>

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+     xmlns:batch="http://www.springframework.org/schema/batch"     
+     xmlns:beans="http://www.springframework.org/schema/beans"
+     xmlns:aop="http://www.springframework.org/schema/aop"
+     xmlns:tx="http://www.springframework.org/schema/tx"
+     xmlns:p="http://www.springframework.org/schema/p"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+     xsi:schemaLocation="http://www.springframework.org/schema/beans 
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/batch 
+     http://www.springframework.org/schema/batch/spring-batch-2.0.xsd
+     http://www.springframework.org/schema/aop 
+     http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+     http://www.springframework.org/schema/tx 
+     http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+     http://www.springframework.org/schema/data/mongo 
+     http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+
+	<bean id="jobRepository" class="org.springframework.batch.core.repository.support.SimpleJobRepository" >   
+		<constructor-arg> 
+			<bean class="org.springframework.batch.core.repository.dao.MapJobInstanceDao" /> 
+		</constructor-arg>  
+		<constructor-arg>  
+			<bean class="org.springframework.batch.core.repository.dao.MapJobExecutionDao" />  
+		</constructor-arg>  
+		<constructor-arg>  
+			<bean class="org.springframework.batch.core.repository.dao.MapStepExecutionDao"/>  
+		</constructor-arg>  
+		<constructor-arg>  
+			<bean class="org.springframework.batch.core.repository.dao.MapExecutionContextDao"/>  
+		</constructor-arg> 
+     </bean> 
+     
+	<bean id="asyncTaskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/> 
+	<bean id="jobRepository-transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/> 
+	
+	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher" >       
+		<property name="jobRepository" ref="jobRepository"/>
+	</bean>
+	
+	<bean id="revenueManagementAvailabilityReader" class="org.springframework.batch.item.database.IbatisPagingItemReader">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="queryId" value="obtenerFuncionesAreaFuturasLocal"/>
+	    <property name="pageSize" value="2500"/>
+	</bean>
+	
+	<bean id="secondSellingPersonalizedSuggestionsReader" class="org.springframework.batch.item.database.IbatisPagingItemReader">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="queryId" value="obtenerSecondSellingPersonalizedSuggestions"/>
+	    <property name="pageSize" value="2500"/>
+	</bean>
+ 
+	<bean id="revenueManagementAvailabilityProcessor" class="cl.zpricing.avant.etl.springbatch.RevenueManagementAvailabilityProcessor"/>
+     
+	<bean id="revenueManagementAvailabilityWriter" class="cl.zpricing.avant.etl.springbatch.RevenueManagementAvailabilityWriter">
+		<property name="mongoOperation" ref="mongoTemplate"/>
+	</bean>
+	
+	<bean id="secondSellingPersonalizedSuggestionsWriter" class="cl.zpricing.avant.etl.springbatch.SecondSellingPersonalizedSuggestionsWriter">
+		<property name="mongoOperation" ref="mongoTemplate"/>
+	</bean>
+	
+	<bean id="businessIntelligenceClusterReader" class="org.springframework.batch.item.database.IbatisPagingItemReader">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="queryId" value="getClusters"/>
+	    <property name="pageSize" value="100000"/>
+	</bean>
+	
+	<bean id="businessIntelligenceClusterWriter" class="cl.zpricing.avant.etl.springbatch.BusinessIntelligenceClusterWriter">
+		<property name="mongoOperation" ref="mongoIzyTemplate"/>
+	</bean>
+	
+	<bean id="businessIntelligenceClientReader" class="org.springframework.batch.item.database.IbatisPagingItemReader">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="queryId" value="getClientsWithTags"/>
+	    <property name="pageSize" value="50000"/>
+	</bean>
+	
+	<bean id="businessIntelligenceClientWriter" class="cl.zpricing.avant.etl.springbatch.BusinessIntelligenceClientWriter">
+		<property name="mongoOperation" ref="mongoIzyTemplate"/>
+	</bean>
+	
+	<bean id="cineticketTransactionalDataExtractionReader" class="org.springframework.batch.item.database.IbatisPagingItemReader" scope="step">
+	    <property name="sqlMapClient" ref="sqlMapClientCineticket"/>
+	    <property name="queryId" value="extraccionTransaccionesCineticket"/>
+	    <property name="pageSize" value="25000"/>
+	    <beans:property name="parameterValues">
+	 		<beans:map>
+	 			<beans:entry key="estado" value="Pagado"/> 
+	 			<beans:entry key="fecha_desde" value="#{jobParameters[date_from]}" /> 
+	 		</beans:map>
+	 	</beans:property>
+	</bean>
+	
+	<bean id="cineticketTransactionalDataExtractionWriter" class="org.springframework.batch.item.database.IbatisBatchItemWriter">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="statementId" value="insertarTransaccionesCineticket"/>
+	</bean>
+	
+	<bean id="cineticketCustomerDataExtractionReader" class="org.springframework.batch.item.database.IbatisPagingItemReader" scope="step">
+	    <property name="sqlMapClient" ref="sqlMapClientCineticket"/>
+	    <property name="queryId" value="extraccionClientesCineticket"/>
+	    <property name="pageSize" value="100000"/>
+	    <beans:property name="parameterValues">
+	 		<beans:map>
+	 			<beans:entry key="fecha_desde" value="#{jobParameters[date_from]}" />
+	 		</beans:map>
+	 	</beans:property>
+	</bean>
+	
+	<bean id="cineticketCustomerDataExtractionWriter" class="org.springframework.batch.item.database.IbatisBatchItemWriter">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="statementId" value="insertarCustomerCineticket"/>
+	</bean>
+	
+	<bean id="loyaltyCustomerDataExtractionReader" class="org.springframework.batch.item.database.IbatisPagingItemReader" scope="step">
+	    <property name="sqlMapClient" ref="sqlMapClientLoyalty"/>
+	    <property name="queryId" value="extraccionClientesLoyalty"/>
+	    <property name="pageSize" value="100000"/>
+	    <beans:property name="parameterValues">
+	 		<beans:map>
+	 			<beans:entry key="fecha_desde" value="#{jobParameters[date_from]}" /> 
+	 		</beans:map>
+	 	</beans:property>
+	</bean>
+	
+	<bean id="loyaltyCustomerDataExtractionWriter" class="org.springframework.batch.item.database.IbatisBatchItemWriter">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="statementId" value="insertarCustomerLoyalty"/>
+	</bean>
+	
+	<bean id="loyaltyTransactionalDataExtractionReader" class="org.springframework.batch.item.database.IbatisPagingItemReader" scope="step">
+	    <property name="sqlMapClient" ref="sqlMapClientLoyalty"/>
+	    <property name="queryId" value="extraccionTransaccionesLoyalty"/>
+	    <property name="pageSize" value="25000"/>
+	    <beans:property name="parameterValues">
+	 		<beans:map>
+	 			<beans:entry key="estado" value="Pagado"/> 
+	 			<beans:entry key="fecha_desde" value="#{jobParameters[date_from]}" /> 
+	 		</beans:map>
+	 	</beans:property>
+	</bean>
+	
+	<bean id="loyaltyTransactionalDataExtractionWriter" class="org.springframework.batch.item.database.IbatisBatchItemWriter">
+	    <property name="sqlMapClient" ref="sqlMapClient"/>
+	    <property name="statementId" value="insertarTransaccionesLoyalty"/>
+	</bean>
+	
+    <bean id="customItemReaderListener" class="cl.zpricing.avant.etl.springbatch.CustomItemReaderListener" />
+    <bean id="customItemWriterListener" class="cl.zpricing.avant.etl.springbatch.CustomItemWriterListener" />
+ 
+	<batch:job id="revenueManagementAvailabilityJob" job-repository="jobRepository"> 
+		<batch:step id="step1"> 
+			<batch:tasklet>
+				<batch:chunk reader="revenueManagementAvailabilityReader" writer="revenueManagementAvailabilityWriter" commit-interval="2500" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+	
+	<batch:job id="secondSellingPersonalizedSuggestionsJob" job-repository="jobRepository"> 
+		<batch:step id="loadPersonalizedSuggestions"> 
+			<batch:tasklet>
+				<batch:chunk reader="secondSellingPersonalizedSuggestionsReader" writer="secondSellingPersonalizedSuggestionsWriter" commit-interval="2500" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<batch:job id="cineticketDataExtractionJob" job-repository="jobRepository"> 
+		<batch:step id="cineticketDataExtraction"> 
+			<batch:tasklet>
+				<batch:chunk reader="cineticketTransactionalDataExtractionReader" writer="cineticketTransactionalDataExtractionWriter" commit-interval="25000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+	
+	<batch:job id="cineticketCustomerDataExtractionJob" job-repository="jobRepository"> 
+		<batch:step id="cineticketCustomerDataExtraction"> 
+			<batch:tasklet>
+				<batch:chunk reader="cineticketCustomerDataExtractionReader" writer="cineticketCustomerDataExtractionWriter" commit-interval="100000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+	
+	<batch:job id="loyaltyCustomerDataExtractionJob" job-repository="jobRepository"> 
+		<batch:step id="loyaltyCustomerDataExtraction"> 
+			<batch:tasklet>
+				<batch:chunk reader="loyaltyCustomerDataExtractionReader" writer="loyaltyCustomerDataExtractionWriter" commit-interval="100000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+	
+	<batch:job id="loyaltyTransactionExtractionJob" job-repository="jobRepository"> 
+		<batch:step id="loyaltyDataExtraction"> 
+			<batch:tasklet>
+				<batch:chunk reader="loyaltyTransactionalDataExtractionReader" writer="loyaltyTransactionalDataExtractionWriter" commit-interval="25000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+	
+	<batch:job id="businessIntelligenceClusterLoadJob" job-repository="jobRepository"> 
+		<batch:step id="businessIntelligenceClusterLoadStep"> 
+			<batch:tasklet>
+				<batch:chunk reader="businessIntelligenceClusterReader" writer="businessIntelligenceClusterWriter" commit-interval="100000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	
+	<batch:job id="businessIntelligenceClientLoadJob" job-repository="jobRepository"> 
+		<batch:step id="businessIntelligenceClientLoadStep"> 
+			<batch:tasklet>
+				<batch:chunk reader="businessIntelligenceClientReader" writer="businessIntelligenceClientWriter" commit-interval="50000" />
+				<batch:listeners>
+					<batch:listener ref="customItemReaderListener" />
+					<batch:listener ref="customItemWriterListener" />
+			    </batch:listeners> 
+			</batch:tasklet>
+		</batch:step>          
+	</batch:job>
+</beans>

@@ -1,0 +1,482 @@
+/**
+ * 
+ */
+package cl.zpricing.commons.utils;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+import cl.zpricing.commons.model.IPC;
+
+/**
+ * <b>Clase generadora de esquema de map asociado a una clase</b>
+ * 
+ * En el constructor se definen los prefijos que acompañaran a los ids de operaciones básicas en el map del objeto
+ * 
+ *  select : prefijo de selección de un sólo objeto desde la capa de datos mediante su id
+ *  selectAll: prefijo de selección de un conjunto de objetos desde la capa de datos
+ *  insert: prefijo de insercion de un objeto único en la capa de datos
+ *  update: prefijo de actualización de un objeto único en la capa de datos identificado por su id
+ *  delete: prefijo de eliminación de un objeto en la capa de datos identificado por su id
+ * 
+ *
+ * Registro de versiones:
+ * <ul>
+ *   <li>1.0 (12-03-2010 Daniel Estévez Garay): versión inicial.</li>
+ * </ul>
+ * <P>
+ *  <B>Todos los derechos reservados por ZhetaPricing.</B>
+ * <P>
+ */
+public class IbatisMapGen {
+	private String select;
+	private String selectAll;
+	private String insert;
+	private String update;
+	private String delete;
+	
+	
+	public static void main(String[] args) {
+		IbatisMapGen gen = new IbatisMapGen();
+		System.out.println(gen.generaMap(new IPC(),"IPC","mes","mes"));		
+	}
+	
+	public IbatisMapGen(){
+		this.select = "select";
+		this.selectAll = "selectAll";
+		this.insert = "insert";
+		this.update = "update";
+		this.delete = "delete";
+	}
+	
+	public IbatisMapGen(String select,String selectAll , String insert ,String update ,String delete) {
+		this.select = select;
+		this.selectAll = selectAll;
+		this.insert = insert;
+		this.update = update;
+		this.delete = delete;
+	}
+/**
+ * 
+ * Entrega el esquema de map básico asociado a iBatis de un objeto.
+ * 
+ * Es necesario rellenar los tags luego de generar el mapa.
+ *
+ * <P>
+ * Registro de versiones:
+ * <ul>
+ *   <li> 1.0 (12-03-2010 Daniel Estévez Garay): versión inicial</li>
+ * </ul>
+ * </P>
+ * 
+ * @param o objeto del cual se generara el mapa
+ * @return
+ * @since 1.0
+ */
+	public String generaMapBasico(Object o){
+		Class<?> clase = o.getClass();
+		/*System.out.println("             Clase       :     "+clase.getSimpleName());
+		System.out.println("             Con package :     "+clase.getName());*/
+		ArrayList<Field> fields = new ArrayList<Field>();
+		LinkedList<Class<?>> clases_aux = new LinkedList<Class<?>>();
+		ArrayList<Class<?>> clases = new ArrayList<Class<?>>();
+		
+		fields.addAll(Arrays.asList(clase.getDeclaredFields()));
+		while((clase =clase.getSuperclass())!=null){			
+			fields.addAll(Arrays.asList(clase.getDeclaredFields()));
+			clases_aux.add(clase);
+		}
+		Iterator<Class<?>> it = clases_aux.descendingIterator();
+		while(it.hasNext()){
+			Class<?> clase_aux = it.next();
+			if(clase_aux.getSimpleName().compareTo("Object")!=0)
+				clases.add(clase_aux);
+		}
+		clases.add(o.getClass());
+		
+		/*for(Field field : fields){
+			System.out.println("             atributo       :     "+field.getName());
+			System.out.println("             get atributo   :     "+obtenerNombreGet(field.getName()));
+			System.out.println("             clase          :     "+field.getType().getSimpleName());
+		}*/
+		Class<?> claseQueExtiende =  null;
+		clase = o.getClass();
+		StringBuilder builder = new StringBuilder();
+		builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		builder.append("<!DOCTYPE sqlMap PUBLIC \"-//iBATIS.com//DTD SQL Map 2.0//EN\" \"http://www.ibatis.com/dtd/sql-map-2.dtd\">\n");
+		builder.append("<sqlMap namespace=\""+clase.getSimpleName()+"\">\n");
+		builder.append("\n");
+		for(Class<?> c : clases){		
+		builder.append("	<typeAlias alias=\""+c.getSimpleName()+"\" type=\""+c.getName()+"\"/>\n");
+		}
+		
+		builder.append("\n");
+		
+		for(Class<?> c : clases){
+		builder.append("	<resultMap class=\""+c.getSimpleName()+"\" id=\"Map"+c.getSimpleName()+"\"");
+			if(claseQueExtiende!=null){
+		builder.append(" extends=\"Map"+claseQueExtiende.getSimpleName()+"\"");
+			}
+		builder.append(">\n");
+			for(Field f : c.getDeclaredFields()){				
+				String prop = f.getName();
+				String columna ="";
+				for(int i=0; i<f.getName().length();i++){
+					char fc = f.getName().charAt(i);
+					if(Character.isUpperCase(fc)&& i!=0 &&i!=f.getName().length()-1){
+						columna+="_";
+					}
+					columna+=Character.toLowerCase(fc);
+				}
+				if(f.getType()==Integer.TYPE ||
+						f.getType()==Double.TYPE ||
+						f.getType().getSimpleName().compareTo("String")==0 ||
+						f.getType().getSimpleName().compareTo("Date")==0){
+									
+		builder.append("		<result property=\""+prop+"\" column=\""+columna+"\"/>\n");
+				}
+				else{
+					if(f.getType().getSimpleName().compareTo("ArrayList")==0 || f.getType().getSimpleName().compareTo("List")==0){						
+						
+		builder.append("		<result property=\""+prop+"\" column=\""+columna+"_id\" select=\""+selectAll+Character.toUpperCase(f.getName().charAt(0))+f.getName().substring(1)+"\"/>\n");				
+					}
+					else{
+		builder.append("		<result property=\""+prop+"\" column=\""+columna+"_id\" select=\""+select+f.getType().getSimpleName()+"\"/>\n");
+					}
+				}
+		
+		
+			}
+		builder.append("	</resultMap>\n");
+		builder.append("\n");
+		claseQueExtiende=c;
+		}
+		
+		
+		for(Class<?> c : clases){
+		builder.append("	<select id=\""+selectAll+c.getSimpleName()+"\" resultMap=\"Map"+c.getSimpleName()+"\">\n");
+		builder.append("		SELECT * FROM \n");
+		builder.append("		\n");
+		builder.append("	</select>\n");
+		builder.append("\n");
+		}
+		
+		for(Class<?> c : clases){
+			builder.append("	<select id=\""+select+c.getSimpleName()+"\" parameterClass=\"int\" resultMap=\"Map"+c.getSimpleName()+"\">\n");
+			builder.append("		SELECT * FROM\n");
+			builder.append("		..\n");
+			builder.append("		WHERE \n");
+			builder.append("		...\n");
+			builder.append("	</select>\n");
+			builder.append("\n");
+		}
+		for(Class<?> c : clases){		
+			builder.append("	<insert id=\""+insert+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+			builder.append("		INSERT INTO\n");
+			builder.append("		...\n");
+			builder.append("		VALUES");
+			builder.append("		...\n");
+			builder.append("	</insert>\n");
+			builder.append("\n");
+		}
+		for(Class<?> c : clases){			
+			builder.append("	<update id=\""+update+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+			builder.append("		UPDATE \n");
+			builder.append("		...\n");
+			builder.append("		SET\n");
+			builder.append("		...\n");
+			builder.append("		WHERE \n");
+			builder.append("		...\n");
+			builder.append("	</update>\n");
+			builder.append("\n");
+		}
+		for(Class<?> c : clases){					
+			builder.append("	<delete id=\""+delete+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+			builder.append("		DELETE  FROM\n");
+			builder.append("		...\n");
+			builder.append("		WHERE \n");
+			builder.append("	</delete>\n");
+			builder.append("\n");
+		}
+		
+		
+		builder.append("</sqlMap>\n");
+		builder.append("<!--FIN: Generación automática de map  "+Calendar.getInstance().getTime()+" --> \n");
+		return builder.toString();
+	}
+	
+	/**
+	 * 
+	 * Entrega el esquema de map avanzado asociado a iBatis de un objeto.
+	 * 
+	 * Rellena automáticamente el contenido de los tags prediciendo la estructura de almacenamiento del objeto
+	 * en la capa de datos.
+	 * 
+	 * NOTA: Es necesario revisar la generación del mapa. No es "tan" mágico después de todo...
+	 *
+	 * <P>
+	 * Registro de versiones:
+	 * <ul>
+	 *   <li> 1.0 (12-03-2010 Daniel Estévez Garay): versión inicial</li>
+	 * </ul>
+	 * </P>
+	 * 
+	 * @param o objeto del cual se generara el mapa
+	 * @param tablaBD tabla principal en base de datos que almacena al objeto
+	 * @param llavePrimariaBD nombre de la llave primaria en la tabla que representa al objeto en la base de datos
+	 * @param llavePrimariaClase nombre de la llave primaria del objeto en el modelo de clases
+	 * @return
+	 * @since 1.0
+	 */
+		public String generaMap(Object o, String tablaBD, String llavePrimariaBD, String llavePrimariaClase){
+			Class<?> clase = o.getClass();
+			/*System.out.println("             Clase       :     "+clase.getSimpleName());
+			System.out.println("             Con package :     "+clase.getName());*/
+			
+			String claseLow ="";
+			for(int i=0; i<o.getClass().getSimpleName().length();i++){
+				char fc = o.getClass().getSimpleName().charAt(i);
+				if(Character.isUpperCase(fc)&& i!=0 &&i!=o.getClass().getSimpleName().length()-1){
+					claseLow+="_";
+				}
+				claseLow+=Character.toLowerCase(fc);
+			}
+			ArrayList<Field> fields = new ArrayList<Field>();
+			LinkedList<Class<?>> clases_aux = new LinkedList<Class<?>>();
+			ArrayList<Class<?>> clases = new ArrayList<Class<?>>();
+			/**
+			 * pie correctivo 
+			 */
+			String footAux="";
+			fields.addAll(Arrays.asList(clase.getDeclaredFields()));
+			while((clase =clase.getSuperclass())!=null){			
+				fields.addAll(Arrays.asList(clase.getDeclaredFields()));
+				clases_aux.add(clase);
+			}
+			Iterator<Class<?>> it = clases_aux.descendingIterator();
+			while(it.hasNext()){
+				Class<?> clase_aux = it.next();
+				if(clase_aux.getSimpleName().compareTo("Object")!=0)
+					clases.add(clase_aux);
+			}
+			clases.add(o.getClass());
+			
+			/*for(Field field : fields){
+				System.out.println("             atributo       :     "+field.getName());
+				System.out.println("             get atributo   :     "+obtenerNombreGet(field.getName()));
+				System.out.println("             clase          :     "+field.getType().getSimpleName());
+			}*/
+			Class<?> claseQueExtiende =  null;
+			clase = o.getClass();
+			StringBuilder builder = new StringBuilder();
+			builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+			builder.append("<!DOCTYPE sqlMap PUBLIC \"-//iBATIS.com//DTD SQL Map 2.0//EN\" \"http://www.ibatis.com/dtd/sql-map-2.dtd\">\n");
+			builder.append("<sqlMap namespace=\""+clase.getSimpleName()+"\">\n");
+			builder.append("\n");
+			for(Class<?> c : clases){		
+			builder.append("	<typeAlias alias=\""+c.getSimpleName()+"\" type=\""+c.getName()+"\"/>\n");
+			}
+			
+			builder.append("\n");
+			
+			for(Class<?> c : clases){
+			builder.append("	<resultMap class=\""+c.getSimpleName()+"\" id=\"Map"+c.getSimpleName()+"\"");
+				if(claseQueExtiende!=null){
+			builder.append(" extends=\"Map"+claseQueExtiende.getSimpleName()+"\"");
+				}
+			builder.append(">\n");
+				for(Field f : c.getDeclaredFields()){				
+					String prop = f.getName();
+					String columna ="";
+					for(int i=0; i<f.getName().length();i++){
+						char fc = f.getName().charAt(i);
+						if(Character.isUpperCase(fc)&& i!=0 &&i!=f.getName().length()-1){
+							columna+="_";
+						}
+						columna+=Character.toLowerCase(fc);
+					}
+					if(f.getType()==Integer.TYPE ||
+							f.getType()==Double.TYPE ||
+							f.getType().getSimpleName().compareTo("String")==0 ||
+							f.getType().getSimpleName().compareTo("Date")==0){
+										
+			builder.append("		<result property=\""+prop+"\" column=\""+columna+"\"/>\n");
+					}
+					else{
+						if(f.getType().getSimpleName().compareTo("ArrayList")==0 || f.getType().getSimpleName().compareTo("List")==0){						
+							
+			builder.append("		<result property=\""+prop+"\" column=\""+llavePrimariaBD+"\" select=\""+selectAll+Character.toUpperCase(f.getName().charAt(0))+f.getName().substring(1)+"\"/>\n");
+			footAux+="	<select id=\""+selectAll+Character.toUpperCase(f.getName().charAt(0))+f.getName().substring(1)+"\" parameterClass=\"int\" resultMap=\"Map"+c.getSimpleName()+"\">\n"+
+			"		SELECT * FROM ...\n"+
+			"       WHERE "+claseLow+"_id = #value#\n"+
+			"	</select>\n"+
+			"\n";
+					
+						}
+						else{
+			builder.append("		<result property=\""+prop+"\" column=\""+columna+"_id\" select=\""+select+f.getType().getSimpleName()+"\"/>\n");
+						}
+					}
+			
+			
+				}
+			builder.append("	</resultMap>\n");
+			builder.append("\n");
+			claseQueExtiende=c;
+			}
+			
+			
+			for(Class<?> c : clases){
+			builder.append("	<select id=\""+selectAll+c.getSimpleName()+"\" resultMap=\"Map"+c.getSimpleName()+"\">\n");
+			builder.append("		SELECT * FROM "+tablaBD+"\n");
+			builder.append("	</select>\n");
+			builder.append("\n");
+			}
+			
+			builder.append(footAux);
+			
+			
+			for(Class<?> c : clases){
+				builder.append("	<select id=\""+select+c.getSimpleName()+"\" parameterClass=\"int\" resultMap=\"Map"+c.getSimpleName()+"\">\n");
+				builder.append("		SELECT * FROM\n");
+				builder.append("		"+tablaBD+"\n");
+				builder.append("		WHERE \n");
+				builder.append("		"+llavePrimariaBD+" = #"+llavePrimariaClase+"#\n");
+				builder.append("	</select>\n");
+				builder.append("\n");
+			}
+			for(Class<?> c : clases){		
+				builder.append("	<insert id=\""+insert+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+				builder.append("		INSERT INTO\n");
+				builder.append("		"+tablaBD+" (");
+				/**
+				 * Se contruye el conjunto de insert menos la llave primaria asumiendo autoincrement
+				 */
+				for(Field f : c.getDeclaredFields()){
+					if(f.getName().equals(llavePrimariaClase))
+						continue;
+					String columna ="";
+					for(int i=0; i<f.getName().length();i++){
+						char fc = f.getName().charAt(i);
+						if(Character.isUpperCase(fc)&& i!=0 &&i!=f.getName().length()-1){
+							columna+="_";
+						}
+						columna+=Character.toLowerCase(fc);
+					}
+					if(f.getType()==Integer.TYPE ||
+							f.getType()==Double.TYPE ||
+							f.getType().getSimpleName().compareTo("String")==0 ||
+							f.getType().getSimpleName().compareTo("Date")==0){
+										
+			builder.append(columna+",");
+					
+					}
+					else{
+						if(f.getType().getSimpleName().compareTo("ArrayList")==0 || f.getType().getSimpleName().compareTo("List")==0){						
+							
+							//No se agrega nada
+						}
+						else{
+			builder.append(columna+"_id,");
+						}
+					}
+				}
+				
+				builder.deleteCharAt(builder.length()-1);
+				
+				builder.append(")\n");				
+				builder.append("		VALUES\n");
+				builder.append("                (");
+				for(Field f : c.getDeclaredFields()){
+					if(f.getName().equals(llavePrimariaClase))
+						continue;
+					String prop = f.getName();
+					if(f.getType()==Integer.TYPE ||
+							f.getType()==Double.TYPE ||
+							f.getType().getSimpleName().compareTo("String")==0 ||
+							f.getType().getSimpleName().compareTo("Date")==0){
+										
+			builder.append("#"+prop+"#,");
+					
+					}
+					else{
+						if(f.getType().getSimpleName().compareTo("ArrayList")==0 || f.getType().getSimpleName().compareTo("List")==0){						
+							
+							//No se agrega nada
+						}
+						else{
+			builder.append("#"+prop+".id#,");
+						}
+					}
+				}
+				builder.deleteCharAt(builder.length()-1);
+				builder.append(")\n");
+				builder.append("	</insert>\n");
+				builder.append("\n");
+			}
+			for(Class<?> c : clases){			
+				builder.append("	<update id=\""+update+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+				builder.append("		UPDATE \n");
+				builder.append("		"+tablaBD+"\n");
+				builder.append("		SET\n");
+				builder.append("		");
+				for(Field f : c.getDeclaredFields()){
+					if(f.getName().equals(llavePrimariaClase))
+						continue;
+					String columna ="";
+					String prop = f.getName();
+					for(int i=0; i<f.getName().length();i++){
+						char fc = f.getName().charAt(i);
+						if(Character.isUpperCase(fc)&& i!=0 &&i!=f.getName().length()-1){
+							columna+="_";
+						}
+						columna+=Character.toLowerCase(fc);
+					}
+					if(f.getType()==Integer.TYPE ||
+							f.getType()==Double.TYPE ||
+							f.getType().getSimpleName().compareTo("String")==0 ||
+							f.getType().getSimpleName().compareTo("Date")==0){
+										
+			builder.append(columna+"= #"+prop+"#,");
+					
+					}
+					else{
+						if(f.getType().getSimpleName().compareTo("ArrayList")==0 || f.getType().getSimpleName().compareTo("List")==0){						
+							
+							//No se agrega nada
+						}
+						else{
+			builder.append(columna+"_id= #"+prop+".id#,");
+						}
+					}
+				}
+				builder.deleteCharAt(builder.length()-1);
+				builder.append("\n");
+				builder.append("		WHERE \n");
+				builder.append("		"+llavePrimariaBD+" = #"+llavePrimariaClase+"#\n");
+				builder.append("	</update>\n");
+				builder.append("\n");
+			}
+			for(Class<?> c : clases){					
+				builder.append("	<delete id=\""+delete+c.getSimpleName()+"\" parameterClass=\""+c.getSimpleName()+"\">\n");
+				builder.append("		DELETE  FROM\n");
+				builder.append("		"+tablaBD+"\n");
+				builder.append("		WHERE \n");
+				builder.append("		"+llavePrimariaBD+" = #"+llavePrimariaClase+"#\n");
+				builder.append("	</delete>\n");
+				builder.append("\n");
+			}
+			
+			
+			builder.append("</sqlMap>\n");
+			builder.append("<!--FIN: Generación automática de map  "+Calendar.getInstance().getTime()+" --> \n");
+			return builder.toString();
+		}	
+
+	
+	
+}

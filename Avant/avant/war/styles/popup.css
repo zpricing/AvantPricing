@@ -1,0 +1,21 @@
+#popup
+   {
+      display:none;
+      position: absolute;
+      border: 1px solid #666666;
+	  background-color:white;
+	  color:graytext;
+      float:left;
+      left: 400px;
+      top: 300px;
+      padding: 10px;
+      text-align: center;
+      position:fixed;  
+      width:200px;
+      height: 60px;
+	  left:50%;
+	  margin-left:-100px;
+	  top:50%;
+	  margin-top:-100px;
+	  padding: 10px;
+}

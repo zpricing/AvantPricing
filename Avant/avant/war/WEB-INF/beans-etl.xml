@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<bean id="etlCompleteExtractionImpl" class="cl.zpricing.avant.etl.variantes.EtlCompleteExtractionImpl"  scope="prototype">
+    	<property name="cinemaScreenEtl" ref="cinemaScreenEtl"/>
+    	<property name="cinemaDistributorEtl" ref="cinemaDistributorEtl"/>
+    	<property name="cinemaCategoryEtl" ref="cinemaCategoryEtl"/>
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaPriceCardEtl" ref="cinemaPriceCardEtl"/>
+    	<property name="cinemaPriceCardPricesEtl" ref="cinemaPriceCardPricesEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="cinemaTicketEtl" ref="cinemaTicketEtl"/>
+    	<property name="cinemaAttendanceEtl" ref="cinemaAttendanceEtl"/>
+    	<property name="groupMoviesEtl" ref="groupMoviesEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    	<property name="processAlertFactory" ref="processAlertFactory"/>
+    </bean>
+    
+    <bean id="etlCinemaExtractionImpl" class="cl.zpricing.avant.etl.variantes.EtlCinemaExtractionImpl"  scope="prototype">
+    	<property name="cinemaScreenEtl" ref="cinemaScreenEtl"/>
+    	<property name="cinemaDistributorEtl" ref="cinemaDistributorEtl"/>
+    	<property name="cinemaCategoryEtl" ref="cinemaCategoryEtl"/>
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaPriceCardEtl" ref="cinemaPriceCardEtl"/>
+    	<property name="cinemaPriceCardPricesEtl" ref="cinemaPriceCardPricesEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="cinemaTicketEtl" ref="cinemaTicketEtl"/>
+    	<property name="cinemaAttendanceEtl" ref="cinemaAttendanceEtl"/>
+    	<property name="groupMoviesEtl" ref="groupMoviesEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    	<property name="processAlertFactory" ref="processAlertFactory"/>
+    	
+    	<property name="codigo" value="CinemaExtraction"/>
+    </bean>
+
+    <bean id="etlSessionExtractionImpl" class="cl.zpricing.avant.etl.scriptella.EtlSessionExtractionImpl"  scope="prototype">
+    	<property name="cinemaMovieEtl" ref="cinemaMovieEtl"/>
+    	<property name="cinemaSessionEtl" ref="cinemaSessionEtl"/>
+    	<property name="complejoDao" ref="complejoDao"/>
+    	<property name="serviciosRM" ref="serviciosRM"/>
+    	<property name="processAlertFactory" ref="processAlertFactory"/>
+    </bean>
+    
+    <bean id="cinemaScreenEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/salas.xml"/>
+    </bean>
+    <bean id="cinemaDistributorEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/distribuidor.xml"/>
+    </bean>
+    <bean id="cinemaCategoryEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/categorias.xml"/>
+    </bean>
+    <bean id="cinemaMovieEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/peliculas.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/price_cards.xml"/>
+    </bean>
+    <bean id="cinemaPriceCardPricesEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/precios.xml"/>
+    </bean>
+    <bean id="cinemaSessionEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/funciones.xml"/>
+    </bean>
+    <bean id="cinemaTicketEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/tickets.xml"/>
+    </bean>
+    <bean id="cinemaAttendanceEtl" class="cl.zpricing.avant.etl.scriptella.CinemaEtlImpl">
+    	<property name="resourceProperties" value="/WEB-INF/etls/${etl.path}/etl.properties"/>
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/${etl.path}/asistencia.xml"/>
+    </bean>
+    <bean id="groupMoviesEtl" class="cl.zpricing.avant.etl.scriptella.GroupMoviesEtlImpl">
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls/grupo_pelicula.xml"/>
+    </bean>
+    <bean id="upsellingOrsEtl" class="cl.zpricing.avant.etl.scriptella.OnlineRevenueServicesEtlImpl">
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls-ors/upselling.xml"/>
+    </bean>
+   	<bean id="movieOrsEtl" class="cl.zpricing.avant.etl.scriptella.OnlineRevenueServicesEtlImpl">
+    	<property name="resourceEtlExecutor" value="/WEB-INF/etls-ors/movies.xml"/>
+    </bean>
+    
+</beans>

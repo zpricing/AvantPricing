@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Funcion">
+	<resultMap id="MapFuncion" class="cl.zpricing.avant.model.Funcion">
+		<result property="id" column="funcion_id" />
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date" />
+		<result property="fechaContable" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="asistenciasDeFuncion" column="funcion_id" select="obtenerAsistenciasFuncion" />
+		<result property="peliculaAsociada" column="pelicula_id" select="obtenerPelicula" />
+		<result property="sala" column="sala_id" select="obtenerSala" />
+		<result property="tipoFuncion" column="tipo_funcion_id" select="obtenerTipoFuncion" />
+		<result property="idExterno" column="funcion_id_externo" />
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2" />
+		<result property="cargada" column="cargada" jdbcType="BIT" javaType="boolean" />
+		<result property="funcionArea" column="funcion_id" select="obtenerFuncionesArea" />
+		<result property="mascara"  column="mascara_id" select="obtenerMascara" nullValue="0"/>
+		<result property="priceCardDescription"  column="price_card"/>
+		<result property="protegido" column="lock"/>
+	</resultMap>
+	
+	<resultMap id="MapFuncionTemp" class="cl.zpricing.avant.model.Funcion">
+		<result property="id" column="funcion_id" />
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date" />
+		<result property="fechaContable" column="fecha_contabilidad" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="asistenciasDeFuncion" column="funcion_id" select="obtenerAsistenciasFuncion" />
+		<result property="peliculaAsociada" column="pelicula_id" select="obtenerPelicula" />
+		<result property="sala" column="sala_id" select="obtenerSala" />
+		<result property="tipoFuncion" column="tipo_funcion_id" select="obtenerTipoFuncion" />
+		<result property="idExterno" column="funcion_id_externo" />
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2" />
+		<result property="cargada" column="cargada" jdbcType="BIT" javaType="boolean" />
+		<result property="funcionArea" column="funcion_id" select="obtenerFuncionesArea" />
+		<result property="mascara"  column="mascara_id" select="obtenerMascara" nullValue="0"/>
+		<result property="priceCardDescription"  column="price_card"/>
+		<result property="protegido" column="lock"/>
+		<result property="esNumerada" column="es_numerada"/>
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Asistencia" id="MapAsistenciaFuncion">
+		<result property="id" column="asistencia_id" />
+		<result property="asistencia" column="asistencia" />
+		<result property="clase" column="clase_id" select="obtenerClase" />
+		<result property="funcionAsociada.id" column="funcion_id" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.FuncionArea" id="MapFuncionArea">
+		<result property="area" column="area_id" select="obtenerArea"/>
+		<result property="capacidadTotal" column="total" />
+		<result property="capacidadDisponible" column="disponible" />
+		<result property="capacidadOcupada" column="ocupados" />
+		<result property="capacidadReservada" column="reservados" />
+		<result property="protegido" column="lock" />
+	</resultMap>
+	
+	<!--
+		Autor: Nicolás Dujovne W.
+		Fecha: 08-05-2010
+		 
+	 -->
+	<select id="obtenerFuncionesArea" parameterClass="java.lang.Integer" resultMap="MapFuncionArea">
+		SELECT area_id, total, disponible, ocupados, reservados, lock
+		FROM FuncionArea
+		WHERE funcion_id = #value#
+	</select>
+	
+	<update id="actualizarFuncionArea" parameterClass="java.util.Map">
+		UPDATE FuncionArea 
+		SET disponible = #disponible#, total = #total#, ocupados = #ocupados#, reservados = #reservados#, lock = #protegido#
+		WHERE funcion_id = #funcion_id#
+		AND area_id = #area_id#
+	</update>
+	
+	<insert id="agregarFuncionArea" parameterClass="java.util.Map">
+		INSERT INTO FuncionArea (funcion_id, area_id, total, disponible, ocupados, reservados, lock)
+		VALUES (#funcion_id#, #area_id#, #total#, #disponible#, #ocupados#, #reservados#, #protegido#)
+	</insert>
+	
+	<select id="obtenerFuncionArea" parameterClass="java.util.Map" resultMap="MapFuncionArea">
+		SELECT funcion_id, area_id, total, disponible, ocupados, reservados, lock
+		FROM FuncionArea
+		WHERE funcion_id = #funcion_id#
+		AND area_id = #area_id#
+	</select>
+
+	<select id="obtenerAsistencia" parameterClass="java.lang.Integer"
+		resultMap="MapAsistenciaFuncion">
+		SELECT asistencia_id, funcion_id, clase_id, asistencia,
+		cargada
+		FROM Asistencia
+		WHERE asistencia_id = #value#
+	</select>
+
+	<select id="obtenerFunciones" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, price_card, lock
+		FROM Funcion
+		WHERE fecha >= CONVERT(DATETIME,#fecha_inicio# &#44; 20)
+		AND fecha &lt;= CONVERT(DATETIME,#fecha_termino# &#44; 20)
+		ORDER BY fecha
+  	</select>
+
+	<select id="obtenerFuncionesByPeliculaDia" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, price_card, lock
+		FROM Funcion
+		WHERE fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND pelicula_id=#pelicula.id#
+		ORDER BY fecha
+  	</select>
+
+	<select id="obtenerFuncionesByPeliculaDiaComplejo" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT Funcion.funcion_id, Funcion.sala_id, Funcion.pelicula_id,
+		Funcion.fecha, Funcion.tipo_funcion_id, Funcion.funcion_id_externo,
+		Funcion.cargada, Funcion.fecha_contabilidad, Funcion.mascara_id, Funcion.price_card, Funcion.lock
+		FROM Funcion, Sala
+		WHERE Funcion.fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND Funcion.fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND Funcion.pelicula_id=#pelicula.id#
+		AND Funcion.sala_id = Sala.sala_id
+		AND Sala.complejo_id = #complejo.id#
+		ORDER BY Funcion.fecha
+  	</select>
+
+	<select id="obtenerFuncionesComplejo" parameterClass="java.util.HashMap" resultMap="MapFuncion">
+		SELECT Funcion.funcion_id, Funcion.sala_id, Funcion.pelicula_id,
+		Funcion.fecha, Funcion.tipo_funcion_id, Funcion.funcion_id_externo,
+		Funcion.cargada, Funcion.fecha_contabilidad, Funcion.mascara_id, Funcion.price_card, Funcion.lock
+		FROM Funcion, Sala
+		WHERE Funcion.fecha >= CONVERT(DATETIME,#fecha_inicio#&#44;20)
+		AND Funcion.fecha &lt;= CONVERT(DATETIME,#fecha_fin#&#44;20)
+		AND Funcion.sala_id = Sala.sala_id
+		AND Sala.complejo_id = #complejo.id#
+		ORDER BY Funcion.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesDiaContable" parameterClass="java.util.HashMap" resultMap="MapFuncionTemp">
+		SELECT f.funcion_id, f.sala_id, f.pelicula_id, f.fecha, f.tipo_funcion_id, f.funcion_id_externo, f.cargada, f.fecha_contabilidad, f.mascara_id, f.price_card, f.lock, f.es_numerada
+		FROM Funcion f, Sala s
+		WHERE f.fecha_contabilidad = CONVERT(DATETIME,#fecha#&#44;20)
+		AND f.sala_id = s.sala_id
+		AND s.complejo_id = #complejo.id#
+		ORDER BY f.fecha
+  	</select>
+  	
+  	<select id="obtenerFuncionesSalaDia" parameterClass="java.util.Map" resultMap="MapFuncion">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, price_card, lock
+		FROM Funcion
+		WHERE sala_id = #sala_id#
+		AND fecha_contabilidad = #fecha#
+  	</select>
+
+
+	<select id="obtenerPrimeraFuncion" resultMap="MapFuncion" parameterClass="java.util.HashMap">
+		SELECT top 1 Funcion.funcion_id, Funcion.sala_id, Funcion.pelicula_id,
+		Funcion.fecha, Funcion.tipo_funcion_id, Funcion.funcion_id_externo,
+		Funcion.cargada, Funcion.fecha_contabilidad, Funcion.mascara_id, Funcion.price_card, Funcion.lock
+		FROM Funcion, Sala
+		WHERE Funcion.pelicula_id = #pelicula.id#
+		AND Funcion.sala_id = Sala.sala_id
+		AND Sala.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Funcion.fecha) = #dia#
+		ORDER BY fecha   	
+  	</select>
+
+
+	<select id="obtenerAsistenciasFuncion" parameterClass="java.lang.Integer" resultMap="MapAsistenciaFuncion">
+		SELECT asistencia_id, funcion_id, clase_id, asistencia
+		FROM
+		Asistencia
+		WHERE funcion_id = #value#
+	</select>
+
+	<select id="obtenerAsistenciaDiariaPorPelicula" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.AsistenciaDiaria">
+		SELECT DISTINCT 
+			p.pelicula_id as peliculaId,
+			SUM(a.asistencia) as asistenciaDiaria, 
+			convert(datetime, convert(varchar,f.fecha,110), 0) as fecha
+		FROM 
+			Asistencia a, Funcion f, Pelicula p
+		WHERE 
+			a.funcion_id = f.funcion_id
+			and f.pelicula_id =	p.pelicula_id
+			and p.pelicula_id = #value#
+		GROUP BY 
+			convert(datetime, convert(varchar,f.fecha,110), 0), p.pelicula_id
+		ORDER BY
+			convert(datetime, convert(varchar,f.fecha,110), 0)
+	</select>
+
+	<select id="obtenerAsistenciasHoraPeliculaComplejo" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT DATEPART(hour,F.fecha) as 'hora',
+		cast(SUM(A.asistencia) as float)/ cast(Count(Distinct F.funcion_id) as float) as
+		'asistencias'
+
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=8
+
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		ORDER BY Fun.fecha)
+
+		GROUP BY DATEPART(hour,F.fecha)
+
+		UNION
+
+		SELECT DATEPART(hour,F.fecha) as 'hora',
+		cast(SUM(A.asistencia) as float)/ cast(Count(Distinct F.funcion_id) as float) as
+		'asistencias'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=0
+		AND DATEPART(hour,F.fecha)&lt;=3
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+1+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		ORDER BY Fun.fecha)
+
+		GROUP BY DATEPART(hour,F.fecha)
+		ORDER BY DATEPART(hour,F.fecha)
+
+	</select>
+
+	<select id="obtenerVarianzasFuncionesHora" parameterClass="java.util.Map" resultClass="java.util.HashMap">
+		SELECT DATEPART(hour,Fu.fecha) as 'hora',
+		ISNULL(VAR(CAST(Asis.asistencia as float)),0.0) as 'varianza'
+		FROM
+		Funcion Fu,
+		(SELECT F.funcion_id, SUM(A.asistencia) as 'asistencia'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=8
+
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		)
+
+		GROUP BY F.funcion_id, DATEPART(hour,F.fecha)
+
+		UNION
+
+		SELECT F.funcion_id, SUM(A.asistencia) as 'asistencia'
+		FROM Funcion F, Sala S, Asistencia A
+		WHERE F.pelicula_id IN (
+		<iterate property="peliculas" conjunction=",">
+			#peliculas[].id#
+  		</iterate>
+		)
+		AND F.funcion_id = A.funcion_id
+		AND F.sala_id = S.sala_id
+		AND S.complejo_id = #complejo.id#
+		AND DATEPART(hour,F.fecha)>=0
+		AND DATEPART(hour,F.fecha)&lt;=3
+		AND CONVERT(VARCHAR(10),F.fecha,102)
+
+		IN
+		(SELECT top 1 CONVERT(VARCHAR(10),Fun.fecha+1+#dias#,102)
+		FROM Funcion Fun, Sala Sal
+		WHERE Fun.pelicula_id = F.pelicula_id
+		AND Fun.sala_id = Sal.sala_id
+		AND Sal.complejo_id = #complejo.id#
+		AND DATEPART(weekday,Fun.fecha) = #dia_estreno#
+		)
+
+		GROUP BY F.funcion_id, DATEPART(hour,F.fecha)) Asis
+		WHERE Fu.funcion_id = Asis.funcion_id
+
+		GROUP BY DATEPART(hour,Fu.fecha)
+
+	</select>
+
+	<select id="obtenerFuncion" parameterClass="java.lang.Integer" resultMap="MapFuncionTemp">
+		SELECT funcion_id, sala_id, pelicula_id, fecha, tipo_funcion_id, funcion_id_externo, cargada, fecha_contabilidad, mascara_id, price_card, lock, es_numerada
+		FROM Funcion
+		WHERE funcion_id= #value#  	
+  	</select>
+
+	<insert id="agregarAsistencia" parameterClass="cl.zpricing.avant.model.Asistencia">
+		INSERT INTO
+		Asistencia
+		(funcion_id,clase_id,asistencia)
+		VALUES (#funcionAsociada.id#, #clase.id#, #asistencia#)
+	</insert>
+
+	<!--
+		En este update elimino el tipo funcion hasta que sea implementado
+	-->
+	<update id="actualizarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET fecha = #fecha#, sala_id = #sala.id#, cargada = #cargada#, mascara_id = #mascara.id#, price_card = #priceCardDescription#, lock = #protegido#
+		WHERE funcion_id = #id#
+	</update>
+	
+	<update id="actualizarFuncionSinMascara" parameterClass="cl.zpricing.avant.model.Funcion">
+		UPDATE Funcion
+		SET fecha = #fecha#, sala_id = #sala.id#, pelicula_id = #peliculaAsociada.id#, cargada = #cargada#, price_card = #priceCardDescription#, lock = #protegido#
+		WHERE funcion_id = #id#
+	</update>
+
+	<insert id="agregarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		INSERT INTO Funcion
+		(fecha, sala_id, pelicula_id, tipo_funcion_id, cargada)
+		VALUES
+		(#fecha#, #sala.id#,#tipoFuncion.id#,#cargada#)
+	</insert>
+
+	<delete id="eliminarAsistencias" parameterClass="cl.zpricing.avant.model.Funcion">
+		DELETE
+		Asistencia
+		WHERE funcion_id = #id#
+  	</delete>
+
+	<delete id="eliminarAsistencia" parameterClass="cl.zpricing.avant.model.Asistencia">
+		DELETE Asistencia
+		WHERE asistencia_id = #id#
+  	</delete>
+
+	<delete id="eliminarFuncion" parameterClass="cl.zpricing.avant.model.Funcion">
+		DELETE Funcion
+		WHERE
+		funcion_id = #id#
+  	</delete>
+
+	<delete id="eliminarFuncionId" parameterClass="java.lang.Integer">
+		DELETE Funcion
+		WHERE funcion_id = #value#
+  	</delete>
+</sqlMap>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="GrupoPelicula">
+	<resultMap class="cl.zpricing.avant.model.GrupoPelicula" id="mapGrupoPelicula">
+		<result property="id" column="id" />
+		<result property="descripcion" column="nombre" />
+		<result property="nombreOriginal" column="nombre_original" />
+		<result property="externalSourceId" column="external_source_id" />
+		<result property="externalSourceDataLoaded" column="external_source_data_loaded" />
+	</resultMap>
+	
+		
+	<select id="obtenerGruposDePeliculaParaCargaDeInformacionExterna" resultMap="mapGrupoPelicula">
+		SELECT *
+		FROM Grupo_Pelicula
+		WHERE ((nombre_original IS NOT NULL 
+		AND nombre_original != '') OR (external_source_id is not null AND external_source_id != ''))  
+		AND external_source_data_loaded = 0
+		ORDER BY id DESC
+	</select>
+	
+	<select id="obtenerGruposDePeliculaSinNombreOriginal" resultMap="mapGrupoPelicula">
+		SELECT distinct gp.*
+		FROM Grupo_Pelicula gp
+		JOIN Pelicula p ON p.grupo_pelicula_id = gp.id
+		JOIN PeliculaCategoria pc ON pc.pelicula_id = p.pelicula_id
+		JOIN Categoria c ON c.categoria_id = pc.categoria_id
+		WHERE (nombre_original is null OR nombre_original = '')
+		AND c.procesable = 1
+		ORDER BY id DESC
+	</select>
+	
+	<select id="obtenerGruposDePeliculaEnCartelera" resultMap="mapGrupoPelicula" parameterClass="java.util.Map">
+		SELECT distinct gp.*
+		FROM Grupo_Pelicula gp
+		JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+		JOIN Funcion f ON f.pelicula_id = p.pelicula_id AND fecha > GETDATE()
+		JOIN PeliculaCategoria pc ON pc.pelicula_id = p.pelicula_id
+		JOIN Categoria c ON c.categoria_id = pc.categoria_id
+		WHERE gp.external_source_data_loaded = #include_with_loaded_data#
+		AND c.procesable = 1
+		ORDER BY id DESC
+	</select>
+	
+	<select id="obtenerGruposDePeliculaEnCarteleraSinNombreOriginal" resultMap="mapGrupoPelicula">
+		SELECT distinct gp.*
+		FROM Grupo_Pelicula gp
+		JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+		JOIN PeliculaCategoria pc ON pc.pelicula_id = p.pelicula_id
+		JOIN Categoria c ON c.categoria_id = pc.categoria_id
+		JOIN Funcion f ON f.pelicula_id = p.pelicula_id AND fecha > GETDATE()
+		AND (gp.nombre_original IS NULL OR gp.nombre_original = '')
+		AND c.procesable = 1
+		ORDER BY id DESC
+	</select>
+	
+	<select id="obtenerGruposDePelicula" resultMap="mapGrupoPelicula" parameterClass="java.util.Map">
+		SELECT distinct gp.*
+		FROM Grupo_Pelicula gp
+		JOIN Pelicula p ON gp.id = p.grupo_pelicula_id
+		JOIN PeliculaCategoria pc ON pc.pelicula_id = p.pelicula_id
+		JOIN Categoria c ON c.categoria_id = pc.categoria_id
+		WHERE external_source_data_loaded = #include_with_loaded_data#
+		AND c.procesable = 1
+		ORDER BY id DESC
+	</select>
+	
+	<insert id="agregaRelacionGrupoPeliculaCategoriaPorCodigoDeFuenteExterna" parameterClass="java.util.Map">
+		INSERT INTO GrupoPeliculaCategoria (grupo_pelicula_id, categoria_id)
+		SELECT #grupo_pelicula_id#, c.categoria_id
+		FROM Categoria c
+		WHERE c.external_source_code = #categoria_external_source_code#
+		AND NOT EXISTS (SELECT * FROM GrupoPeliculaCategoria pc 
+							WHERE pc.grupo_pelicula_id = #grupo_pelicula_id#
+							AND pc.categoria_id = c.categoria_id)
+	</insert>
+	
+	<update id="actualizarGrupoPelicula" parameterClass="cl.zpricing.avant.model.GrupoPelicula">
+		UPDATE Grupo_Pelicula
+		SET nombre_original = #nombreOriginal#, external_source_id = #externalSourceId#, external_source_data_loaded = #externalSourceDataLoaded#
+		WHERE id = #id#
+	</update>
+	
+</sqlMap>

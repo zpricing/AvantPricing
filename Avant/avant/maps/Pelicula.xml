@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Pelicula">
+	<resultMap class="cl.zpricing.avant.model.Pelicula" id="MapPelicula">
+		<result property="id" column="pelicula_id" />
+		<result property="idExterno" column="pelicula_id_externo" />
+		<result property="duracion" column="duracion" />
+		<result property="nombre" column="nombre" />
+		<result property="descripcion" column="descripcion" />
+   		<result property="categorias" column="pelicula_id" select="obtenerCategoriasPelicula" /> 
+ 		<result property="epocas" column="pelicula_id" select="obtenerEpocasPelicula" />  
+		<!--  <result property="funcionesPlanificadas" column="pelicula_id" select="obtenerFuncionesPlanificadas" />-->
+	 	<result property="tiposDePublico" column="pelicula_id" select="obtenerTiposDePublico" /> 
+		<result property="activo" column="activo" jdbcType="BIT"/>   
+		<result property="markers" column="pelicula_id" select="obtenerMarkersPelicula"/>
+		<result property="idCentral" column="pelicula_central_id" />
+		<result property="gradoSimilitud" column="grado_similitud_central"/>
+		<result property="nombreCentral" column="nombre_central"/>
+		<result property="formato3d" column="formato3d"/>
+		<result property="distribuidor" column="distribuidor_id" select="obtenerDistribuidor"/>
+		<result property="formatoId" column="formato_id"/>
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.Pelicula" id="SimpleMapPelicula">
+		<result property="id" column="pelicula_id" />
+		<result property="idExterno" column="pelicula_id_externo" />
+		<result property="duracion" column="duracion" />
+		<result property="nombre" column="nombre" />
+		<result property="descripcion" column="descripcion" />	 	
+		<result property="activo" column="activo" jdbcType="BIT"/>   
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.Pelicula" id="MapPeliculaCategorizacion">
+		<result property="id" column="pelicula_id" />
+		<result property="nombre" column="nombre" />
+		<result property="fechaEstreno" column="fecha_estreno" jdbcType="DATE" javaType="java.util.Date" />
+		<result property="cantidadDeFunciones" column="cantidad_funciones" />
+		<result property="formato.id" column="pel_formato_id" />
+		<result property="formato.descripcion" column="pel_formato_nombre" />
+		<result property="idioma.id" column="pel_idioma_id" />
+		<result property="idioma.descripcion" column="pel_idioma_nombre" />
+		<result property="ranking.id" column="pel_ranking_id" />
+		<result property="ranking.descripcion" column="pel_ranking_nombre" />
+		<result property="rating.id" column="pel_rating_id" />
+		<result property="rating.descripcion" column="pel_rating_nombre" />
+		<result property="categorias" column="pelicula_id" select="obtenerCategoriasPelicula" /> 
+		<result property="grupoPelicula.id" column="grupo_pelicula_id" />
+		<result property="grupoPelicula.descripcion" column="grupo_pelicula_nombre" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.Pelicula" id="MapPeliculaNoMarkers">
+		<result property="id" column="pelicula_id" />
+		<result property="idExterno" column="pelicula_id_externo" />
+		<result property="duracion" column="duracion" />
+		<result property="nombre" column="nombre" />
+		<result property="descripcion" column="descripcion" />
+		<result property="categorias" column="pelicula_id" select="obtenerCategoriasPelicula" />
+		<result property="epocas" column="pelicula_id" select="obtenerEpocasPelicula" />
+		<!--  <result property="funcionesPlanificadas" column="pelicula_id" select="obtenerFuncionesPlanificadas" />-->
+		<result property="tiposDePublico" column="pelicula_id" select="obtenerTiposDePublico" />
+		<result property="activo" column="activo" jdbcType="BIT"/>
+		<result property="idCentral" column="pelicula_central_id" />
+		<result property="gradoSimilitud" column="grado_similitud_central"/>
+		<result property="nombreCentral" column="nombre_central"/>
+	</resultMap>	
+
+	<resultMap class="cl.zpricing.avant.model.Publico" id="MapPublico">
+		<result property="id" column="publico_id" />
+		<result property="descripcion" column="descripcion" />
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Epoca" id="MapEpoca">
+		<result property="id" column="epoca_id" />
+		<result property="descripcion" column="descripcion" />
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Categoria" id="MapCategoria">
+		<result property="id" column="categoria_id" />
+		<result property="descripcion" column="descripcion" />
+	</resultMap>
+
+	<resultMap class="cl.zpricing.avant.model.Funcion" id="MapfuncionesPlanificadas">
+		<result property="id" column="funcion_id" />	
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.Distribuidor" id="mapDistribuidor">
+		<result property="id" column="distribuidor_id" />
+		<result property="nombre" column="nombre" />
+		<result property="descripcion" column="descripcion" />
+		<result property="codigoExterno" column="distribuidor_id_externo" />
+		<result property="moneda" column="moneda" />
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.GrupoPelicula" id="mapGrupoPelicula">
+		<result property="id" column="id" />
+		<result property="descripcion" column="nombre" />
+		<result property="nombreOriginal" column="nombre_original" />
+		<result property="externalSourceDataLoaded" column="external_source_data_loaded" />
+	</resultMap>
+	
+	<select id="obtenerPelicula" parameterClass="java.lang.Integer" resultMap="MapPelicula">
+		SELECT *
+		FROM Pelicula
+		WHERE pelicula_id = #value#
+	</select>
+	
+	<select id="obtenerPeliculaPorIdExternoDeComplejo" parameterClass="java.util.Map" resultMap="SimpleMapPelicula">
+		SELECT p.*
+		FROM Pelicula p, Pelicula_Complejo pc
+		WHERE p.pelicula_id = pc.pelicula_id 
+		AND pc.pelicula_complejo_id_externo = #id_externo#
+		AND pc.complejo_id = #complejo_id#
+	</select>
+	
+	<select id="obtenerIdExternoComplejo" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT pelicula_complejo_id_externo
+		FROM Pelicula_Complejo
+		WHERE complejo_id = #complejo_id#
+		AND pelicula_id = #pelicula_id#
+	</select>
+
+	<select id="obtenerTiposDePublico" parameterClass="java.lang.Integer" resultMap="MapPublico">
+		SELECT Publico.publico_id, Publico.descripcion
+		FROM Publico,
+		PeliculaPublico
+		WHERE PeliculaPublico.publico_id = Publico.publico_id
+		AND
+		PeliculaPublico.pelicula_id = #value#
+	</select>
+
+	<select id="obtenerEpocasPelicula" parameterClass="java.lang.Integer" resultMap="MapEpoca">
+		SELECT Epoca.epoca_id, Epoca.descripcion
+		FROM PeliculaEpoca,
+		Epoca
+		WHERE PeliculaEpoca.epoca_id = Epoca.epoca_id
+		AND
+		PeliculaEpoca.pelicula_id = #value#
+	</select>
+
+	<select id="obtenerCategoriasPelicula" parameterClass="java.lang.Integer" resultMap="MapCategoria">
+		SELECT Categoria.categoria_id, Categoria.descripcion
+		FROM
+		PeliculaCategoria, Categoria
+		WHERE PeliculaCategoria.categoria_id =
+		Categoria.categoria_id
+		AND PeliculaCategoria.pelicula_id = #value#
+	</select>
+
+	
+	
+	<select id="obtenerPeliculaNoMarkers" parameterClass="java.lang.Integer" resultMap="MapPeliculaNoMarkers">
+		SELECT *
+		FROM
+		Pelicula
+		WHERE pelicula_id = #value#
+	</select>
+
+	<update id="actualizarPelicula" parameterClass="cl.zpricing.avant.model.Pelicula">
+		UPDATE Pelicula
+		SET nombre = #nombre#, descripcion = #descripcion#,
+			duracion = #duracion#, activo = #activo#, pelicula_central_id = #idCentral#, grado_similitud_central = #gradoSimilitud#
+		WHERE pelicula_id=#id#
+  	</update>
+  	
+  	<update id="actualizarClasificacionPelicula" parameterClass="cl.zpricing.avant.model.Pelicula">
+  		UPDATE Pelicula
+  		SET 	pel_formato_id = NULLIF(#formato.id#, -1),
+  				pel_idioma_id = NULLIF(#idioma.id#, -1),
+  				pel_ranking_id = NULLIF(#ranking.id#, -1),
+  				pel_rating_id = NULLIF(#rating.id#, -1)
+  		WHERE pelicula_id = #id#
+  	</update>
+
+	<insert id="agregarPelicula" parameterClass="cl.zpricing.avant.model.Pelicula">
+		INSERT INTO Pelicula
+		(nombre, descripcion, duracion, activo, distribuidor_id)
+		VALUES (#nombre#, #descripcion#, #duracion#, #activo#, #distribuidor.id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+
+	<delete id="eliminarPeliculaCategoria" parameterClass="cl.zpricing.avant.model.Pelicula">
+		DELETE PeliculaCategoria
+		WHERE pelicula_id = #id#
+  	</delete>
+  	
+  	<delete id="eliminarPeliculaEpoca" parameterClass="cl.zpricing.avant.model.Pelicula">
+		DELETE PeliculaEpoca
+		WHERE pelicula_id = #id#
+  	</delete>
+  	
+  	<delete id="eliminarPeliculaPublico" parameterClass="cl.zpricing.avant.model.Pelicula">
+		DELETE PeliculaPublico
+		WHERE pelicula_id = #id#
+  	</delete>
+ 
+ 	<delete id="eliminarPelicula" parameterClass="cl.zpricing.avant.model.Pelicula">
+		DELETE Pelicula
+		WHERE pelicula_id = #id#
+  	</delete>	
+
+	<select id="obtenerListaPeliculas" parameterClass="java.lang.Integer"
+		resultMap="MapPelicula">
+		SELECT *
+		FROM
+		Pelicula
+		WHERE activo is not null
+		ORDER BY grado_similitud_central, nombre ASC
+	</select>
+	
+	<select id="obtenerListaPeliculasActivas" parameterClass="java.lang.Integer" resultMap="MapPelicula">
+		SELECT *
+		FROM Pelicula
+		WHERE activo = 'True'
+		ORDER BY grado_similitud_central, nombre ASC
+	</select>
+	
+	<select id="obtenerListaPeliculasNoActivas" parameterClass="java.lang.Integer"
+		resultMap="MapPelicula">
+		SELECT *
+		FROM
+		Pelicula
+		WHERE activo = 'False'
+		ORDER BY grado_similitud_central, nombre ASC
+	</select>
+	
+	<select id="obtenerListaPeliculasSinClasificar" parameterClass="java.util.HashMap" resultMap="MapPeliculaCategorizacion">
+		SELECT DISTINCT	P.pelicula_id, P.nombre, COUNT(FU.funcion_id) as cantidad_funciones, P.fecha_estreno, COALESCE(pel_formato_id, -1) as pel_formato_id, F.descripcion as pel_formato_nombre,
+				 COALESCE(pel_idioma_id, -1) as pel_idioma_id, I.descripcion as pel_idioma_nombre, 
+				 COALESCE(pel_ranking_id, -1) as pel_ranking_id, R.descripcion as pel_ranking_nombre,
+				 COALESCE(pel_rating_id, RT2.id, -1) as pel_rating_id, COALESCE(RT.descripcion, RT2.descripcion, '') as pel_rating_nombre,
+				 COALESCE(GP.id, -1) as grupo_pelicula_id, COALESCE(GP.nombre, '') as grupo_pelicula_nombre
+		FROM Pelicula P
+		LEFT JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id
+		LEFT JOIN Categoria C ON PC.categoria_id = C.categoria_id
+		LEFT JOIN Pel_Formato F ON P.pel_formato_id = F.id
+		LEFT JOIN Pel_Idioma I ON P.pel_idioma_id = I.id
+		LEFT JOIN Pel_Ranking R ON P.pel_ranking_id = R.id
+		LEFT JOIN Pel_Rating RT ON P.pel_rating_id = RT.id
+		LEFT JOIN Pel_Rating RT2 ON P.censura COLLATE DATABASE_DEFAULT = RT2.descripcion COLLATE DATABASE_DEFAULT
+		LEFT JOIN Funcion FU ON P.pelicula_id = FU.pelicula_id
+		LEFT JOIN Grupo_Pelicula GP ON P.grupo_pelicula_id = GP.id
+		WHERE (P.fecha_estreno > DATEADD(year,-1,GETDATE()) OR P.fecha_estreno IS NULL)
+		AND (C.procesable is NULL OR C.procesable = 1)
+		AND (pel_formato_id IS NULL
+		OR pel_idioma_id IS NULL
+		OR pel_ranking_id IS NULL
+		OR pel_rating_id IS NULL
+		OR PC.categoria_id IS NULL)
+		AND P.nombre like '%' + #search# + '%'
+		AND P.pelicula_id NOT IN 
+		(
+			SELECT DISTINCT P.pelicula_id FROM Funcion F
+			JOIN Pelicula P ON F.pelicula_id = P.pelicula_id
+			JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id 
+			JOIN Categoria C ON C.categoria_id = PC.categoria_id AND C.descripcion = 'Evento' 
+		)
+		GROUP BY P.pelicula_id, P.nombre, P.fecha_estreno, pel_formato_id, F.descripcion, pel_idioma_id, I.descripcion,
+		pel_ranking_id, R.descripcion, pel_rating_id, RT.descripcion, RT2.id, RT2.descripcion, GP.id, GP.nombre
+		ORDER BY fecha_estreno DESC, cantidad_funciones DESC, pelicula_id DESC
+	</select>
+	
+	<select id="obtenerListaPeliculasSinClasificarEnCartelera" parameterClass="java.util.HashMap" resultMap="MapPeliculaCategorizacion">
+		SELECT DISTINCT	P.pelicula_id, P.nombre, COUNT(FU.funcion_id) as cantidad_funciones, P.fecha_estreno, COALESCE(pel_formato_id, -1) as pel_formato_id, F.descripcion as pel_formato_nombre,
+				 COALESCE(pel_idioma_id, -1) as pel_idioma_id, I.descripcion as pel_idioma_nombre, 
+				 COALESCE(pel_ranking_id, -1) as pel_ranking_id, R.descripcion as pel_ranking_nombre,
+				 COALESCE(pel_rating_id, RT2.id, -1) as pel_rating_id, COALESCE(RT.descripcion, RT2.descripcion, '') as pel_rating_nombre,
+				 COALESCE(GP.id, -1) as grupo_pelicula_id, COALESCE(GP.nombre, '') as grupo_pelicula_nombre
+		FROM Pelicula P
+		LEFT JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id
+		LEFT JOIN Categoria C ON PC.categoria_id = C.categoria_id
+		LEFT JOIN Pel_Formato F ON P.pel_formato_id = F.id
+		LEFT JOIN Pel_Idioma I ON P.pel_idioma_id = I.id
+		LEFT JOIN Pel_Ranking R ON P.pel_ranking_id = R.id
+		LEFT JOIN Pel_Rating RT ON P.pel_rating_id = RT.id
+		LEFT JOIN Pel_Rating RT2 ON P.censura COLLATE DATABASE_DEFAULT = RT2.descripcion COLLATE DATABASE_DEFAULT
+		LEFT JOIN Funcion FU ON P.pelicula_id = FU.pelicula_id
+		LEFT JOIN Grupo_Pelicula GP ON P.grupo_pelicula_id = GP.id
+		WHERE (P.fecha_estreno > DATEADD(year,-1,GETDATE()) OR P.fecha_estreno IS NULL)
+		AND (C.procesable is NULL OR C.procesable = 1)
+		AND (pel_formato_id IS NULL
+		OR pel_idioma_id IS NULL
+		OR pel_ranking_id IS NULL
+		OR pel_rating_id IS NULL
+		OR PC.categoria_id IS NULL)
+		AND P.nombre like '%' + #search# + '%'
+		AND P.pelicula_id in (SELECT distinct pelicula_id FROM Funcion WHERE fecha >= GETDATE())
+		AND P.pelicula_id NOT IN 
+		(
+			SELECT DISTINCT P.pelicula_id FROM Funcion F
+			JOIN Pelicula P ON F.pelicula_id = P.pelicula_id AND F.fecha_contabilidad = GETDATE()
+			JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id 
+			JOIN Categoria C ON C.categoria_id = PC.categoria_id AND C.descripcion = 'Evento' 
+		)
+		GROUP BY P.pelicula_id, P.nombre, P.fecha_estreno, pel_formato_id, F.descripcion, pel_idioma_id, I.descripcion,
+		pel_ranking_id, R.descripcion, pel_rating_id, RT.descripcion, RT2.id, RT2.descripcion, GP.id, GP.nombre
+		ORDER BY fecha_estreno DESC, cantidad_funciones DESC, pelicula_id DESC
+	</select>
+	
+	<select id="obtenerListaPeliculasTodas" parameterClass="java.util.HashMap" resultMap="MapPeliculaCategorizacion">
+		SELECT 	P.pelicula_id, P.nombre, COUNT(FU.funcion_id) as cantidad_funciones, P.fecha_estreno, COALESCE(pel_formato_id, -1) as pel_formato_id, F.descripcion as pel_formato_nombre,
+				 COALESCE(pel_idioma_id, -1) as pel_idioma_id, I.descripcion as pel_idioma_nombre, 
+				 COALESCE(pel_ranking_id, -1) as pel_ranking_id, R.descripcion as pel_ranking_nombre,
+				 COALESCE(pel_rating_id, RT2.id, -1) as pel_rating_id, COALESCE(RT.descripcion, RT2.descripcion, '') as pel_rating_nombre,
+				 COALESCE(GP.id, -1) as grupo_pelicula_id, COALESCE(GP.nombre, '') as grupo_pelicula_nombre
+		FROM Pelicula P
+		LEFT JOIN Pel_Formato F ON P.pel_formato_id = F.id
+		LEFT JOIN Pel_Idioma I ON P.pel_idioma_id = I.id
+		LEFT JOIN Pel_Ranking R ON P.pel_ranking_id = R.id
+		LEFT JOIN Pel_Rating RT ON P.pel_rating_id = RT.id
+		LEFT JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id
+		LEFT JOIN Pel_Rating RT2 ON P.censura COLLATE DATABASE_DEFAULT = RT2.descripcion COLLATE DATABASE_DEFAULT
+		LEFT JOIN Funcion FU ON P.pelicula_id = FU.pelicula_id
+		LEFT JOIN Grupo_Pelicula GP ON P.grupo_pelicula_id = GP.id
+		WHERE P.nombre like '%' + #search# + '%'
+		GROUP BY P.pelicula_id, P.nombre, P.fecha_estreno, pel_formato_id, F.descripcion, pel_idioma_id, I.descripcion,
+		pel_ranking_id, R.descripcion, pel_rating_id, RT.descripcion, RT2.id, RT2.descripcion, GP.id, GP.nombre
+		ORDER BY fecha_estreno DESC
+	</select>
+	
+	<select id="obtenerListaPeliculasEnCartelera" parameterClass="java.util.HashMap" resultMap="MapPeliculaCategorizacion">
+		SELECT 	P.pelicula_id, P.nombre, COUNT(FU.funcion_id) as cantidad_funciones, P.fecha_estreno, COALESCE(pel_formato_id, -1) as pel_formato_id, F.descripcion as pel_formato_nombre,
+				 COALESCE(pel_idioma_id, -1) as pel_idioma_id, I.descripcion as pel_idioma_nombre, 
+				 COALESCE(pel_ranking_id, -1) as pel_ranking_id, R.descripcion as pel_ranking_nombre,
+				 COALESCE(pel_rating_id, RT2.id, -1) as pel_rating_id, COALESCE(RT.descripcion, RT2.descripcion, '') as pel_rating_nombre,
+				 COALESCE(GP.id, -1) as grupo_pelicula_id, COALESCE(GP.nombre, '') as grupo_pelicula_nombre
+		FROM Pelicula P
+		LEFT JOIN Pel_Formato F ON P.pel_formato_id = F.id
+		LEFT JOIN Pel_Idioma I ON P.pel_idioma_id = I.id
+		LEFT JOIN Pel_Ranking R ON P.pel_ranking_id = R.id
+		LEFT JOIN Pel_Rating RT ON P.pel_rating_id = RT.id
+		LEFT JOIN PeliculaCategoria PC ON P.pelicula_id = PC.pelicula_id
+		LEFT JOIN Pel_Rating RT2 ON P.censura COLLATE DATABASE_DEFAULT = RT2.descripcion COLLATE DATABASE_DEFAULT
+		LEFT JOIN Funcion FU ON P.pelicula_id = FU.pelicula_id
+		LEFT JOIN Grupo_Pelicula GP ON P.grupo_pelicula_id = GP.id
+		WHERE P.pelicula_id in (SELECT distinct pelicula_id FROM Funcion WHERE fecha >= GETDATE())
+		AND P.nombre like '%' + #search# + '%'
+		GROUP BY P.pelicula_id, P.nombre, P.fecha_estreno, pel_formato_id, F.descripcion, pel_idioma_id, I.descripcion,
+		pel_ranking_id, R.descripcion, pel_rating_id, RT.descripcion, RT2.id, RT2.descripcion, GP.id, GP.nombre
+		ORDER BY P.nombre
+	</select>
+
+	<insert id="agregaRelacionCategoria" parameterClass="java.util.HashMap">
+		INSERT INTO PeliculaCategoria (pelicula_id, categoria_id)
+		VALUES (#id#, #idObjeto#)
+	</insert>
+
+	<insert id="agregaRelacionEpoca" parameterClass="java.util.HashMap">
+		INSERT INTO
+		PeliculaEpoca
+		(pelicula_id, epoca_id)
+		VALUES
+		(#id#, #idObjeto#)
+	</insert>
+
+	<insert id="agregaRelacionPublico" parameterClass="java.util.HashMap">
+		INSERT INTO
+		PeliculaPublico
+		(pelicula_id, publico_id)
+		VALUES
+		(#id#, #idObjeto#)
+	</insert>
+	
+	<select id="buscarPeliculas" parameterClass="java.util.HashMap"
+	resultMap="MapPelicula">
+		SELECT *
+		FROM
+		Pelicula
+		WHERE nombre like #busqueda#
+		ORDER BY grado_similitud_central, nombre ASC
+	</select>
+	
+	<select id="obtenerDistribuidor" parameterClass="java.lang.Integer" resultMap="mapDistribuidor">
+		SELECT *
+		FROM Distribuidor
+		WHERE distribuidor_id = #value#
+	</select>
+	
+	<select id="obtenerRankings" resultClass="cl.zpricing.avant.model.Ranking">
+		SELECT *
+		FROM Pel_Ranking
+	</select>
+	
+	<select id="obtenerRanking" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Ranking">
+		SELECT *
+		FROM Pel_Ranking
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerRatings" resultClass="cl.zpricing.avant.model.Rating">
+		SELECT *
+		FROM Pel_Rating
+	</select>
+	
+	<select id="obtenerRating" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Rating">
+		SELECT *
+		FROM Pel_Idioma
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerIdiomas" resultClass="cl.zpricing.avant.model.Idioma">
+		SELECT *
+		FROM Pel_Idioma
+	</select>
+	
+	<select id="obtenerIdioma" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Idioma">
+		SELECT *
+		FROM Pel_Idioma
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerFormatos" resultClass="cl.zpricing.avant.model.Formato">
+		SELECT *
+		FROM Pel_Formato
+	</select>
+	
+	<select id="obtenerFormato" parameterClass="java.lang.Integer" resultClass="cl.zpricing.avant.model.Formato">
+		SELECT *
+		FROM Pel_Formato
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerPeliculasEnCartelera" resultMap="MapPelicula">
+		SELECT p.*
+		FROM Pelicula p
+		WHERE p.pelicula_id in (SELECT distinct pelicula_id FROM Funcion WHERE fecha >= GETDATE())
+		ORDER BY p.nombre
+	</select>
+	
+	<select id="obtenerPeliculasEnCarteleraSinRestriccion" resultMap="MapPelicula">
+		SELECT p.*
+		FROM Pelicula p
+		WHERE (p.pelicula_id in (SELECT distinct pelicula_id FROM Funcion WHERE fecha >= GETDATE()) OR p.fecha_estreno >= GETDATE())
+		AND p.pelicula_id not in (SELECT distinct pelicula_id FROM Restriccion_Pelicula)
+		ORDER BY p.nombre
+	</select>
+</sqlMap>

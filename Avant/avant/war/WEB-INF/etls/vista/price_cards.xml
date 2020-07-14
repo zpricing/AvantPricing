@@ -1,0 +1,57 @@
+<!DOCTYPE etl SYSTEM "http://scriptella.javaforge.com/dtd/etl.dtd">
+<etl>
+	<description>
+        Extraccion de Price Cards.
+    </description>
+    
+    <properties>
+    	<include href="etl.properties"/>
+    </properties>
+    
+    <connection id="zpcinemas" driver="mssql"/>
+    <connection id="cinema" driver="mssql"/> 
+    
+    <script connection-id="zpcinemas">
+    	IF OBJECT_ID('price_card_temp', 'U') IS NOT NULL DROP TABLE price_card_temp 
+    	CREATE TABLE price_card_temp (price_card_code varchar(10), price_card_name varchar(50), bfee_code varchar(50), price_card_status varchar(10), price_card_from datetime, price_card_to datetime, cinema_code varchar(10));
+    </script>
+    
+    <query connection-id="cinema">
+    	SELECT pg.PGroup_strCode, PGroup_strName, BFee_strCode, PGroup_strStatus, PGroup_dtmEffectiveFromDate, PGroup_dtmEffectiveToDate, co.CinOperator_strCode as cinema_code
+		FROM dbo.tblPrice_Group pg, tblCinema_Operator co
+		WHERE pg.PGroup_strStatus = 'A'
+        
+       	<script connection-id="zpcinemas">
+       		INSERT INTO price_card_temp (price_card_code, price_card_name, bfee_code, price_card_status, price_card_from, price_card_to, cinema_code) VALUES (?PGroup_strCode, ?PGroup_strName, ?BFee_strCode, ?PGroup_strStatus, ?PGroup_dtmEffectiveFromDate, ?PGroup_dtmEffectiveToDate, ?cinema_code)
+		</script>
+    </query>
+    
+    <script connection-id="zpcinemas">
+    	INSERT INTO PriceCard (price_card_code, price_card_bfee_code, descripcion, fecha_desde, fecha_hasta, complejo_id, estado)
+    	SELECT pct.price_card_code, pct.bfee_code, pct.price_card_name, pct.price_card_from, pct.price_card_to, c.complejo_id, pct.price_card_status
+		FROM price_card_temp pct
+		JOIN Complejo c ON pct.cinema_code COLLATE DATABASE_DEFAULT = c.complejo_id_externo COLLATE DATABASE_DEFAULT
+		WHERE NOT EXISTS (SELECT * FROM PriceCard pc WHERE pct.price_card_code COLLATE DATABASE_DEFAULT = pc.price_card_code COLLATE DATABASE_DEFAULT AND pc.complejo_id = c.complejo_id)
+	</script>
+	
+	<script connection-id="zpcinemas">
+		UPDATE PriceCard
+		SET
+			PriceCard.price_card_bfee_code = price_card_temp.bfee_code, PriceCard.fecha_desde = price_card_temp.price_card_from, PriceCard.fecha_hasta = price_card_temp.price_card_to
+		FROM
+			price_card_temp
+		JOIN
+			Complejo
+			ON
+			price_card_temp.cinema_code COLLATE DATABASE_DEFAULT = Complejo.complejo_id_externo COLLATE DATABASE_DEFAULT
+		JOIN PriceCard
+			ON
+			PriceCard.price_card_code COLLATE DATABASE_DEFAULT = price_card_temp.price_card_code COLLATE DATABASE_DEFAULT 
+			AND PriceCard.complejo_id = Complejo.complejo_id
+		WHERE PriceCard.price_card_bfee_code COLLATE DATABASE_DEFAULT != price_card_temp.bfee_code COLLATE DATABASE_DEFAULT
+		OR PriceCard.fecha_desde != price_card_temp.price_card_from
+		OR PriceCard.fecha_hasta != price_card_temp.price_card_to
+		
+		DROP table price_card_temp
+    </script>
+</etl>

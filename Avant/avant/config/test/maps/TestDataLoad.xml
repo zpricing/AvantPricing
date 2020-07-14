@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TestDataLoad">
+
+	<insert id="insertPriceCard" parameterClass="java.util.Map">
+		INSERT INTO PriceCard (price_card_code, descripcion, complejo_id, estado) VALUES (#price_card_code#, #descripcion#, #complejo_id#, 'A') 
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertMascara" parameterClass="java.util.Map">
+		INSERT INTO Mascara (descripcion, activo, complejo_id) VALUES (#descripcion#, 1, #complejo_id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertPelicula" parameterClass="java.util.Map">
+		INSERT INTO Pelicula (nombre, formato_id, distribuidor_id, grupo_pelicula_id, pel_formato_id, pel_idioma_id, pel_ranking_id, duracion) VALUES (#nombre#, #formato_id#, #distribuidor_id#, #grupo_pelicula_id#, #pel_formato_id#, #idioma_id#, #ranking_id#, 30)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertPeliculaComplejo" parameterClass="java.util.Map">
+		INSERT INTO Pelicula_Complejo (pelicula_id, complejo_id, pelicula_complejo_id_externo) VALUES (#pelicula_id#, #complejo_id#, #codigo_externo#)
+	</insert>
+	
+	<insert id="insertFuncionConDatosDeCine" parameterClass="java.util.Map">
+		INSERT INTO Funcion (pelicula_id, sala_id, complejo_id, fecha, fecha_contabilidad, price_card_id, mascara_id, funcion_id_externo, porcentaje_ocupacion_proyectado)
+		VALUES (#pelicula_id#, #sala_id#, #complejo_id#, #fecha#, #fecha_contable#, #price_card_id#, #mascara_id#, #funcion_id_externo#, #porcentaje_ocupacion_proyectado#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertFuncion" parameterClass="java.util.Map">
+		INSERT INTO Funcion (pelicula_id, sala_id, complejo_id, fecha, fecha_contabilidad)
+		VALUES (#pelicula_id#, #sala_id#, #complejo_id#, #fecha#, #fecha_contable#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarTicket" parameterClass="java.util.Map">
+		INSERT INTO Ticket (descripcion, area_id)
+		VALUES (#descripcion#, #area_id#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarPriceCardTicket" parameterClass="java.util.Map">
+		INSERT INTO PriceCardTicket (pricecard_id, ticket_id, precio, bfee)
+		VALUES (#price_card_id#, #ticket_id#, #price#, #bfee#)
+	</insert>
+	
+	<insert id="insertarTicketComplejo" parameterClass="java.util.Map">
+		INSERT INTO Ticket_Complejo (descripcion, ticket_id_externo, complejo_id, ticket_id)
+		VALUES (#descripcion#, #ticket_id_externo#, #complejo_id#, #ticket_id#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarAreaGrupoMascara" parameterClass="java.util.Map">
+		INSERT INTO Area_Grupo_Mascara (area_id, grupo_id, mascara_id, capacidad, dias_antes_expira)
+    	SELECT t.area_id, s.grupo_id, #mascara_id#, #capacidad#, #dias_antes_expira#
+    	FROM Ticket t, Sala s
+    	WHERE t.ticket_id = #ticket_id#
+    	AND s.sala_id = #sala_id#
+	</insert>
+	
+	<insert id="asociarFuncionSecondSellingPersonalized" parameterClass="java.util.Map">
+		INSERT INTO Second_Selling_Sessions_Customer (funcion_id, second_selling_funcion_id, cliente_id, second_selling_orden, area_id)
+		VALUES (#funcion_id#, #second_selling_funcion_id#, #cliente_id#, #second_selling_orden#, 36)
+	</insert>
+	
+	<insert id="asociarFuncionSecondSelling" parameterClass="java.util.Map">
+		INSERT INTO Second_Selling_Sessions (funcion_id, second_selling_funcion_id, second_selling_orden, area_id)
+		VALUES (#funcion_id#, #second_selling_funcion_id#, #second_selling_orden#, 36)
+	</insert>
+	
+	<insert id="insertarZonaGeografica" parameterClass="java.util.Map">
+		INSERT INTO Zona_Geografica (zona_id, nombre) VALUES (#id#, #nombre#)
+	</insert>
+	
+	<insert id="insertarComplejo" parameterClass="java.util.Map">
+		INSERT INTO Complejo (nombre, complejo_id_externo, activo, zona_geografica_id) VALUES (#nombre#, #id_externo#, 1, #zona_geografica_id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarGrupoSala" parameterClass="java.util.Map">
+		INSERT INTO Grupo (complejo_id, descripcion, orden) VALUES (#complejo_id#, 'grupo_test', 1)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarSala" parameterClass="java.util.Map">
+		INSERT INTO Sala (complejo_id, capacidad, grupo_id, orden) VALUES (#complejo_id#, 100, #grupo_sala_id#, 1)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarGrupoPelicula" parameterClass="java.util.Map">
+		INSERT INTO Grupo_Pelicula (nombre) VALUES (#nombre#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<delete id="cleanTables">
+		DELETE FROM Semana_Cine
+		DELETE FROM Second_Selling_Categorias
+		DELETE FROM ClientePreferenciasCategoria
+		DELETE FROM BI_Cluster_Pelicula
+		DELETE FROM BI_Cluster_Cliente
+		DELETE FROM BI_Cluster
+		DELETE FROM ClientePeliculasVistas
+		DELETE FROM ClientePreferenciasCine
+		DELETE FROM ClienteTransaccion
+		DELETE FROM ClienteZonaGeografica
+		DELETE FROM ClienteOrigen
+		DELETE FROM Cliente
+		
+		DELETE FROM GrupoPeliculaZonaGeografica
+		
+		DELETE FROM Restriccion_Sala
+		
+		DELETE FROM Similitud_Categoria
+		DELETE FROM Similitud_DiaHora
+		DELETE FROM Similitud_Formato
+		DELETE FROM Similitud_Grupo
+		DELETE FROM Similitud_Idioma
+		DELETE FROM Similitud_Ranking
+		DELETE FROM Similitud_Rating
+		DELETE FROM Similitud_Semana
+		
+		DELETE FROM PriceCardTicket
+		DELETE FROM PriceCard
+		DELETE FROM Pelicula
+		DELETE FROM Pelicula_Complejo
+		DELETE FROM Area_Grupo_Mascara
+		DELETE FROM Mascara
+		
+		DELETE FROM Ticket_Complejo
+		DELETE FROM Ticket
+		
+		DELETE FROM Funcion
+		DELETE FROM Sala
+		DELETE FROM Grupo
+		
+		DELETE FROM Grupo_Pelicula
+		DELETE FROM Complejo
+		
+		DELETE FROM Complejo_Marker
+		DELETE FROM Workstation
+		DELETE FROM temp_cineticket_customer
+		DELETE FROM temp_loyalty_customer
+		
+		DELETE FROM Zona_Geografica_Comuna
+		DELETE FROM Zona_Geografica
+		DELETE FROM Categoria
+		DELETE FROM Pelicula
+	</delete>
+	
+	<insert id="insertarComuna" parameterClass="java.util.Map">
+		INSERT INTO Zona_Geografica_Comuna (nombre, zona_geografica_id)
+		VALUES (#nombre#, #zona_geografica_id#)
+		
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="insertarCliente" parameterClass="java.util.Map">
+		INSERT INTO Cliente (nombre, email, rut)
+		VALUES (#nombre#, #email#, #rut#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<update id="actualizarClienteComuna" parameterClass="java.util.Map">
+		UPDATE Cliente
+		SET comuna_id = #comuna_id#
+		WHERE cliente_id = #cliente_id#
+	</update>
+	
+	<insert id="insertarTransaccionTemporalCliente" parameterClass="java.util.Map">
+		INSERT INTO temp_cineticket_customer (rut, email, nombre, comuna, cinema_code, fecha_compra)
+		VALUES (#rut#, #email#, #nombre#, #comuna#, #codigo_cine#, #fecha_compra#)
+	</insert>
+	
+	<select id="obtenerClienteZonaGeografica" resultClass="java.util.HashMap">
+		SELECT czg.*, c.rut
+		FROM ClienteZonaGeografica czg
+		JOIN Cliente c ON c.cliente_id = czg.cliente_id
+	</select>
+	
+	<insert id="populateClusters">
+		INSERT INTO BI_Cluster (zona_geografica_id, categoria_id)
+		SELECT zg.zona_id, c.categoria_id
+		FROM Zona_Geografica zg,
+		Categoria c
+	</insert>
+	
+	<insert id="testPopulateClusterClients">
+		INSERT INTO BI_Cluster_Cliente (cluster_id, cliente_id)
+		SELECT cluster_id, cliente_id
+		FROM BI_Cluster, Cliente
+	</insert>
+	
+	<insert id="testPopulateClusterMovies">
+		INSERT INTO BI_Cluster_Pelicula (cluster_id, grupo_pelicula_id, estreno)
+		SELECT cluster_id, gp.id, 0
+		FROM BI_Cluster, Grupo_Pelicula gp
+	</insert>
+	
+	<insert id="asociarClienteComplejo" parameterClass="java.util.Map">
+		INSERT INTO ClientePreferenciasCine (cliente_id, complejo_id, asistencia, factor_preferencia)
+		VALUES (#cliente_id#, #complejo_id#, 1, #factor_preferencia#)
+	</insert>
+	
+	<insert id="asociarClientePeliculaVista" parameterClass="java.util.Map">
+		INSERT INTO ClientePeliculasVistas (cliente_id, pelicula_id, pelicula_nombre)
+		VALUES (#cliente_id#, #pelicula_id#, 'Pelicula TEST')
+	</insert>
+	
+	<insert id="insertarCategoria" parameterClass="java.util.Map">
+		INSERT INTO Categoria (descripcion, attendance_weight)
+		VALUES (#nombre#, #attendance_weight#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+	
+	<insert id="asociarClienteCategoria" parameterClass="java.util.Map">
+		INSERT INTO ClientePreferenciasCategoria (cliente_id,  categoria_id, orden)
+		VALUES (#cliente_id#, #categoria_id#, #orden#)
+	</insert>
+	
+	<insert id="asociarGrupoPeliculaCategoria" parameterClass="java.util.Map">
+		INSERT INTO GrupoPeliculaCategoria (grupo_pelicula_id,  categoria_id)
+		VALUES (#grupo_pelicula_id#, #categoria_id#)
+	</insert>
+	
+	<insert id="asociarSimilitudCategorias" parameterClass="java.util.Map">
+		INSERT INTO Second_Selling_Categorias (categoria_id_1,  categoria_id_2, similitud)
+		VALUES (#categoria_1#, #categoria_2#, #similitud#)
+	</insert>
+	
+	<insert id="crearSemanaCine" parameterClass="java.util.Map">
+		INSERT INTO Semana_Cine (fecha_desde, fecha_hasta)
+		VALUES (#fecha_desde#, #fecha_hasta#)
+	</insert>
+	
+</sqlMap>

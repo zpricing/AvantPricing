@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SecondSelling">
+	<delete id="cleanSimilitudGrupoPeliculas">
+		DELETE FROM Second_Selling_Grupo_Peliculas
+	</delete>
+	
+	<delete id="cleanPeliculasSecondSelling">
+		DELETE FROM Second_Selling_Peliculas
+	</delete>
+	
+	<delete id="cleanFuncionesSecondSellingStaging">
+		DELETE FROM Second_Selling_Sessions_Staging
+	</delete>
+	
+	<delete id="cleanFuncionesSecondSelling">
+		DELETE FROM Second_Selling_Sessions
+	</delete>
+	
+	<insert id="actualizarSimilitudGrupoPeliculas">
+		<![CDATA[ 
+		INSERT INTO Second_Selling_Grupo_Peliculas (grupo_pelicula_id, grupo_pelicula_second_selling_id, complejo_id, factor_similitud, orden)
+		SELECT grupo_1, grupo_2, complejo_id, factor_similitud, row
+		FROM
+			(SELECT complejo_id, grupo_1, peli1, grupo_2, peli2, factor_similitud, ROW_NUMBER() OVER (PARTITION BY grupo_1, complejo_id ORDER BY factor_similitud desc) as row
+			FROM
+				(SELECT complejo_id, grupo_1, peli1, grupo_2, peli2, sum(maxsim)/(COUNT(distinct categoria_1) + max(casos_cat_2) - sum(casos_inter)) as factor_similitud
+				FROM
+					(SELECT complejo_id, grupo_1, peli1, categoria_1, grupo_2, peli2, MAX(similitud) as maxsim, COUNT(distinct categoria_2) as casos_cat_2, SUM(case when categoria_1=categoria_2 then 1.0 else 0 end) as casos_inter
+					FROM
+						(SELECT distinct G.grupo_1, G.categoria_1, G.peli1, G.grupo_2, G.peli2, G.categoria_2, G.complejo_id, similitud
+						FROM
+							(SELECT gpc.grupo_pelicula_id as grupo_1, X.peli1, gpc.categoria_id as categoria_1, gpc2.grupo_pelicula_id as grupo_2,  X.peli2,  gpc2.categoria_id as categoria_2, X.complejo_id
+							FROM
+								(SELECT gp.id as grupo_1, gp.nombre as peli1, gp2.id as grupo_2, gp2.nombre as peli2, gp.complejo_id
+								FROM (SELECT distinct f.complejo_id, GP.*
+										FROM Grupo_Pelicula GP
+										JOIN Pelicula p ON p.grupo_pelicula_id= GP.id
+										JOIN Funcion f ON f.pelicula_id = p.pelicula_id
+										WHERE f.fecha > GETDATE()) as gp
+								JOIN (SELECT distinct f.complejo_id, GP.*
+										FROM Grupo_Pelicula GP
+										JOIN Pelicula p ON p.grupo_pelicula_id= GP.id
+										JOIN Funcion f ON f.pelicula_id = p.pelicula_id
+										WHERE f.fecha > GETDATE()) gp2 ON gp.complejo_id = gp2.complejo_id AND gp.id <> gp2.id 
+								
+								) as X
+							JOIN GrupoPeliculaCategoria gpc ON grupo_1 = gpc.grupo_pelicula_id
+							JOIN GrupoPeliculaCategoria gpc2 ON grupo_2 = gpc2.grupo_pelicula_id
+							) as G
+						JOIN 
+							(SELECT s1.categoria_id_1 as cat1, s1.categoria_id_2 as cat2, s1.similitud
+							FROM Second_Selling_Categorias s1
+							UNION SELECT s2.categoria_id_2 as cat1, s2.categoria_id_1 as cat2, s2.similitud as sim
+							FROM Second_Selling_Categorias s2
+							WHERE s2.categoria_id_1 <> s2.categoria_id_2
+							) as P ON G.categoria_1 = P.cat1 AND G.categoria_2=P.cat2
+						) as X
+						GROUP BY grupo_1, peli1, categoria_1, grupo_2, peli2, complejo_id
+					) as Y
+					GROUP BY grupo_1, peli1, grupo_2, peli2, complejo_id
+				) as W
+			) as Z
+		ORDER BY complejo_id, peli1 ASC
+		]]>
+	</insert>
+	
+	<insert id="actualizarPeliculasSecondSelling">
+		<![CDATA[ 
+		INSERT INTO Second_Selling_Peliculas (pelicula_id, pelicula_second_selling_id, complejo_id, orden)
+		SELECT S2.pelicula_id, S2.ss_pelicula_id, S2.complejo_id, S2.rowNum
+		FROM
+			(SELECT *, ROW_NUMBER() OVER(PARTITION BY S1.pelicula_id, S1.complejo_id ORDER BY S1.puntaje DESC) as rowNum
+			FROM
+				(SELECT peliculas.*, RANK() OVER(PARTITION BY peliculas.complejo_id, peliculas.pelicula_id, peliculas.ss_grupo_pelicula_id ORDER BY SF.similitud DESC) as ranking_formato, RANK() OVER(PARTITION BY peliculas.complejo_id, peliculas.pelicula_id, peliculas.ss_grupo_pelicula_id ORDER BY SI.similitud DESC) as ranking_idioma, SF.similitud as similitud_formato, SI.similitud as similitud_idioma
+				FROM
+					(SELECT FF.pelicula_id, FF.nombre as pelicula_nombre, FF.pel_formato_id, FF.pel_idioma_id, PF.pelicula_id as ss_pelicula_id, PF.grupo_pelicula_id as ss_grupo_pelicula_id, PF.nombre as ss_pelicula_nombre, PF.complejo_id, PF.pel_formato_id as ss_pel_formato_id, PF.pel_idioma_id as ss_pel_idioma_id, MAX(SSGP.factor_similitud ) as puntaje
+					FROM
+						(SELECT DISTINCT P.pelicula_id, P.nombre, P.pel_formato_id, P.pel_idioma_id, P.pel_ranking_id, P.pel_rating_id, PCat.categoria_id, P.grupo_pelicula_id, F.complejo_id 
+						FROM
+							(SELECT DISTINCT pelicula_id FROM Funcion WHERE fecha >= GETDATE()) PC
+							JOIN Pelicula P ON P.pelicula_id = PC.pelicula_id
+							JOIN PeliculaCategoria PCat ON PCat.pelicula_id = P.pelicula_id
+							JOIN Funcion F ON F.pelicula_id = P.pelicula_id AND F.fecha >= GETDATE() AND F.eliminada = 0
+							JOIN Sala S ON S.sala_id = F.sala_id
+						) FF
+						JOIN
+							(SELECT DISTINCT P.pelicula_id, P.nombre, P.pel_formato_id, P.pel_idioma_id, P.pel_ranking_id, P.pel_rating_id, PCat.categoria_id, P.grupo_pelicula_id, F.complejo_id FROM
+								(SELECT DISTINCT pelicula_id FROM Funcion WHERE fecha >= GETDATE()) PC
+								JOIN Pelicula P ON P.pelicula_id = PC.pelicula_id
+								JOIN PeliculaCategoria PCat ON PCat.pelicula_id = P.pelicula_id
+								JOIN Funcion F ON F.pelicula_id = P.pelicula_id AND F.fecha >= GETDATE() AND F.eliminada = 0
+								JOIN Sala S ON S.sala_id = F.sala_id
+							) PF
+							ON PF.grupo_pelicula_id <> FF.grupo_pelicula_id AND PF.complejo_id = FF.complejo_id
+						JOIN 
+							(SELECT DISTINCT PRM.pelicula_id, PRM.complejo_id
+							FROM
+								(SELECT COUNT(*) as areas_rm, P.pelicula_id, F.complejo_id
+									FROM Funcion F
+									JOIN Pelicula P ON P.pelicula_id = F.pelicula_id AND F.fecha >= GETDATE() AND F.eliminada = 0
+									JOIN Area_Grupo_Mascara AGM
+										ON AGM.mascara_id = F.mascara_id 
+										AND AGM.area_id in (SELECT id FROM Area WHERE tipo = 'RM')
+										AND AGM.capacidad > 0
+									GROUP BY F.funcion_id, P.pelicula_id, F.complejo_id, AGM.grupo_id
+								) PRM
+								WHERE areas_rm >= 1
+							) PELRM
+							ON PELRM.pelicula_id = PF.pelicula_id AND PELRM.complejo_id = PF.complejo_id
+						JOIN Second_Selling_Grupo_Peliculas SSGP
+							ON SSGP.grupo_pelicula_id = FF.grupo_pelicula_id AND SSGP.grupo_pelicula_second_selling_id = PF.grupo_pelicula_id
+					GROUP BY FF.pelicula_id, FF.nombre, FF.pel_formato_id, FF.pel_idioma_id, PF.pelicula_id, PF.grupo_pelicula_id, PF.nombre, PF.complejo_id, PF.pel_formato_id, PF.pel_idioma_id
+					) as peliculas
+					JOIN Second_Selling_Formatos SF 
+						ON SF.formato_id_1 = peliculas.pel_formato_id AND SF.formato_id_2 = peliculas.ss_pel_formato_id
+					JOIN Second_Selling_Idiomas SI 
+						ON SI.idioma_id_1 = peliculas.pel_idioma_id AND SI.idioma_id_2 = peliculas.ss_pel_idioma_id
+				) as S1
+			WHERE S1.ranking_formato = 1 AND S1.ranking_idioma = 1
+			) as S2
+		WHERE rowNum < 4
+		AND NOT EXISTS (SELECT * FROM Second_Selling_Peliculas SSP WHERE SSP.pelicula_id = S2.pelicula_id AND SSP.pelicula_second_selling_id = S2.ss_pelicula_id)
+		]]>
+	</insert>
+	
+	<insert id="actualizarFuncionesSecondSellingStaging">
+		<![CDATA[ 
+		INSERT INTO Second_Selling_Sessions_Staging (funcion_id, second_selling_funcion_id, area_id, second_selling_orden)
+		SELECT S1.funcion_id, S1.second_selling_funcion_id, S1.area_id, S1.orden
+		FROM
+		(SELECT funcion_id, second_selling_funcion_id, area_id, ROW_NUMBER() OVER(PARTITION BY funcion_id ORDER BY funcion_id, area_id, orden1) as orden FROM
+			(SELECT F.funcion_id, FF.funcion_id as second_selling_funcion_id, AGM.area_id, ROW_NUMBER() OVER(PARTITION BY F.funcion_id, AGM.area_id ORDER BY F.funcion_id, A.dias_antes_expira DESC, SDH.similitud DESC) as orden1
+			FROM Funcion F 
+			JOIN Second_Selling_Peliculas SSP
+				ON F.pelicula_id = SSP.pelicula_id AND F.complejo_id = SSP.complejo_id AND SSP.orden = 1 AND F.fecha > GETDATE() AND F.eliminada = 0
+			JOIN Funcion FF
+				ON FF.pelicula_id = SSP.pelicula_second_selling_id 
+				AND FF.complejo_id = SSP.complejo_id
+				AND FF.eliminada = 0
+			JOIN Sala S
+				ON S.sala_id = FF.sala_id
+			JOIN Area_Grupo_Mascara AGM
+				ON AGM.mascara_id = FF.mascara_id
+				AND AGM.grupo_id = S.grupo_id 
+				AND AGM.area_id in (SELECT id FROM Area WHERE tipo = 'RM' AND DATEDIFF(dd, GETDATE(), FF.fecha_contabilidad) > dias_antes_expira)
+				AND AGM.capacidad > 0
+			JOIN Area A
+				ON A.id = AGM.area_id
+			JOIN Similitud_DiaHora SDH
+				ON SDH.id_complejo = F.complejo_id
+				AND SDH.id_dia_1 = datepart(dw, F.fecha)
+				AND SDH.id_hora_1 = datepart(hh, F.fecha)
+				AND SDH.id_dia_2 = datepart(dw, FF.fecha)
+				AND SDH.id_hora_2 = datepart(hh, FF.fecha)
+			) SUS
+		) S1
+		WHERE NOT EXISTS (SELECT * FROM Second_Selling_Sessions_Staging SSS WHERE SSS.funcion_id = S1.funcion_id AND SSS.second_selling_funcion_id = S1.second_selling_funcion_id)
+		]]>
+	</insert>
+
+	<insert id="actualizarFuncionesSecondSelling">
+		<![CDATA[ 
+		INSERT INTO Second_Selling_Sessions (funcion_id, second_selling_funcion_id, area_id, second_selling_orden)
+		SELECT X.funcion_id, X.second_selling_funcion_id, X.area_id, X.orden
+		FROM 
+		(SELECT M.funcion_id, M.second_selling_funcion_id, A.area_id, ROW_NUMBER() OVER(PARTITION BY M.funcion_id ORDER BY M.orden, A.area_id) as orden 
+		FROM
+			(SELECT funcion_id, second_selling_funcion_id, MIN(second_selling_orden) as orden
+			FROM Second_Selling_Sessions_Staging
+			GROUP BY funcion_id, second_selling_funcion_id) M
+			JOIN Second_Selling_Sessions_Staging A 
+			ON A.funcion_id = M.funcion_id
+			AND A.second_selling_funcion_id = M.second_selling_funcion_id
+			AND A.second_selling_orden = M.orden) X
+		WHERE orden <= 10
+		AND NOT EXISTS (SELECT * FROM Second_Selling_Sessions SSS WHERE SSS.funcion_id = X.funcion_id AND SSS.second_selling_funcion_id = X.second_selling_funcion_id)
+		]]>
+	</insert>
+	
+	<delete id="cleanPreferenciasDeClientesDeFuncionesEnCartelera">
+		DELETE FROM ClientePreferenciaFuncionStaging
+	</delete>
+	<delete id="cleanSugerenciasPeliculasClientes">
+		DELETE FROM ClienteSecondSellingPeliculaStaging
+	</delete>
+	<delete id="cleanSugerenciasSecondSellingClientes">
+		DELETE FROM Second_Selling_Sessions_Customer
+	</delete>
+	
+	<insert id="calcularPreferenciasDeClientesDeFuncionesEnCartelera">
+		<![CDATA[
+		INSERT INTO ClientePreferenciaFuncionStaging (funcion_id, complejo_id, pelicula_id, fecha, cliente_id, area_id, dias_antes_expira, asistencia)
+		SELECT F.funcion_id, F.complejo_id, F.pelicula_id, F.fecha, C.cliente_id, area_id, dias_antes_expira, C.asistencia
+		FROM
+		(SELECT CASE WHEN DATEPART(hour, fecha) >= 19 THEN 2 WHEN DATEPART(hour, fecha) < 15 THEN 0 ELSE 1 END as bloque_horario, funcion_id, pelicula_id, complejo_id, fecha, area_id, dias_antes_expira
+		FROM
+		(SELECT f.funcion_id, f.complejo_id, f.pelicula_id, f.fecha, agm.area_id, agm.dias_antes_expira, RANK() OVER (PARTITION BY f.funcion_id order by agm.area_id) as ranking
+		FROM Funcion f
+		JOIN Sala s ON f.sala_id = s.sala_id
+		JOIN Area_Grupo_Mascara agm ON agm.grupo_id = s.grupo_id AND agm.mascara_id = f.mascara_id AND agm.capacidad > 0
+		JOIN Area a ON agm.area_id = a.id AND a.tipo = 'RM'
+		WHERE f.fecha > GETDATE()
+		AND f.eliminada = 0) as X
+		WHERE ranking = 1) as F,
+		(SELECT cca.*, CPC.complejo_id
+		FROM
+		ClienteComportamientoAsistencia cca,
+		(SELECT cliente_id, complejo_id, ROW_NUMBER() OVER (PARTITION BY cliente_id ORDER BY asistencia DESC) as row_num FROM ClientePreferenciasCine) as CPC
+		WHERE CPC.row_num = 1
+		AND CPC.cliente_id = cca.cliente_id) as C
+		WHERE F.bloque_horario = C.bloque_horario
+		AND DATEPART(weekday, f.fecha) = C.dia_semana
+		AND F.complejo_id = C.complejo_id
+		]]>
+	</insert>
+
+	<insert id="calcularSugerenciasPeliculasClientes">
+		<![CDATA[
+		INSERT INTO ClienteSecondSellingPeliculaStaging (pelicula_id, pelicula_second_selling_id, complejo_id, cliente_id)
+		SELECT X.pelicula_id, X.pelicula_second_selling_id, X.complejo_id, X.cliente_id
+		FROM
+		(SELECT SSPC.*, RANK() OVER (PARTITION BY SSPC.pelicula_id, SSPC.complejo_id ORDER BY orden) as ranking
+		FROM (SELECT * 
+				FROM Second_Selling_Peliculas,
+				(SELECT distinct CCA.cliente_id FROM ClienteComportamientoAsistencia CCA) as c) SSPC
+		LEFT JOIN ClientePeliculasVistas CPV ON CPV.pelicula_id = SSPC.pelicula_second_selling_id AND CPV.cliente_id = SSPC.cliente_id
+		WHERE CPV.cliente_id is null) X
+		WHERE X.ranking = 1
+		]]>
+	</insert>
+	
+	<insert id="calcularSugerenciasSecondSellingClientes">
+		<![CDATA[
+		INSERT INTO Second_Selling_Sessions_Customer (funcion_id, second_selling_funcion_id, cliente_id, area_id, second_selling_orden)
+		SELECT funcion_id, second_selling_funcion_id, cliente_id, area_id, row_num
+		FROM (
+		SELECT f2.funcion_id, cpf.funcion_id as second_selling_funcion_id, cpf.cliente_id, cpf.area_id, ROW_NUMBER() OVER (PARTITION BY f2.funcion_id, cpf.cliente_id order by cpf.asistencia) as row_num
+		FROM Funcion f2
+		JOIN ClientePreferenciaFuncionStaging cpf ON f2.complejo_id = cpf.complejo_id AND DATEDIFF(day, f2.fecha, cpf.fecha) > cpf.dias_antes_expira 
+		JOIN ClienteSecondSellingPeliculaStaging cp ON cp.pelicula_id = f2.pelicula_id AND cp.pelicula_second_selling_id = cpf.pelicula_id AND cp.complejo_id = f2.complejo_id AND cp.cliente_id = cpf.cliente_id
+		WHERE f2.fecha > GETDATE()) as X
+		WHERE row_num < 4
+		]]>
+	</insert>
+</sqlMap>

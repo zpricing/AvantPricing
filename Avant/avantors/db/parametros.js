@@ -1,0 +1,10 @@
+ db.parametro.update({name: "upselling_range_max"}, {$set: {movie_format: "2D"}})
+ db.parametro.update({name: "upselling_range_min"}, {$set: {movie_format: "2D"}})
+ db.parametro.insert({name: "upselling_range_min", value: "500", movie_format: "2D"})
+ db.parametro.insert({name: "upselling_range_max", value: "1500", movie_format: "2D"})
+ db.parametro.insert({name: "upselling_range_min", value: "500", movie_format: "3D"})
+ db.parametro.insert({name: "upselling_range_max", value: "2500", movie_format: "3D"})
+ db.parametro.insert({name: "upselling_range_min", value: "500", movie_format: "Premium"})
+ db.parametro.insert({name: "upselling_range_max", value: "3200", movie_format: "Premium"})
+
+ db.parametro.update({_id: "upselling_range_min"}, {$set: {name: "upselling_range_max"}})

@@ -1,0 +1,55 @@
+@CHARSET "ISO-8859-1";
+
+body,p,a,span,div,input,legend,h1,h2,h3,h4,h5,h6,li,dd,dt,th,td {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+body,p,a,span,div,input,legend,li,dd,dt,th,td {
+	font-size: 10pt;
+}
+
+body {
+	text-align: center;
+}
+
+#loginform {
+	width: 450px;
+	margin-top: 100px;
+	background-color: white;
+	border: 1px solid gray;
+	border-right: 3px solid gray;
+	border-bottom: 3px solid gray;
+}
+
+
+#loginform input {
+	border: 1px solid #999999;
+	background: #CCCCCC;
+}
+
+#loginform input:focus,#loginform input:hover {
+	border: 1px solid #333333;
+}
+
+#contenedor {
+	margin: 0 auto 0 auto;
+	width: 390px;
+}
+#parrafo{
+	margin-bottom:-1px;
+	background-color: #e54224;
+	color: white;
+	padding: 2px;
+	}
+#tablaForm{
+	color:white; 
+	margin-left: 75px; 
+	background-color: black; 
+	display: block; 
+	text-align: right;
+}
+
+.error {
+	color: red;
+	font-weight: bold;
+}

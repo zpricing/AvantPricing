@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prediccion">
+	<resultMap id="MapPrediccion" class="cl.zpricing.avant.model.prediction.Prediccion">
+		<result property="id" column="prediccion_id"/>
+		<result property="pelicula" column="pelicula_id" select="obtenerPelicula" />
+		<result property="fecha" column="fecha" jdbcType="DATE" javaType="java.util.Date"/>
+		<result property="prediccionPorDia" column="prediccion_id" select="obtenerPrediccionPorDia" />
+		<result property="usuario" column="usuario_id" select="getUsuario" />
+		<result property="complejo" column="complejo_id" select="obtenerComplejo" />
+		<result property="varianza" column="varianza" jdbcType="DECIMAL" javaType="double"/>
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2"/>
+		<result property="estado" column="estado"/>
+	</resultMap>
+	
+	<resultMap id="MapPrediccionPorDia" class="cl.zpricing.avant.model.prediction.PrediccionPorDia">
+		<result property="id" column="pred_dda_dia_id"/>
+		<result property="fecha" column="fecha" jdbcType="DATE" javaType="java.util.Date"/>
+		<result property="prediccion" column="prediccion_id" select="obtenerPrediccion_peq"/>
+		<result property="estimacion" column="estimacion"/>
+		<result property="prediccionesPorFuncion" column="pred_dda_dia_id" select="obtenerPrediccionPorFuncion" />
+		<result property="varianza" column="varianza" jdbcType="DECIMAL" javaType="double"/>
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2"/>
+	</resultMap>
+	
+	<resultMap id="MapPrediccionPorFuncion" class="cl.zpricing.avant.model.prediction.PrediccionPorFuncion">
+		<result property="id" column="pred_dda_func_id"/>
+		<result property="funcionPredecida" column="funcion_id" select="obtenerFuncion" />
+		<!-- <result property="prediccionPorDia" column="pred_dda_dia_id" select="obtenerPrediccionPorDia" />-->
+		<result property="estimacion" column="estimacion"/>
+		<result property="prediccionesPorClase" column="pred_dda_func_id" select="obtenerPrediccionPorClase" />
+		<result property="varianza" column="varianza" jdbcType="DECIMAL" javaType="double"/>
+		<!--<result property="cargada" column="cargada" jdbcType="BIT" />-->
+		<result property="mascara" column="mascara" select="obtenerMascara"/>
+	</resultMap>
+	
+	<resultMap id="MapPrediccionPorClase" class="cl.zpricing.avant.model.prediction.PrediccionPorClase">
+		<result property="id" column="pred_dda_clas_id"/>
+		<result property="asistencia" column="estimacion" />
+		<!-- <result property="prediccionPorFuncion" column="pred_dda_func_id" select="obtenerPrediccionPorFuncion_peq" />-->
+		<result property="clase" column="clase_id" select="obtenerClase" />
+		<result property="varianza" column="varianza" jdbcType="DECIMAL" javaType="double"/>
+	</resultMap>
+	
+	<resultMap id="MapPrediccionIncompleta" class="cl.zpricing.avant.model.prediction.PrediccionIncompleta">
+		<result property="idPrediccion" column="idPrediccion"/>
+		<result property="pelicula" column="pelicula"/>
+		<result property="complejo" column="complejo"/>
+		<result property="fecha" column="fecha" jdbcType="DATETIME" javaType="java.util.Date"/>
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2"/>	
+		<result property="usuario" column="usuario_id" select="getUsuario" />
+		<result property="estado" column="estado"/>
+	</resultMap>
+	
+	<resultMap id="MapParametrosPrediccion" class="cl.zpricing.avant.model.prediction.PrediccionParametros">
+		<result property="pelicula" column="pelicula_id" select="obtenerPelicula"/>
+		<result property="prediccion" column="prediccion_id" select="obtenerPrediccion"/>
+		<result property="ponderacion" column="ponderacion"/>
+	</resultMap>
+	
+	<resultMap id="MapPrediccionPequena" class="cl.zpricing.avant.model.prediction.Prediccion">
+		<result property="id" column="prediccion_id"/>
+		<result property="pelicula" column="pelicula_id" select="obtenerPelicula" />
+		<result property="fecha" column="fecha" jdbcType="DATE" javaType="java.util.Date"/>
+		<result property="usuario" column="usuario_id" select="getUsuario" />
+		<result property="complejo" column="complejo_id" select="obtenerComplejo" />
+		<result property="markersFecha" column="fecha" select="obtenerMarkersFecha2"/>
+		<result property="estado" column="estado"/>
+	</resultMap>
+	
+
+	<select id="obtenerPrediccionPorClase" parameterClass="java.lang.Integer" resultMap="MapPrediccionPorClase">
+		SELECT Prediccion_demanda_x_clase.pred_dda_clas_id, 
+		Prediccion_demanda_x_clase.pred_dda_func_id, 
+		Prediccion_demanda_x_clase.estimacion, 
+		Prediccion_demanda_x_clase.clase_id,
+		ISNULL(Prediccion_demanda_x_clase.varianza,0) as varianza
+		FROM Prediccion_demanda_x_clase, Clase
+		WHERE Prediccion_demanda_x_clase.pred_dda_func_id= #value#
+		AND Clase.clase_id = Prediccion_demanda_x_clase.clase_id
+		ORDER BY Clase.precio
+  	</select>
+	
+	<select id="obtenerPrediccionPorFuncion" parameterClass="java.lang.Integer" resultMap="MapPrediccionPorFuncion">
+		SELECT pred_dda_func_id, pred_dda_dia_id, estimacion, funcion_id, 
+		ISNULL(varianza,0) as varianza, mascara_id as mascara
+		FROM Prediccion_demanda_x_funcion
+		WHERE pred_dda_dia_id= #value#
+  	</select>
+ 	
+	<select id="obtenerPrediccionPorDia" parameterClass="java.lang.Integer" resultMap="MapPrediccionPorDia">
+		SELECT pred_dda_dia_id, prediccion_id, fecha, estimacion,
+		ISNULL(varianza,0) as varianza
+		FROM Prediccion_demanda_x_dia
+		WHERE prediccion_id = #value#
+		ORDER BY fecha
+  	</select>
+  	
+	
+	<select id="obtenerPrediccion" parameterClass="java.lang.Integer" resultMap="MapPrediccion">
+		SELECT prediccion_id, pelicula_id, fecha, usuario_id, complejo_id, ISNULL(varianza,0) as varianza, estado
+		FROM Prediccion
+		WHERE prediccion_id = #value#
+  	</select>
+  	
+  	<!-- Esta se ocupa para obtener la prediccion por dia dado un pred_dda_dia_id -->
+  	<select id="obtenerPrediccionPorDiaPorId" parameterClass="java.lang.Integer" resultMap="MapPrediccionPorDia">
+		SELECT pred_dda_dia_id, prediccion_id, fecha, estimacion,
+		ISNULL(varianza,0) as varianza
+		FROM Prediccion_demanda_x_dia
+		WHERE pred_dda_dia_id = #value#
+		ORDER BY fecha
+  	</select>
+  	
+  	<select id="obtenerPrediccion_peq" parameterClass="java.lang.Integer" resultMap="MapPrediccionPequena">
+		SELECT prediccion_id, pelicula_id, fecha, usuario_id, complejo_id, estado
+		FROM Prediccion
+		WHERE prediccion_id = #value#
+  	</select>
+  	
+  	<select id="obtenerUltimaPrediccion" parameterClass="java.util.Map" resultMap="MapPrediccion">
+		SELECT	TOP 1 prediccion_id, pelicula_id, fecha, usuario_id, complejo_id, ISNULL(varianza,0) as varianza, estado
+		FROM	Prediccion
+		WHERE	prediccion_id =	(SELECT	MAX(prediccion_id) as prediccion_id
+						FROM	Prediccion
+						WHERE	pelicula_id = #idPelicula# AND
+								usuario_id = #idUsuario# AND
+								complejo_id = #idComplejo#
+						GROUP BY pelicula_id)
+	</select>
+  	
+  	<select id="obtenerUltimaPrediccionCualquierComplejo" parameterClass="java.util.Map" resultMap="MapPrediccion">
+		SELECT	TOP 1 prediccion_id, pelicula_id, fecha, usuario_id, complejo_id, ISNULL(varianza,0) as varianza, estado
+		FROM	Prediccion
+		WHERE	prediccion_id =	(SELECT	MAX(prediccion_id) as prediccion_id
+						FROM	Prediccion
+						WHERE	pelicula_id = #idPelicula# AND
+								usuario_id = #idUsuario#
+						GROUP BY pelicula_id)
+	</select>
+  	
+  	<select id="obtenerPredicciones" resultMap="MapPrediccion">
+		SELECT prediccion_id, pelicula_id, fecha, usuario_id, complejo_id, 
+		ISNULL(varianza,0) as varianza
+		FROM Prediccion
+  	</select>
+  	
+  	<select id="obtenerPrediccionSinPrediccionPorClase" parameterClass="java.lang.Integer" resultMap="MapPrediccionIncompleta">
+  		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia,
+				Prediccion_demanda_x_funcion AS predFun LEFT OUTER JOIN	Prediccion_demanda_x_clase AS predCla ON predCla.pred_dda_func_id = predFun.pred_dda_func_id
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND predFun.pred_dda_dia_id = predDia.pred_dda_dia_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value#
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, estado)
+		EXCEPT
+		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia,
+				Prediccion_demanda_x_funcion AS predFun,
+				Prediccion_demanda_x_clase AS predCla
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND predFun.pred_dda_dia_id = predDia.pred_dda_dia_id AND predCla.pred_dda_func_id = predFun.pred_dda_func_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value# 
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, estado)
+		ORDER BY idPrediccion DESC
+  	</select>
+  	
+  	<select id="obtenerPrediccionSinPrediccionPorFuncion" parameterClass="java.lang.Integer" resultMap="MapPrediccionIncompleta">
+  		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia LEFT OUTER JOIN	Prediccion_demanda_x_funcion AS predFun ON predFun.pred_dda_dia_id = predDia.pred_dda_dia_id
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value#
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, estado)
+		EXCEPT
+		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia,
+				Prediccion_demanda_x_funcion AS predFun
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND predFun.pred_dda_dia_id = predDia.pred_dda_dia_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value#
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, estado)
+		ORDER BY idPrediccion DESC
+  	</select>
+  	
+  	<select id="obtenerPrediccionNoCargada" parameterClass="java.lang.Integer" resultMap="MapPrediccionIncompleta">
+  	<!-- No estoy seguro que esta sea la consulta correcta todavia. CA -->
+  		SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia,
+				Prediccion_demanda_x_funcion AS predFun
+		WHERE	pel.pelicula_id = pred.pelicula_id 
+		AND predDia.prediccion_id = pred.prediccion_id 
+		AND predFun.pred_dda_dia_id = predDia.pred_dda_dia_id 
+		AND c.complejo_id = pred.complejo_id 
+		AND pred.usuario_id = #value#
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, estado
+		ORDER BY idPrediccion DESC
+  	</select>
+  	
+  	<select id="obtenerPrediccionesUsuario" parameterClass="java.lang.Integer" resultMap="MapPrediccion">
+  		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, pred.estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Prediccion_demanda_x_dia AS predDia LEFT OUTER JOIN	Prediccion_demanda_x_funcion AS predFun ON predFun.pred_dda_dia_id = predDia.pred_dda_dia_id
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND c.complejo_id = pred.complejo_id <!--AND pred.usuario_id = #value#-->
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, pred.estado)
+		EXCEPT
+		
+  	</select>
+  	
+  	<select id="obtenerPrediccionesUsuarioCargadas" parameterClass="java.lang.Integer" resultMap="MapPrediccionIncompleta">
+  		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, pred.estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Funcion AS func,
+				Prediccion_demanda_x_dia AS predDia LEFT OUTER JOIN	Prediccion_demanda_x_funcion AS predFun ON predFun.pred_dda_dia_id = predDia.pred_dda_dia_id
+		WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value# AND predFun.funcion_id = func.funcion_id AND func.fecha IS NOT NULL
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, pred.estado)
+		EXCEPT
+		(SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, pred.estado
+			FROM	Prediccion AS pred,
+					Pelicula AS pel,
+					Complejo AS c,
+					Funcion AS func,
+					Prediccion_demanda_x_dia AS predDia LEFT OUTER JOIN	Prediccion_demanda_x_funcion AS predFun ON predFun.pred_dda_dia_id = predDia.pred_dda_dia_id
+			WHERE	pel.pelicula_id = pred.pelicula_id AND predDia.prediccion_id = pred.prediccion_id AND c.complejo_id = pred.complejo_id AND pred.usuario_id = #value# AND predFun.funcion_id = func.funcion_id AND func.cargada = 0
+			GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, pred.estado)
+		ORDER BY idPrediccion DESC
+  	</select>
+  	
+  	<!--
+  		 Nicolás Dujovne (20-05-2010): Se modifico la condicion de prediccion historica, retornando solo las que tienen el estado 1. 
+  	 -->
+  	<select id="obtenerPrediccionesCargadas" resultMap="MapPrediccionIncompleta">
+  		SELECT	pred.prediccion_id AS idPrediccion, pel.nombre AS pelicula, c.nombre as complejo, pred.fecha AS fecha, usuario_id, estado
+		FROM	Prediccion AS pred,
+				Pelicula AS pel,
+				Complejo AS c,
+				Funcion AS func,
+				Prediccion_demanda_x_dia AS predDia LEFT OUTER JOIN	Prediccion_demanda_x_funcion AS predFun ON predFun.pred_dda_dia_id = predDia.pred_dda_dia_id
+		WHERE	pel.pelicula_id = pred.pelicula_id 
+		AND predDia.prediccion_id = pred.prediccion_id 
+		AND c.complejo_id = pred.complejo_id 
+		AND predFun.funcion_id = func.funcion_id 
+		AND func.fecha IS NOT NULL
+		AND pred.estado = 1
+		GROUP BY pred.prediccion_id, pel.nombre, pred.fecha, c.nombre, usuario_id, pred.estado
+		ORDER BY idPrediccion DESC
+  	</select>
+  	
+  	<select id="obtenerParametrosPrediccion" parameterClass="java.lang.Integer" resultMap="MapParametrosPrediccion">
+  		SELECT prediccion_id, pelicula_id, ponderacion 
+  		FROM Prediccion_parametros 
+  		WHERE prediccion_id = #value#
+  	</select>
+  	
+  	<select id="obtenerCantidadDiasPrediccion" parameterClass="java.lang.Integer" resultClass="java.lang.Integer">
+  		SELECT COUNT(*)
+  		FROM Prediccion_demanda_x_dia 
+  		WHERE prediccion_id = #value#
+  	</select>
+  	
+	<update id="actualizarPrediccion" parameterClass="cl.zpricing.avant.model.prediction.Prediccion">
+		UPDATE Prediccion
+		SET pelicula_id = #pelicula.id#, fecha = #fecha#, usuario_id = #usuario.id#, complejo_id = #complejo.id#, varianza = #varianza#, estado = #estado#
+		where prediccion_id=#id#
+  	</update>
+  	
+  	<update id="actualizarPrediccionPorDia" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorDia">
+		UPDATE Prediccion_demanda_x_dia
+		SET prediccion_id = #prediccion.id#, 
+		fecha = #fecha#, estimacion = #estimacion#,
+		varianza = #varianza#
+		where pred_dda_dia_id=#id#
+  	</update>
+  	
+  	<update id="actualizarPrediccionPorFuncion" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorFuncion">
+		UPDATE Prediccion_demanda_x_funcion
+		SET 
+		estimacion = #estimacion#,
+		funcion_id = #funcionPredecida.id#,
+		varianza = #varianza#,
+		mascara_id = #mascara.id#,
+		cargada = #cargada#
+		WHERE pred_dda_func_id=#id#
+  	</update>
+  	<!--   pred_dda_dia_id = #prediccionPorDia.id#, -->
+  	<!--  le saqué esto a actualizarPrediccionPorFuncion para que, al presionar "Volver" desde una predicción 
+  	a la que se llegó desde predicciones incompletas, no se caiga por no poder obtener la id de la predicciónPorDía-->
+  	<!--  Le agregué también la línea cargada = #cargando# para que, cuando se cargue la máscara asignada, quede anotado cuál máscara está 
+  	cargada, de modo que se muestre al hacer una predicción que toque la misma función.  -->
+  	
+  	<update id="actualizarPrediccionPorClase" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorClase">
+		UPDATE Prediccion_demanda_x_clase
+		SET pred_dda_func_id = #prediccionPorFuncion.id#, 
+		estimacion = #asistencia#,
+		clase_id = #clase.id#,
+		varianza = #varianza#
+		where pred_dda_clas_id=#id#
+  	</update>
+  	
+  	<update id="actualizarPrediccionParametros" parameterClass="cl.zpricing.avant.model.prediction.PrediccionParametros">
+  		UPDATE Prediccion_parametros
+  		SET ponderacion = #ponderacion#
+  		WHERE prediccion_id = #prediccion.id#
+  		and pelicula_id = #pelicula.id#
+  	</update>
+
+	<insert id="agregarPrediccion"  parameterClass="cl.zpricing.avant.model.prediction.Prediccion">
+		INSERT INTO Prediccion
+		(pelicula_id, fecha, usuario_id, complejo_id)
+		VALUES (#pelicula.id#, #fecha#, #usuario.id#, #complejo.id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+  	
+  	<insert id="agregarPrediccionPorDia" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorDia">
+		INSERT INTO Prediccion_demanda_x_dia
+		(prediccion_id, fecha, estimacion, varianza)
+		VALUES (#prediccion.id#, #fecha#, #estimacion#, #varianza#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+  	
+  	<insert id="agregarPrediccionPorFuncion" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorFuncion">
+		INSERT INTO Prediccion_demanda_x_funcion
+		(pred_dda_dia_id, estimacion, funcion_id, varianza, mascara_id)
+		VALUES (#prediccionPorDia.id#, #estimacion#, #funcionPredecida.id#, #varianza#, #mascara.id#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+  	
+  	<insert id="agregarPrediccionPorClase" parameterClass="cl.zpricing.avant.model.prediction.PrediccionPorClase">
+		INSERT INTO Prediccion_demanda_x_clase
+		(pred_dda_func_id, clase_id, estimacion, varianza)
+		VALUES (#prediccionPorFuncion.id#, #clase.id#, #asistencia#, #varianza#)
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+  	</insert>
+  	
+  	<insert id="agregarPrediccionParametros" parameterClass="cl.zpricing.avant.model.prediction.PrediccionParametros">
+  		INSERT INTO Prediccion_Parametros (prediccion_id, pelicula_id, ponderacion)
+  		VALUES (#prediccion.id#, #pelicula.id#, #ponderacion#)
+  	</insert>
+  	
+	<delete id="eliminarPrediccion" parameterClass="cl.zpricing.avant.model.prediction.Prediccion">
+		DELETE Prediccion
+		WHERE prediccion_id = #id#
+  	</delete>
+  	
+  	<delete id="eliminarPrediccionParametros" parameterClass="cl.zpricing.avant.model.prediction.PrediccionParametros">
+		DELETE Prediccion_Parametros
+		WHERE prediccion_id = #prediccion.id# 
+		  and pelicula_id = #pelicula.id#
+  	</delete>
+  	
+  	<select id="obtenerFechaDesdePrediccion" parameterClass="java.lang.Integer" resultClass="java.util.Date">
+  		SELECT TOP 1 fecha
+  		FROM Prediccion_demanda_x_dia
+  		WHERE prediccion_id = #value#
+  		ORDER BY fecha 
+  	</select> 
+ 
+ 	<select id="obtenerPonderacionesPeliculas" parameterClass="java.util.Map" resultMap="MapParametrosPrediccion">
+  		SELECT prediccion_id, pelicula_id, ponderacion 
+  		FROM Prediccion_parametros 
+  		WHERE prediccion_id = #prediccion_id# AND NOT pelicula_id = #pelicula_id#
+  	</select>
+  	
+	<select id="obtenerPonderacion" parameterClass="java.util.Map" resultClass="java.lang.Double">
+  		SELECT ponderacion
+  		FROM Prediccion_parametros 
+  		WHERE prediccion_id = #prediccion_id# AND pelicula_id = #pelicula_id#
+  	</select>
+  	
+  	<select id="obtenerNombrePelicula" parameterClass="java.lang.Integer" resultClass="java.lang.String">
+  		SELECT p.nombre
+  		FROM Pelicula p
+  		WHERE p.pelicula_id = #pelicula_id#
+  	</select>
+  	
+  	<!--
+  		Autor: Nicolás Dujovne W.
+  		Fecha: 07-05-2010
+  		
+  		Obtiene la ultima prediccion por funcion para una determinada funcion. La idea es poder recuperar la mascara utilizada para
+  		la función y poder recargarla al complejo. 
+  	 -->
+  	<select id="obtenerUltimaPrediccionPorFuncion" parameterClass="java.util.Map" resultMap="MapPrediccionPorFuncion">
+  		SELECT TOP 1 pf.pred_dda_func_id, pf.pred_dda_dia_id, pf.estimacion, pf.funcion_id, ISNULL(pf.varianza,0) as varianza, pf.mascara_id as mascara
+		FROM Prediccion_demanda_x_funcion pf, Prediccion_demanda_x_dia pd, Prediccion p
+		WHERE pf.funcion_id= #funcion_id#
+		AND pd.pred_dda_dia_id = pf.pred_dda_dia_id
+		AND pd.prediccion_id = p.prediccion_id
+  		ORDER BY p.fecha desc
+  	</select>
+</sqlMap>

@@ -1,0 +1,12 @@
+.datatables_sort_wrapper {
+	text-align: left;
+}
+
+#headerCola {
+	height: 40px;
+}
+
+.selectedRow {
+	background-color: #09F;
+ 	cursor: pointer;
+}

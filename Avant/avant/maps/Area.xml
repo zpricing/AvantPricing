@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Area">
+	<resultMap class="cl.zpricing.avant.model.Area" id="AreaMap">
+		<result property="id" column="id"/>
+		<result property="descripcion" column="descripcion"/>
+		<result property="descripcionCorta" column="descripcion_corta"/>
+		<result property="capacidad" column="capacidad" />
+		<result property="id_externo" column="id_externo"/>
+	</resultMap>
+	
+	<resultMap class="cl.zpricing.avant.model.MascaraAreaGrupo" id="MascaraAreaGrupoMap">
+		<result property="id" column="id"/>
+		<result property="area.id" column="area_id"/>
+		<result property="area.descripcion" column="area_descripcion"/>
+		<result property="area.descripcionCorta" column="descripcion_corta"/>
+		<result property="area.id_externo" column="id_externo"/>
+		<result property="grupo.id" column="grupo_id"/>
+		<result property="grupo.descripcion" column="grupo_descripcion"/>
+		<result property="capacidad" column="capacidad" />
+		<result property="diasExpiracion" column="dias_antes_expira"/>
+		<result property="porcentajeMinimo" column="porcentaje_minimo"/>
+	</resultMap>
+	
+	<select id="obtenerArea" parameterClass="java.lang.Integer" resultMap="AreaMap">
+		SELECT id, descripcion, descripcion_corta, id_externo, 0 as capacidad
+		FROM Area
+		WHERE id = #value#
+	</select>
+	
+	<select id="obtenerAreaPorIdExterno" parameterClass="java.lang.String" resultMap="AreaMap">
+		SELECT id, descripcion, descripcion_corta, id_externo, 0 as capacidad
+		FROM Area
+		WHERE id_externo = #value#
+		order by id
+	</select>
+	
+	<select id="obtenerAreasTodas" parameterClass="java.lang.Integer" resultMap="AreaMap">
+		SELECT id, descripcion, descripcion_corta, id_externo, clase_id, 0 as capacidad
+		FROM Area
+		ORDER BY id
+	</select>
+	
+	<select id="obtenerAreasRevenueManagement" parameterClass="java.lang.Integer" resultMap="AreaMap">
+		SELECT id, descripcion, descripcion_corta, id_externo, clase_id, 0 as capacidad
+		FROM Area
+		WHERE tipo like 'RM'
+		ORDER BY id
+	</select>
+	
+	<select id="obtenerAreasExcepcionDistribuidor" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT area_id
+		FROM AreaExcepcionDistribuidor
+		WHERE distribuidor_id = #distribuidor_id#
+		AND timespan_id = #timespan_id#
+	</select>
+	
+	<select id="obtenerAreasComplejo" parameterClass="java.lang.Integer" resultMap="AreaMap">
+		SELECT Distinct     Area.id AS id, Area.descripcion AS descripcion, Area.descripcion_corta AS descripcion_corta, Area.id_externo AS id_externo, 0 AS capacidad
+		FROM       Area INNER JOIN
+                   Area_Grupo_Mascara ON Area.id = Area_Grupo_Mascara.area_id INNER JOIN
+                   Mascara ON Area_Grupo_Mascara.mascara_id = Mascara.id INNER JOIN
+                   Grupo ON Area_Grupo_Mascara.grupo_id = Grupo.id
+		WHERE     Mascara.complejo_id = #value#
+		AND Grupo.complejo_id = #value#
+		ORDER BY Area.id
+	</select>
+	
+	<select id="obtenerMascarasAreasGrupos" parameterClass="java.util.Map" resultMap="MascaraAreaGrupoMap">
+		SELECT agm.id, a.id AS area_id, a.descripcion AS area_descripcion, a.descripcion_corta, a.id_externo, g.id AS grupo_id, g.descripcion as grupo_descripcion, agm.capacidad, agm.dias_antes_expira, agm.porcentaje_minimo
+		FROM Area a, Area_Grupo_Mascara agm, Grupo g
+		WHERE a.id = agm.area_id
+		AND g.id = agm.grupo_id
+		AND grupo_id = #grupo_id#
+		AND mascara_id = #mascara_id#
+		ORDER BY agm.dias_antes_expira desc
+	</select>
+	
+	<select id="obtenerMascarasAreaGruposRevenueManagement" parameterClass="java.util.Map" resultMap="MascaraAreaGrupoMap">
+		SELECT agm.id, a.id AS area_id, a.descripcion AS area_descripcion, a.descripcion_corta, a.id_externo, g.id AS grupo_id, g.descripcion as grupo_descripcion, agm.capacidad, agm.dias_antes_expira, agm.porcentaje_minimo
+		FROM Area a, Area_Grupo_Mascara agm, Grupo g
+		WHERE a.id = agm.area_id
+		AND g.id = agm.grupo_id
+		AND grupo_id = #grupo_id#
+		AND mascara_id = #mascara_id#
+		AND tipo = 'RM'
+		ORDER BY agm.dias_antes_expira desc
+	</select>
+	
+	<update id="actualizarMascaraAreaGrupo" parameterClass="cl.zpricing.avant.model.MascaraAreaGrupo">
+		UPDATE Area_Grupo_Mascara
+		SET capacidad = #capacidad#, dias_antes_expira = #diasExpiracion#, porcentaje_minimo = #porcentajeMinimo#
+		WHERE id = #id#
+	</update>
+	
+	<insert id="guardarMascaraAreaGrupo" parameterClass="java.util.Map">
+		INSERT INTO Area_Grupo_Mascara (mascara_id, area_id, grupo_id, capacidad, dias_antes_expira)
+		VALUES (#mascara_id#, #area_id#, #grupo_id#, #capacidad#, #dias_antes_expira#) 
+		<selectKey resultClass="int">
+			SELECT @@IDENTITY AS ID
+        </selectKey>
+	</insert>
+</sqlMap>

@@ -1,0 +1,57 @@
+@CHARSET "ISO-8859-1";
+#form-area {
+	background: white;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	color:#666; 
+	width: 700px;
+	font-size: 12px;
+	margin-left: 45px;
+	}
+	
+#contenedor_filtro {
+	margin-left: 45px;
+}
+
+
+form.formStyle INPUT:FOCUS, INPUT:HOVER, SELECT:Hover {
+	border: 1px solid lightgray;
+}
+
+form.formStyle fieldset {
+  margin-bottom: 10px;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 12px;
+}
+form.formStyle legend {
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 13px;
+}
+form.formStyle{
+font-size: 12px;
+width: 500px;
+}
+
+form label {
+	display: block;
+	float: left;
+	width: 100px;
+}
+
+.botonSubmit {
+	background-color: #666;
+	color: #fff;
+	height:22px;
+	font-size: 12px;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	border: 0 solid;
+	padding-bottom: 5px;
+	
+	}
+
+.funcionsinmascara {
+	background-color: #00FF00;
+}
+.funcionconmascara {
+	background-color: #CC0000;
+}
+
